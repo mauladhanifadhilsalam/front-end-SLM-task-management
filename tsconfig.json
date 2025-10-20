@@ -1,4 +1,5 @@
 {
+  
   "compilerOptions": {
     "types": ["node"],
     "moduleResolution": "bundler",
@@ -9,7 +10,12 @@
     "resolveJsonModule": true,
     "jsx": "react-jsx",
     "isolatedModules": true,
-    "noEmit": true
+    "ignoreDeprecations": "6.0",
+    "noEmit": true,
+    "baseUrl": ".",
+     "paths": {
+      "@/*": ["src/*"]
+    }
   },
   "include": ["src", "vite.config.ts"]
 }
