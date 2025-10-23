@@ -95,7 +95,7 @@ export default function EditUsers() {
             payload.password = form.password;
         }
 
-        const res = await axios.put(`${API_BASE}/users/${id}`, payload, {
+        const res = await axios.patch(`${API_BASE}/users/${id}`, payload, {
             headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         });
 
