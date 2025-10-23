@@ -6,6 +6,7 @@ import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { login, RoleApi } from "@/services/auth"
 import Swal from "sweetalert2"
+import axios from "axios"
 
 export function LoginForm({
   className,
@@ -50,7 +51,7 @@ export function LoginForm({
           : "/developer/dashboard"
 
       setRedirectTo(to)
-      setJustLoggedIn(true) // ✅ baru login sukses, siap fetch alert API
+      setJustLoggedIn(true)
     } catch (err: any) {
       const message =
         err?.response?.data?.message ??
@@ -62,13 +63,11 @@ export function LoginForm({
     }
   }
 
-  // ✅ Setelah login berhasil, ambil pesan dari API sesuai role
   useEffect(() => {
     if (!justLoggedIn) return
 
     const token = localStorage.getItem("token")
     const role = localStorage.getItem("role")
-
     if (!token || !role) return
 
     let apiUrl = ""
@@ -86,34 +85,33 @@ export function LoginForm({
         return
     }
 
-    fetch(apiUrl, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(async (res) => {
-        if (!res.ok) throw new Error("Gagal memuat dashboard")
-        const data = await res.json()
-
-        // ✅ SweetAlert2 tampilkan pesan, dan navigate setelah klik OK
+    axios
+      .get(apiUrl, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => {
         Swal.fire({
           title: "Berhasil Login!",
-          text: data.message, // pesan dari API, misal: "Welcome to Admin Dashboard"
+          text: res.data?.message || "Selamat datang di dashboard!",
           icon: "success",
-          confirmButtonText: "OK",
-        }).then((result) => {
-          if (result.isConfirmed && redirectTo) {
-            navigate(redirectTo)
-          }
+          showConfirmButton: false,
+          timer: 1500,
         })
+
+        if (redirectTo) navigate(redirectTo)
       })
       .catch((err) => {
         Swal.fire({
           title: "Error!",
-          text: err.message,
+          text:
+            err.response?.data?.message ||
+            err.message ||
+            "Gagal memuat dashboard",
           icon: "error",
           confirmButtonText: "Coba Lagi",
         })
       })
-  }, [justLoggedIn, redirectTo])
+  }, [justLoggedIn, redirectTo, navigate])
 
   return (
     <form
