@@ -5,6 +5,7 @@ import * as React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { IconPlus } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { IconTrash, IconEdit, IconEye, IconLayoutGrid, IconChevronDown } from "@tabler/icons-react";
@@ -172,6 +173,7 @@ export default function AdminUsers() {
                         </div>
                         <Button
                         size="sm"
+                        className="cursor-pointer"
                         onClick={() => navigate("/admin/dashboard/users/create")}
                         >
                         <IconPlus className="mr-2 h-4 w-4" />
@@ -179,7 +181,7 @@ export default function AdminUsers() {
                         </Button>
                     </div>
                     </div>
-
+                
                     <div className="px-4 lg:px-6">
                       {/* controls: search, role filter, columns */}
                         <div className="flex gap-3 items-center mb-4">
@@ -203,7 +205,7 @@ export default function AdminUsers() {
                             <div className="ml-auto">
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <Button size="sm" className="flex items-center gap-2">
+                                  <Button size="sm" className="flex items-center gap-2 cursor-pointer">
                                     <IconLayoutGrid className="h-4 w-4" />
                                     <span>Columns</span>
                                     <IconChevronDown className="h-4 w-4 ml-1" />
@@ -286,7 +288,7 @@ export default function AdminUsers() {
                                     )}
                                     {cols.actions && (
                                     <td className="px-4 py-3">
-                                        <div className="flex">
+                                        <div className="flex justify-center">
                                             <Link
                                                 to={`/admin/dashboard/users/view/${u.id}`}
                                                 className="mr-4"

@@ -16,9 +16,9 @@ export default function SigninAdminPage() {
             </div>
             <div className="bg-muted relative hidden lg:block">
                 <img
-                src="https://ui.shadcn.com/placeholder.svg"
+                src= "/assets/projek.png"
                 alt="Image"
-                className=""
+                className="h-full w-full object-cover"
                 />
             </div>
         </div>
