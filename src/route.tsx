@@ -12,7 +12,6 @@ import AdminUsers from './pages/dasboard/admin/adminUsers'
 import CreateUsers from './pages/dasboard/admin/users/createUsers'
 import ViewUsers from './pages/dasboard/admin/users/viewUsers'
 import EditUsers from './pages/dasboard/admin/users/editUsers'
-// protected route
 import { ProtectedRoute } from "./components/ProtectedRoute"
 
 const rootElement = document.getElementById('root') as HTMLElement;
@@ -20,10 +19,11 @@ const rootElement = document.getElementById('root') as HTMLElement;
 createRoot(rootElement).render(
   <StrictMode>
     <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<SigninUserPage />} />
-          <Route path='/admin/signin' element={<SigninAdminPage />}></Route>
-           {/* === DASHBOARD ROUTES === */}
+      <Routes>
+        <Route path="/" element={<SigninUserPage />} />
+        <Route path="/admin/signin" element={<SigninAdminPage />} />
+
+        {/* === DASHBOARD ROUTES === */}
         <Route
           path="/admin/dashboard"
           element={
@@ -32,6 +32,7 @@ createRoot(rootElement).render(
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/admin/dashboard/users"
           element={
@@ -40,6 +41,7 @@ createRoot(rootElement).render(
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/admin/dashboard/users/create"
           element={
@@ -48,6 +50,7 @@ createRoot(rootElement).render(
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/admin/dashboard/users/view/:id"
           element={
@@ -56,6 +59,7 @@ createRoot(rootElement).render(
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/admin/dashboard/users/edit/:id"
           element={
@@ -64,6 +68,7 @@ createRoot(rootElement).render(
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/project-manager/dashboard"
           element={
@@ -72,6 +77,7 @@ createRoot(rootElement).render(
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/developer/dashboard"
           element={
@@ -80,7 +86,7 @@ createRoot(rootElement).render(
             </ProtectedRoute>
           }
         />
-        </Routes>
+      </Routes>
     </BrowserRouter>
   </StrictMode>,
 )

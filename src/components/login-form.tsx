@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom"
 import { login, RoleApi } from "@/services/auth"
 import Swal from "sweetalert2"
 import axios from "axios"
+
 export function LoginForm({
   className,
   roleType = "user",
@@ -62,56 +63,55 @@ export function LoginForm({
     }
   }
 
- useEffect(() => {
-  if (!justLoggedIn) return
+  useEffect(() => {
+    if (!justLoggedIn) return
 
-  const token = localStorage.getItem("token")
-  const role = localStorage.getItem("role")
+    const token = localStorage.getItem("token")
+    const role = localStorage.getItem("role")
+    if (!token || !role) return
 
-  if (!token || !role) return
+    let apiUrl = ""
+    switch (role) {
+      case "admin":
+        apiUrl = "http://localhost:3000/admin-dashboard"
+        break
+      case "project_manager":
+        apiUrl = "http://localhost:3000/pm-dashboard"
+        break
+      case "developer":
+        apiUrl = "http://localhost:3000/developer-dashboard"
+        break
+      default:
+        return
+    }
 
-  let apiUrl = ""
-  switch (role) {
-    case "admin":
-      apiUrl = "http://localhost:3000/admin-dashboard"
-      break
-    case "project_manager":
-      apiUrl = "http://localhost:3000/pm-dashboard"
-      break
-    case "developer":
-      apiUrl = "http://localhost:3000/developer-dashboard"
-      break
-    default:
-      return
-  }
-
-  axios
-    .get(apiUrl, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    .then((res) => {
-      Swal.fire({
-        title: "Berhasil Login!",
-        text: res.data?.message || "Selamat datang di dashboard!",
-        icon: "success",
-        showConfirmButton: false,
-        timer: 1500,
+    axios
+      .get(apiUrl, {
+        headers: { Authorization: `Bearer ${token}` },
       })
+      .then((res) => {
+        Swal.fire({
+          title: "Berhasil Login!",
+          text: res.data?.message || "Selamat datang di dashboard!",
+          icon: "success",
+          showConfirmButton: false,
+          timer: 1500,
+        })
 
-      if (redirectTo) navigate(redirectTo)
-    })
-    .catch((err) => {
-      Swal.fire({
-        title: "Error!",
-        text:
-          err.response?.data?.message ||
-          err.message ||
-          "Gagal memuat dashboard",
-        icon: "error",
-        confirmButtonText: "Coba Lagi",
+        if (redirectTo) navigate(redirectTo)
       })
-    })
-}, [justLoggedIn, redirectTo])
+      .catch((err) => {
+        Swal.fire({
+          title: "Error!",
+          text:
+            err.response?.data?.message ||
+            err.message ||
+            "Gagal memuat dashboard",
+          icon: "error",
+          confirmButtonText: "Coba Lagi",
+        })
+      })
+  }, [justLoggedIn, redirectTo, navigate])
 
   return (
     <form
