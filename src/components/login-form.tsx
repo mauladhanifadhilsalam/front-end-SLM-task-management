@@ -6,7 +6,6 @@ import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { login, RoleApi } from "@/services/auth"
 import Swal from "sweetalert2"
-import axios from "axios"
 
 export function LoginForm({
   className,
@@ -18,7 +17,7 @@ export function LoginForm({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [justLoggedIn, setJustLoggedIn] = useState(false)
-  const [redirectTo, setRedirectTo] = useState("") // 🔹 simpan path tujuan
+  const [redirectTo, setRedirectTo] = useState("")
   const navigate = useNavigate()
 
   const allowed: RoleApi[] =
@@ -39,10 +38,12 @@ export function LoginForm({
         throw new Error("Akun tidak diizinkan untuk halaman ini.")
       }
 
+      // Simpan token & role di localStorage
       localStorage.setItem("token", data.accessToken)
       localStorage.setItem("role", role)
       localStorage.setItem("email", data.user.email ?? "")
 
+      // Tentukan redirect path
       const to =
         role === "admin"
           ? "/admin/dashboard"
@@ -63,54 +64,11 @@ export function LoginForm({
     }
   }
 
+  // 🔹 Setelah login berhasil, langsung redirect tanpa fetch API
   useEffect(() => {
-    if (!justLoggedIn) return
-
-    const token = localStorage.getItem("token")
-    const role = localStorage.getItem("role")
-    if (!token || !role) return
-
-    let apiUrl = ""
-    switch (role) {
-      case "admin":
-        apiUrl = "http://localhost:3000/admin-dashboard"
-        break
-      case "project_manager":
-        apiUrl = "http://localhost:3000/pm-dashboard"
-        break
-      case "developer":
-        apiUrl = "http://localhost:3000/developer-dashboard"
-        break
-      default:
-        return
+    if (justLoggedIn && redirectTo) {
+      navigate(redirectTo)
     }
-
-    axios
-      .get(apiUrl, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => {
-        Swal.fire({
-          title: "Berhasil Login!",
-          text: res.data?.message || "Selamat datang di dashboard!",
-          icon: "success",
-          showConfirmButton: false,
-          timer: 1500,
-        })
-
-        if (redirectTo) navigate(redirectTo)
-      })
-      .catch((err) => {
-        Swal.fire({
-          title: "Error!",
-          text:
-            err.response?.data?.message ||
-            err.message ||
-            "Gagal memuat dashboard",
-          icon: "error",
-          confirmButtonText: "Coba Lagi",
-        })
-      })
   }, [justLoggedIn, redirectTo, navigate])
 
   return (
