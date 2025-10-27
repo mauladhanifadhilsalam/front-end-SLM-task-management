@@ -12,7 +12,12 @@ import AdminUsers from './pages/dasboard/admin/adminUsers'
 import CreateUsers from './pages/dasboard/admin/users/createUsers'
 import ViewUsers from './pages/dasboard/admin/users/viewUsers'
 import EditUsers from './pages/dasboard/admin/users/editUsers'
+import AdminProjectOwners from './pages/dasboard/admin/adminProjectOwners'
+import AdminProjectOwnersCreate from './pages/dasboard/admin/projectOwners/createProjectOwnerPage'
+import EditProjectOwnerPage from './pages/dasboard/admin/projectOwners/editProjectOwnerPage'
+import ViewProjectOwnnerPage from './pages/dasboard/admin/projectOwners/viewProjectOwnnerPage'
 import { ProtectedRoute } from "./components/ProtectedRoute"
+import { View } from 'lucide-react'
 
 const rootElement = document.getElementById('root') as HTMLElement;
 
@@ -41,6 +46,23 @@ createRoot(rootElement).render(
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/admin/dashboard/project-owners"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminProjectOwners />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/dashboard/project-owners/create"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminProjectOwnersCreate />
+            </ProtectedRoute>
+          }
+        />
+        
 
         <Route
           path="/admin/dashboard/users/create"
@@ -59,12 +81,28 @@ createRoot(rootElement).render(
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/admin/dashboard/project-owners/view/:id"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <ViewProjectOwnnerPage />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/admin/dashboard/users/edit/:id"
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
               <EditUsers />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/dashboard/project-owners/edit/:id"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <EditProjectOwnerPage />
             </ProtectedRoute>
           }
         />
