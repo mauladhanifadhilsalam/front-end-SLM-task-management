@@ -6,28 +6,16 @@ import Swal from "sweetalert2";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { IconArrowLeft, IconCheck } from "@tabler/icons-react";
 
-
-const USE_DUMMY = true; 
+const API_BASE = "http://localhost:3000";
+const OPTIONS_TTL_MS = 5 * 60 * 1000; // 5 menit
 
 type TicketType = "ISSUE" | "TASK" | string;
 type TicketPriority = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL" | string;
@@ -52,111 +40,49 @@ type Ticket = {
   status: TicketStatus;
   startDate?: string | null;
   dueDate?: string | null;
+  project?: { id: number; name: string } | null;
+  requester?: { id: number; fullName?: string; name?: string; email?: string } | null;
 };
 
-const TICKET_TYPES = [
-  { value: "ISSUE", label: "Issue" },
-  { value: "TASK", label: "Task" },
-] as const;
-const TICKET_PRIORITIES = [
-  { value: "LOW", label: "Low" },
-  { value: "MEDIUM", label: "Medium" },
-  { value: "HIGH", label: "High" },
-  { value: "CRITICAL", label: "Critical" },
-] as const;
-const TICKET_STATUSES = [
-  { value: "NEW", label: "New" },
-  { value: "TO_DO", label: "To Do" },
-  { value: "IN_PROGRESS", label: "In Progress" },
-  { value: "IN_REVIEW", label: "In Review" },
-  { value: "DONE", label: "Done" },
-  { value: "RESOLVED", label: "Resolved" },
-  { value: "CLOSED", label: "Closed" },
-] as const;
+type Opt = { id: number; name: string };
 
-/* =========================
-   Small helper Select wrapper
-========================= */
-type Option = { value: string; label: string };
-
-function FieldSelect({
-  id,
-  label,
-  placeholder,
-  value,
-  onValueChange,
-  disabled,
-  required = false,
-  description,
-  options,
-}: {
-  id: string;
-  label: string;
-  placeholder: string;
-  value: string;
-  onValueChange: (v: string) => void;
-  disabled?: boolean;
-  required?: boolean;
-  description?: string;
-  options: Option[];
-}) {
-  return (
-    <div className="space-y-1.5">
-      <div className="flex items-center gap-1">
-        <Label htmlFor={id}>{label}</Label>
-        {required && <span className="text-destructive">*</span>}
-      </div>
-      {description && (
-        <p className="text-xs text-muted-foreground">{description}</p>
-      )}
-      <Select value={value} onValueChange={onValueChange} disabled={disabled}>
-        <SelectTrigger id={id}>
-          <SelectValue placeholder={placeholder} />
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((opt) => (
-            <SelectItem key={opt.value} value={opt.value}>
-              {opt.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
-  );
+function toLocalInput(iso?: string | null) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(
+    d.getMinutes()
+  )}`;
 }
 
-/* =========================
-   Component
-========================= */
+function mapProjects(raw: any[]): Opt[] {
+  return raw.map((p) => ({
+    id: Number(p.id ?? p.projectId ?? 0),
+    name: String(p.name ?? p.projectName ?? `Project #${p.id}`),
+  }));
+}
+
+function mapUsers(raw: any[]): Opt[] {
+  return raw.map((u) => ({
+    id: Number(u.id ?? u.userId ?? 0),
+    name: String(u.fullName ?? u.name ?? u.email ?? `User #${u.id}`),
+  }));
+}
+
 export default function EditTickets() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
-  // dropdown dummy; ganti ke fetch bila endpoint tersedia
-  const [projects] = React.useState<{ id: number; name: string }[]>([
-    { id: 10, name: "SLM Task Management" },
-    { id: 11, name: "Desaku Platform" },
-    { id: 12, name: "SALAM Enterprise Revamp" },
-  ]);
-  const [requesters] = React.useState<{ id: number; name: string }[]>([
-    { id: 5, name: "Maulana" },
-    { id: 7, name: "Ghifari" },
-    { id: 4, name: "Maula" },
-  ]);
+  // Options (projects, requesters) with localStorage TTL cache
+  const [projects, setProjects] = React.useState<Opt[]>([]);
+  const [requesters, setRequesters] = React.useState<Opt[]>([]);
+  const [loadingOptions, setLoadingOptions] = React.useState(true);
 
-  const projectOptions: Option[] = projects.map((p) => ({
-    value: String(p.id),
-    label: `${p.name} (#${p.id})`,
-  }));
-  const requesterOptions: Option[] = requesters.map((r) => ({
-    value: String(r.id),
-    label: `${r.name} (#${r.id})`,
-  }));
-
+  // Form state
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-
   const [form, setForm] = React.useState({
     projectId: "",
     requesterId: "",
@@ -168,6 +94,89 @@ export default function EditTickets() {
     startDate: "",
     dueDate: "",
   });
+
+  const tokenHeader = React.useMemo(() => {
+    const token = localStorage.getItem("token");
+    return token ? { Authorization: `Bearer ${token}` } : undefined;
+  }, []);
+
+  // 1) Try read options from cache (instant)
+  React.useEffect(() => {
+    try {
+      const cached = localStorage.getItem("options_cache");
+      if (cached) {
+        const { projects, requesters, ts } = JSON.parse(cached);
+        if (Date.now() - ts < OPTIONS_TTL_MS) {
+          setProjects(projects ?? []);
+          setRequesters(requesters ?? []);
+          setLoadingOptions(false);
+        }
+      }
+    } catch {}
+  }, []);
+
+  // 2) Revalidate options in background (abortable)
+  React.useEffect(() => {
+    const controller = new AbortController();
+    (async () => {
+      try {
+        setLoadingOptions((prev) => prev && true); // kalau belum punya cache, tetap true
+        const [projRes, userRes] = await Promise.all([
+          axios.get(`${API_BASE}/projects`, { headers: tokenHeader, signal: controller.signal }),
+          axios.get(`${API_BASE}/users`, { headers: tokenHeader, signal: controller.signal }),
+        ]);
+
+        const projRaw = Array.isArray(projRes.data) ? projRes.data : projRes.data?.data ?? [];
+        const userRaw = Array.isArray(userRes.data) ? userRes.data : userRes.data?.data ?? [];
+
+        const p = mapProjects(projRaw);
+        const u = mapUsers(userRaw);
+
+        setProjects(p);
+        setRequesters(u);
+
+        localStorage.setItem("options_cache", JSON.stringify({ projects: p, requesters: u, ts: Date.now() }));
+      } catch (e: any) {
+        if (axios.isCancel?.(e)) return;
+        // Jangan timpa error form; cukup biarkan options pakai cache
+      } finally {
+        setLoadingOptions(false);
+      }
+    })();
+    return () => controller.abort();
+  }, [tokenHeader]);
+
+  // 3) Fetch ticket detail
+  const fetchTicket = React.useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const controller = new AbortController();
+    try {
+      const res = await axios.get(`${API_BASE}/tickets/${id}`, { headers: tokenHeader, signal: controller.signal });
+      const t: Ticket = (res.data?.data ?? res.data) as Ticket;
+
+      setForm({
+        projectId: String(t.projectId ?? t.project?.id ?? ""),
+        requesterId: String(t.requesterId ?? t.requester?.id ?? ""),
+        type: (t.type as TicketType) ?? "",
+        title: t.title ?? "",
+        description: t.description ?? "",
+        priority: (t.priority as TicketPriority) ?? "",
+        status: (t.status as TicketStatus) ?? "",
+        startDate: toLocalInput(t.startDate ?? null),
+        dueDate: toLocalInput(t.dueDate ?? null),
+      });
+    } catch (err: any) {
+      setError(err?.response?.data?.message || err?.message || "Gagal memuat ticket.");
+    } finally {
+      setLoading(false);
+    }
+    return () => controller.abort();
+  }, [id, tokenHeader]);
+
+  React.useEffect(() => {
+    fetchTicket();
+  }, [fetchTicket]);
 
   const handleChange = (field: keyof typeof form, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -190,85 +199,13 @@ export default function EditTickets() {
     return null;
   };
 
-  const fetchTicket = React.useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      if (USE_DUMMY) {
-        // ---- dummy dataset ----
-        const dummy: Ticket[] = [
-          {
-            id: 1,
-            projectId: 10,
-            requesterId: 5,
-            type: "ISSUE",
-            title: "Fix login redirect issue",
-            description: "User redirected incorrectly after login.",
-            priority: "HIGH",
-            status: "IN_PROGRESS",
-            startDate: "2025-10-28T10:00:00Z",
-            dueDate: "2025-11-05T17:00:00Z",
-          },
-          {
-            id: 2,
-            projectId: 11,
-            requesterId: 7,
-            type: "TASK",
-            title: "Add Ticket Assignee Filter",
-            description: "Filter tickets by assigned user.",
-            priority: "MEDIUM",
-            status: "TO_DO",
-            startDate: "2025-10-30T09:00:00Z",
-            dueDate: "2025-11-10T18:00:00Z",
-          },
-        ];
-        const found = dummy.find((t) => String(t.id) === String(id));
-        if (!found) throw new Error("Ticket tidak ditemukan (dummy).");
-
-        // prefill form; datetime-local butuh value tanpa Z dan detik
-        const toLocalInput = (iso?: string | null) => {
-          if (!iso) return "";
-          const d = new Date(iso);
-          if (isNaN(d.getTime())) return "";
-          const pad = (n: number) => String(n).padStart(2, "0");
-          const yyyy = d.getFullYear();
-          const MM = pad(d.getMonth() + 1);
-          const dd = pad(d.getDate());
-          const hh = pad(d.getHours());
-          const mm = pad(d.getMinutes());
-          return `${yyyy}-${MM}-${dd}T${hh}:${mm}`;
-        };
-
-        setForm({
-          projectId: String(found.projectId),
-          requesterId: String(found.requesterId),
-          type: (found.type as TicketType) ?? "",
-          title: found.title ?? "",
-          description: found.description ?? "",
-          priority: (found.priority as TicketPriority) ?? "",
-          status: (found.status as TicketStatus) ?? "",
-          startDate: toLocalInput(found.startDate),
-          dueDate: toLocalInput(found.dueDate),
-        });
-      } 
-    } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || "Gagal memuat ticket.");
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
-
-  React.useEffect(() => {
-    fetchTicket();
-  }, [fetchTicket]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    const msg = validate();
-    if (msg) {
-      setError(msg);
+    const v = validate();
+    if (v) {
+      setError(v);
       return;
     }
 
@@ -286,10 +223,7 @@ export default function EditTickets() {
 
     try {
       setSaving(true);
-
-      if (USE_DUMMY) {
-        await new Promise((r) => setTimeout(r, 700)); // simulasi success
-      } 
+      await axios.patch(`${API_BASE}/tickets/${id}`, payload, { headers: tokenHeader });
 
       await Swal.fire({
         title: "Saved",
@@ -322,178 +256,231 @@ export default function EditTickets() {
         <SidebarInset>
           <SiteHeader />
           <div className="flex flex-1 flex-col">
-            <div className="@container/main flex flex-1 flex-col gap-2">
-              <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-                <div className="px-4 lg:px-6">
-                  <div className="flex items-center gap-4 mb-4">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => navigate(`/admin/dashboard/tickets`)}
-                      className="flex items-center gap-2"
-                    >
-                      <IconArrowLeft className="h-4 w-4" />
-                      Back
-                    </Button>
-                  </div>
-                  <h1 className="text-2xl font-semibold">
-                    {loading ? "Loading..." : "Edit Ticket"}
-                  </h1>
-                  <p className="text-muted-foreground">
-                    Ubah detail ticket lalu simpan.
-                  </p>
+            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+              <div className="px-4 lg:px-6">
+                <div className="flex items-center gap-4 mb-4">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate(`/admin/dashboard/tickets`)}
+                    className="flex items-center gap-2"
+                  >
+                    <IconArrowLeft className="h-4 w-4" />
+                    Back
+                  </Button>
                 </div>
+                <h1 className="text-2xl font-semibold">{loading ? "Loading..." : "Edit Ticket"}</h1>
+                <p className="text-muted-foreground">Ubah detail ticket lalu simpan.</p>
+              </div>
 
-                <div className="px-4 lg:px-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Ticket Information</CardTitle>
-                      <CardDescription>Edit fields you need to update</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      {error && (
-                        <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-3 mb-4">
-                          {error}
-                        </div>
-                      )}
+              <div className="px-4 lg:px-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Ticket Information</CardTitle>
+                    <CardDescription>Edit fields you need to update</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {error && (
+                      <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-3 mb-4">
+                        {error}
+                      </div>
+                    )}
 
-                      <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Project & Requester */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <FieldSelect
-                            id="project"
-                            label="Project"
-                            required
-                            description="Proyek yang terkait dengan ticket."
-                            placeholder="Select a project"
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                      {/* Project & Requester */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <Label>Project *</Label>
+                          <Select
                             value={form.projectId}
                             onValueChange={(v) => handleChange("projectId", v)}
-                            disabled={saving || loading}
-                            options={projectOptions}
-                          />
-
-                          <FieldSelect
-                            id="requester"
-                            label="Requester"
-                            required
-                            description="Orang yang meminta/melaporkan ticket."
-                            placeholder="Select a requester"
-                            value={form.requesterId}
-                            onValueChange={(v) => handleChange("requesterId", v)}
-                            disabled={saving || loading}
-                            options={requesterOptions}
-                          />
+                            disabled={saving}
+                          >
+                            <SelectTrigger>
+                              <SelectValue
+                                placeholder={
+                                  loadingOptions
+                                    ? (form.projectId ? `#${form.projectId}` : "Loading projects…")
+                                    : "Select a project"
+                                }
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {loadingOptions ? (
+                                <div className="p-2 text-xs text-muted-foreground">Loading projects…</div>
+                              ) : (
+                                projects.map((p) => (
+                                  <SelectItem key={p.id} value={String(p.id)}>
+                                    {p.name} (#{p.id})
+                                  </SelectItem>
+                                ))
+                              )}
+                            </SelectContent>
+                          </Select>
                         </div>
 
-                        {/* Type, Priority, Status */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                          <FieldSelect
-                            id="type"
-                            label="Type"
-                            required
-                            placeholder="Select type"
+                        <div className="space-y-2">
+                          <Label>Requester *</Label>
+                          <Select
+                            value={form.requesterId}
+                            onValueChange={(v) => handleChange("requesterId", v)}
+                            disabled={saving}
+                          >
+                            <SelectTrigger>
+                              <SelectValue
+                                placeholder={
+                                  loadingOptions
+                                    ? (form.requesterId ? `#${form.requesterId}` : "Loading requesters…")
+                                    : "Select a requester"
+                                }
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {loadingOptions ? (
+                                <div className="p-2 text-xs text-muted-foreground">Loading requesters…</div>
+                              ) : (
+                                requesters.map((r) => (
+                                  <SelectItem key={r.id} value={String(r.id)}>
+                                    {r.name} (#{r.id})
+                                  </SelectItem>
+                                ))
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      {/* Type, Priority, Status */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                          <Label>Type *</Label>
+                          <Select
                             value={form.type}
                             onValueChange={(v) => handleChange("type", v)}
                             disabled={saving || loading}
-                            options={TICKET_TYPES as unknown as Option[]}
-                          />
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {(["ISSUE", "TASK"] as const).map((t) => (
+                                <SelectItem key={t} value={t}>
+                                  {t}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
 
-                          <FieldSelect
-                            id="priority"
-                            label="Priority"
-                            required
-                            placeholder="Select priority"
+                        <div className="space-y-2">
+                          <Label>Priority *</Label>
+                          <Select
                             value={form.priority}
                             onValueChange={(v) => handleChange("priority", v)}
                             disabled={saving || loading}
-                            options={TICKET_PRIORITIES as unknown as Option[]}
-                          />
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select priority" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {(["LOW", "MEDIUM", "HIGH", "CRITICAL"] as const).map((p) => (
+                                <SelectItem key={p} value={p}>
+                                  {p}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
 
-                          <FieldSelect
-                            id="status"
-                            label="Status"
-                            required
-                            placeholder="Select status"
+                        <div className="space-y-2">
+                          <Label>Status *</Label>
+                          <Select
                             value={form.status}
                             onValueChange={(v) => handleChange("status", v)}
                             disabled={saving || loading}
-                            options={TICKET_STATUSES as unknown as Option[]}
-                          />
-                        </div>
-
-                        {/* Title */}
-                        <div className="space-y-1.5">
-                          <div className="flex items-center gap-1">
-                            <Label htmlFor="title">Title</Label>
-                            <span className="text-destructive">*</span>
-                          </div>
-                          <Input
-                            id="title"
-                            placeholder="Contoh: Fix login redirect issue"
-                            value={form.title}
-                            onChange={(e) => handleChange("title", e.target.value)}
-                            disabled={saving || loading}
-                          />
-                        </div>
-
-                        {/* Description */}
-                        <div className="space-y-1.5">
-                          <Label htmlFor="description">Description</Label>
-                          <p className="text-xs text-muted-foreground">
-                            Jelaskan masalah/kebutuhan dengan ringkas.
-                          </p>
-                          <Textarea
-                            id="description"
-                            rows={5}
-                            placeholder="Deskripsikan isu/permintaan…"
-                            value={form.description}
-                            onChange={(e) => handleChange("description", e.target.value)}
-                            disabled={saving || loading}
-                          />
-                        </div>
-
-                        {/* Dates */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div className="space-y-1.5">
-                            <Label htmlFor="startDate">Start Date</Label>
-                            <Input
-                              id="startDate"
-                              type="datetime-local"
-                              value={form.startDate}
-                              onChange={(e) => handleChange("startDate", e.target.value)}
-                              disabled={saving || loading}
-                            />
-                          </div>
-                          <div className="space-y-1.5">
-                            <Label htmlFor="dueDate">Due Date</Label>
-                            <Input
-                              id="dueDate"
-                              type="datetime-local"
-                              value={form.dueDate}
-                              onChange={(e) => handleChange("dueDate", e.target.value)}
-                              disabled={saving || loading}
-                            />
-                          </div>
-                        </div>
-
-                        <div className="flex justify-end gap-3">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => navigate(`/admin/dashboard/tickets/view/${id}`)}
-                            disabled={saving}
                           >
-                            Cancel
-                          </Button>
-                          <Button type="submit" disabled={saving}>
-                            <IconCheck className="mr-2 h-4 w-4" />
-                            {saving ? "Saving..." : "Save Changes"}
-                          </Button>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {(["NEW", "TO_DO", "IN_PROGRESS", "IN_REVIEW", "DONE", "RESOLVED", "CLOSED"] as const).map(
+                                (s) => (
+                                  <SelectItem key={s} value={s}>
+                                    {s}
+                                  </SelectItem>
+                                )
+                              )}
+                            </SelectContent>
+                          </Select>
                         </div>
-                      </form>
-                    </CardContent>
-                  </Card>
-                </div>
+                      </div>
+
+                      {/* Title */}
+                      <div className="space-y-2">
+                        <Label htmlFor="title">Title *</Label>
+                        <Input
+                          id="title"
+                          placeholder="Contoh: Fix login redirect issue"
+                          value={form.title}
+                          onChange={(e) => handleChange("title", e.target.value)}
+                          disabled={saving || loading}
+                        />
+                      </div>
+
+                      {/* Description */}
+                      <div className="space-y-2">
+                        <Label htmlFor="description">Description</Label>
+                        <Textarea
+                          id="description"
+                          rows={5}
+                          placeholder="Jelaskan isu/permintaan…"
+                          value={form.description}
+                          onChange={(e) => handleChange("description", e.target.value)}
+                          disabled={saving || loading}
+                        />
+                      </div>
+
+                      {/* Dates */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="startDate">Start Date</Label>
+                          <Input
+                            id="startDate"
+                            type="datetime-local"
+                            value={form.startDate}
+                            onChange={(e) => handleChange("startDate", e.target.value)}
+                            disabled={saving || loading}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="dueDate">Due Date</Label>
+                          <Input
+                            id="dueDate"
+                            type="datetime-local"
+                            value={form.dueDate}
+                            onChange={(e) => handleChange("dueDate", e.target.value)}
+                            disabled={saving || loading}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end gap-3">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => navigate(`/admin/dashboard/tickets/view/${id}`)}
+                          disabled={saving}
+                        >
+                          Cancel
+                        </Button>
+                        <Button type="submit" disabled={saving}>
+                          <IconCheck className="mr-2 h-4 w-4" />
+                          {saving ? "Saving..." : "Save Changes"}
+                        </Button>
+                      </div>
+                    </form>
+                  </CardContent>
+                </Card>
               </div>
             </div>
           </div>

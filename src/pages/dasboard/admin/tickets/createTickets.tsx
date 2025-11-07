@@ -26,30 +26,23 @@ import {
 } from "@/components/ui/select";
 import { IconArrowLeft, IconCheck } from "@tabler/icons-react";
 
-const USE_DUMMY = true; 
+const API_BASE = "http://localhost:3000";
 
 type TicketType = "ISSUE" | "TASK";
 type TicketPriority = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
-type TicketStatus = "NEW" |"TO_DO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE" | "RESOLVED" | "CLOSED";
+type TicketStatus = "NEW" | "TO_DO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE" | "RESOLVED" | "CLOSED";
 
-const TICKET_TYPES: TicketType[] = ["ISSUE","TASK"];
+const TICKET_TYPES: TicketType[] = ["ISSUE", "TASK"];
 const TICKET_PRIORITIES: TicketPriority[] = ["LOW", "MEDIUM", "HIGH", "CRITICAL"];
-const TICKET_STATUSES: TicketStatus[] = ["NEW","TO_DO", "IN_PROGRESS", "IN_REVIEW", "DONE", "RESOLVED", "CLOSED"];
+const TICKET_STATUSES: TicketStatus[] = ["NEW", "TO_DO", "IN_PROGRESS", "IN_REVIEW", "DONE", "RESOLVED", "CLOSED"];
 
 export default function CreateTickets() {
   const navigate = useNavigate();
 
-  const [projects] = React.useState<{ id: number; name: string }[]>([
-    { id: 10, name: "SLM Task Management" },
-    { id: 11, name: "Desaku Platform" },
-    { id: 12, name: "SALAM Enterprise Revamp" },
-  ]);
-  const [requesters] = React.useState<{ id: number; name: string }[]>([
-    { id: 5, name: "Maulana" },
-    { id: 7, name: "Ghifari" },
-    { id: 4, name: "Maula" },
-  ]);
+  const [projects, setProjects] = React.useState<{ id: number; name: string }[]>([]);
+  const [requesters, setRequesters] = React.useState<{ id: number; name: string }[]>([]);
 
+  const [loadingOptions, setLoadingOptions] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -64,6 +57,53 @@ export default function CreateTickets() {
     startDate: "",
     dueDate: "",
   });
+
+  const tokenHeader = React.useMemo(() => {
+    const token = localStorage.getItem("token");
+    return token ? { Authorization: `Bearer ${token}` } : undefined;
+  }, []);
+
+  React.useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        setLoadingOptions(true);
+
+        const [projRes, userRes] = await Promise.all([
+          axios.get(`${API_BASE}/projects`, { headers: tokenHeader }),
+          axios.get(`${API_BASE}/users`, { headers: tokenHeader }),
+        ]);
+
+        const projRaw: any[] = Array.isArray(projRes.data) ? projRes.data : projRes.data?.data ?? [];
+        const userRaw: any[] = Array.isArray(userRes.data) ? userRes.data : userRes.data?.data ?? [];
+
+        const projOpts = projRaw.map((p) => ({
+          id: Number(p.id ?? p.projectId ?? 0),
+          name: String(p.name ?? p.projectName ?? `Project #${p.id}`),
+        }));
+
+        const userOpts = userRaw.map((u) => ({
+          id: Number(u.id ?? u.userId ?? 0),
+          name: String(u.fullName ?? u.name ?? u.email ?? `User #${u.id}`),
+        }));
+
+        if (mounted) {
+          setProjects(projOpts);
+          setRequesters(userOpts);
+        }
+      } catch (err: any) {
+        const msg =
+          err?.response?.data?.message ||
+          "Gagal memuat data Project/Requester. Pastikan API berjalan & token valid.";
+        if (mounted) setError(msg);
+      } finally {
+        if (mounted) setLoadingOptions(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [API_BASE, tokenHeader]);
 
   const handleChange = (field: keyof typeof form, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -90,9 +130,9 @@ export default function CreateTickets() {
     e.preventDefault();
     setError(null);
 
-    const msg = validate();
-    if (msg) {
-      setError(msg);
+    const v = validate();
+    if (v) {
+      setError(v);
       return;
     }
 
@@ -111,12 +151,12 @@ export default function CreateTickets() {
     try {
       setSaving(true);
 
-      if (USE_DUMMY) {
-        // simulasi success
-        await new Promise((r) => setTimeout(r, 700));
-      } 
-      
+      // POST ke API nyata
+      const res = await axios.post(`${API_BASE}/tickets`, payload, {
+        headers: tokenHeader,
+      });
 
+      // Opsional: bisa pakai res.data buat redirect ke detail ticket baru
       await Swal.fire({
         title: "Success",
         text: "Ticket berhasil dibuat",
@@ -124,6 +164,7 @@ export default function CreateTickets() {
         timer: 1400,
         showConfirmButton: false,
       });
+
       navigate("/admin/dashboard/tickets");
     } catch (err: any) {
       const msg = err?.response?.data?.message || "Gagal membuat ticket.";
@@ -187,10 +228,10 @@ export default function CreateTickets() {
                             <Select
                               value={form.projectId}
                               onValueChange={(v) => handleChange("projectId", v)}
-                              disabled={saving}
+                              disabled={saving || loadingOptions}
                             >
                               <SelectTrigger>
-                                <SelectValue placeholder="Select a project" />
+                                <SelectValue placeholder={loadingOptions ? "Loading projects..." : "Select a project"} />
                               </SelectTrigger>
                               <SelectContent>
                                 {projects.map((p) => (
@@ -207,10 +248,10 @@ export default function CreateTickets() {
                             <Select
                               value={form.requesterId}
                               onValueChange={(v) => handleChange("requesterId", v)}
-                              disabled={saving}
+                              disabled={saving || loadingOptions}
                             >
                               <SelectTrigger>
-                                <SelectValue placeholder="Select a requester" />
+                                <SelectValue placeholder={loadingOptions ? "Loading requesters..." : "Select a requester"} />
                               </SelectTrigger>
                               <SelectContent>
                                 {requesters.map((r) => (
@@ -344,7 +385,7 @@ export default function CreateTickets() {
                           >
                             Cancel
                           </Button>
-                          <Button type="submit" disabled={saving}>
+                          <Button type="submit" disabled={saving || loadingOptions}>
                             <IconCheck className="mr-2 h-4 w-4" />
                             {saving ? "Creating..." : "Create Ticket"}
                           </Button>

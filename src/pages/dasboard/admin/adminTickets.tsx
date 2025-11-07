@@ -28,12 +28,19 @@ import {
 } from "@tabler/icons-react";
 
 
-const API_BASE = "http://localhost:3000";
-const USE_DUMMY = true; 
+const API_BASE =  "http://localhost:3000";
 
 type TicketType = "TASK" | "ISSUE" | string;
 type TicketPriority = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL" | string;
-type TicketStatus = "NEW" |"TO_DO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE" | "RESOLVED" | "CLOSED" | string;
+type TicketStatus =
+  | "NEW"
+  | "TO_DO"
+  | "IN_PROGRESS"
+  | "IN_REVIEW"
+  | "DONE"
+  | "RESOLVED"
+  | "CLOSED"
+  | string;
 
 type Ticket = {
   id: number;
@@ -51,7 +58,6 @@ type Ticket = {
   requesterName?: string;
   projectName?: string;
 };
-
 
 export default function AdminTickets() {
   const navigate = useNavigate();
@@ -79,97 +85,36 @@ export default function AdminTickets() {
     setError("");
 
     try {
-      if (USE_DUMMY) {
-        const dummy: Ticket[] = [
-          {
-            id: 1,
-            projectId: 10,
-            type: "ISSUE",
-            title: "Fix login redirect issue",
-            description: "User redirected incorrectly after login.",
-            priority: "HIGH",
-            status: "IN_PROGRESS",
-            requesterId: 5,
-            requesterName: "Ghifari",
-            projectName: "SLM Task Management",
-            startDate: "2025-10-28T10:00:00Z",
-            dueDate: "2025-11-05T17:00:00Z",
-          },
-          {
-            id: 2,
-            projectId: 11,
-            type: "TASK",
-            title: "Add Ticket Assignee Filter",
-            description: "Filter tickets by assigned user.",
-            priority: "MEDIUM",
-            status: "TO_DO",
-            requesterId: 7,
-            requesterName: "Ghifari",
-            projectName: "Desaku Platform",
-            startDate: "2025-10-30T09:00:00Z",
-            dueDate: "2025-11-10T18:00:00Z",
-          },
-          {
-            id: 3,
-            projectId: 12,
-            type: "TASK",
-            title: "Refactor ProjectPhase component",
-            description: "Clean up table and state management.",
-            priority: "LOW",
-            status: "DONE",
-            requesterId: 4,
-            requesterName: "Maula",
-            projectName: "SALAM Enterprise Revamp",
-            startDate: "2025-10-20T09:00:00Z",
-            dueDate: "2025-10-25T18:00:00Z",
-          },
-          {
-            id: 4,
-            projectId: 10,
-            type: "TASK",
-            title: "Improve ticket detail layout",
-            description: "Better readability for long descriptions.",
-            priority: "CRITICAL",
-            status: "CLOSED",
-            requesterId: 8,
-            requesterName: "Vincent",
-            projectName: "SLM Task Management",
-            startDate: "2025-11-01T08:30:00Z",
-            dueDate: "2025-11-12T17:00:00Z",
-          },
-        ];
-        await new Promise((r) => setTimeout(r, 600)); 
-        setTickets(dummy);
-      } else {
+      const token = localStorage.getItem("token");
+      const res = await axios.get(`${API_BASE}/tickets`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
 
-        const token = localStorage.getItem("token");
-        const res = await axios.get(`${API_BASE}/tickets`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        });
-        const raw: any[] = Array.isArray(res.data) ? res.data : res.data?.data ?? [];
-        const normalized: Ticket[] = raw.map((t) => ({
-          id: Number(t.id),
-          projectId: Number(t.projectId ?? t.project_id ?? t.project?.id ?? 0),
-          type: String(t.type ?? ""),
-          title: String(t.title ?? ""),
-          description: t.description ?? "",
-          priority: t.priority ?? undefined,
-          status: (t.status ?? "TO_DO") as TicketStatus,
-          requesterId: Number(t.requesterId ?? t.requester_id ?? t.requester?.id ?? 0),
-          startDate: t.startDate ?? t.start_date ?? undefined,
-          dueDate: t.dueDate ?? t.due_date ?? undefined,
-          createdAt: t.createdAt ?? t.created_at ?? undefined,
-          updatedAt: t.updatedAt ?? t.updated_at ?? undefined,
-          requesterName:
-            t.requester?.fullName ??
-            t.requester?.name ??
-            t.requester_name ??
-            t.requesterEmail ??
-            "",
-          projectName: t.project?.name ?? t.project_name ?? "",
-        }));
-        setTickets(normalized);
-      }
+      const raw: any[] = Array.isArray(res.data) ? res.data : res.data?.data ?? [];
+
+      const normalized: Ticket[] = raw.map((t) => ({
+        id: Number(t.id),
+        projectId: Number(t.projectId ?? t.project_id ?? t.project?.id ?? 0),
+        type: String(t.type ?? ""),
+        title: String(t.title ?? ""),
+        description: t.description ?? "",
+        priority: t.priority ?? undefined,
+        status: (t.status ?? "TO_DO") as TicketStatus,
+        requesterId: Number(t.requesterId ?? t.requester_id ?? t.requester?.id ?? 0),
+        startDate: t.startDate ?? t.start_date ?? undefined,
+        dueDate: t.dueDate ?? t.due_date ?? undefined,
+        createdAt: t.createdAt ?? t.created_at ?? undefined,
+        updatedAt: t.updatedAt ?? t.updated_at ?? undefined,
+        requesterName:
+          t.requester?.fullName ??
+          t.requester?.name ??
+          t.requester_name ??
+          t.requesterEmail ??
+          "",
+        projectName: t.project?.name ?? t.project_name ?? "",
+      }));
+
+      setTickets(normalized);
     } catch (e: any) {
       setError(e?.response?.data?.message || "Gagal memuat data tickets");
     } finally {
@@ -210,6 +155,7 @@ export default function AdminTickets() {
 
   const statusVariant = (status?: TicketStatus) => {
     switch (status) {
+      case "NEW":
       case "TO_DO":
         return "secondary";
       case "IN_PROGRESS":
@@ -217,7 +163,9 @@ export default function AdminTickets() {
       case "IN_REVIEW":
         return "outline";
       case "DONE":
-        return "default"; 
+      case "RESOLVED":
+      case "CLOSED":
+        return "default";
       case "BLOCKED":
         return "destructive";
       default:
@@ -256,12 +204,11 @@ export default function AdminTickets() {
     setTickets((p) => p.filter((x) => x.id !== id));
 
     try {
-      if (!USE_DUMMY) {
-        const token = localStorage.getItem("token");
-        await axios.delete(`${API_BASE}/tickets/${id}`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        });
-      }
+      const token = localStorage.getItem("token");
+      await axios.delete(`${API_BASE}/tickets/${id}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+
       await Swal.fire({
         title: "Terhapus",
         text: "Ticket berhasil dihapus.",

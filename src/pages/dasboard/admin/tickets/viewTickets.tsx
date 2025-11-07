@@ -16,18 +16,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-
 import { IconArrowLeft, IconEdit, IconTrash } from "@tabler/icons-react";
 
-/* =========================
-   Config
-========================= */
-const API_BASE = "http://localhost:3000";
-const USE_DUMMY = true; // set ke false jika backend sudah siap
 
-/* =========================
-   Types
-========================= */
+const API_BASE = "http://localhost:3000";
+
+
 type TicketType = "ISSUE" | "TASK" | string;
 type TicketPriority = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL" | string;
 type TicketStatus =
@@ -39,6 +33,9 @@ type TicketStatus =
   | "RESOLVED"
   | "CLOSED"
   | string;
+
+type UserLite = { id: number; fullName?: string; name?: string; email?: string; role?: string };
+type Assignee = { id?: number; assignedAt?: string; user?: UserLite };
 
 type Ticket = {
   id: number;
@@ -55,6 +52,7 @@ type Ticket = {
   updatedAt?: string | null;
   projectName?: string;
   requesterName?: string;
+  assignees?: Assignee[];
 };
 
 const fmt = (iso?: string | null) => {
@@ -75,7 +73,7 @@ const statusVariant = (s?: TicketStatus) => {
     case "DONE":
     case "RESOLVED":
     case "CLOSED":
-      return "default"; 
+      return "default";
     default:
       return "secondary";
   }
@@ -104,102 +102,52 @@ export default function ViewTickets() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
+  const tokenHeader = React.useMemo(() => {
+    const token = localStorage.getItem("token");
+    return token ? { Authorization: `Bearer ${token}` } : undefined;
+    // kalau backend kamu tidak butuh token, boleh dikosongkan
+  }, []);
+
   const fetchTicket = React.useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      if (USE_DUMMY) {
-        const dummy: Ticket[] = [
-          {
-            id: 1,
-            projectId: 10,
-            requesterId: 5,
-            type: "ISSUE",
-            title: "Fix login redirect issue",
-            description: "User redirected incorrectly after login.",
-            priority: "HIGH",
-            status: "IN_PROGRESS",
-            projectName: "SLM Task Management",
-            requesterName: "Lulu Lucu",
-            startDate: "2025-10-28T10:00:00Z",
-            dueDate: "2025-11-05T17:00:00Z",
-            createdAt: "2025-10-28T10:00:00Z",
-            updatedAt: "2025-10-30T08:12:00Z",
-          },
-          {
-            id: 2,
-            projectId: 11,
-            requesterId: 7,
-            type: "TASK",
-            title: "Add Ticket Assignee Filter",
-            description: "Filter tickets by assigned user.",
-            priority: "MEDIUM",
-            status: "TO_DO",
-            projectName: "Desaku Platform",
-            requesterName: "Ghifari",
-            startDate: "2025-10-30T09:00:00Z",
-            dueDate: "2025-11-10T18:00:00Z",
-            createdAt: "2025-10-30T09:00:00Z",
-            updatedAt: "2025-10-30T09:00:00Z",
-          },
-          {
-            id: 3,
-            projectId: 12,
-            requesterId: 4,
-            type: "TASK",
-            title: "Refactor ProjectPhase component",
-            description: "Clean up table and state management.",
-            priority: "LOW",
-            status: "DONE",
-            projectName: "SALAM Enterprise Revamp",
-            requesterName: "Maula",
-            startDate: "2025-10-20T09:00:00Z",
-            dueDate: "2025-10-25T18:00:00Z",
-            createdAt: "2025-10-20T09:00:00Z",
-            updatedAt: "2025-10-25T18:10:00Z",
-          },
-        ];
-        const found = dummy.find((t) => String(t.id) === String(id));
-        if (!found) throw new Error("Ticket tidak ditemukan (dummy).");
-        await new Promise((r) => setTimeout(r, 500)); 
-        setTicket(found);
-      } else {
-        const token = localStorage.getItem("token");
-        const res = await axios.get(`${API_BASE}/tickets/${id}`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        });
-        const t = res.data?.data ?? res.data;
+      const res = await axios.get(`${API_BASE}/tickets/${id}`, {
+        headers: tokenHeader,
+      });
 
-        const normalized: Ticket = {
-          id: Number(t.id),
-          projectId: Number(t.projectId ?? t.project_id ?? t.project?.id ?? 0),
-          requesterId: Number(t.requesterId ?? t.requester_id ?? t.requester?.id ?? 0),
-          type: String(t.type ?? ""),
-          title: String(t.title ?? ""),
-          description: t.description ?? null,
-          priority: t.priority ?? null,
-          status: (t.status ?? "TO_DO") as TicketStatus,
-          startDate: t.startDate ?? t.start_date ?? null,
-          dueDate: t.dueDate ?? t.due_date ?? null,
-          createdAt: t.createdAt ?? t.created_at ?? null,
-          updatedAt: t.updatedAt ?? t.updated_at ?? null,
-          requesterName:
-            t.requester?.fullName ??
-            t.requester?.name ??
-            t.requester_name ??
-            t.requesterEmail ??
-            undefined,
-          projectName: t.project?.name ?? t.project_name ?? undefined,
-        };
+      const t = res.data?.data ?? res.data;
 
-        setTicket(normalized);
-      }
+      const normalized: Ticket = {
+        id: Number(t.id),
+        projectId: Number(t.projectId ?? t.project_id ?? t.project?.id ?? 0),
+        requesterId: Number(t.requesterId ?? t.requester_id ?? t.requester?.id ?? 0),
+        type: String(t.type ?? ""),
+        title: String(t.title ?? ""),
+        description: t.description ?? null,
+        priority: t.priority ?? null,
+        status: (t.status ?? "TO_DO") as TicketStatus,
+        startDate: t.startDate ?? t.start_date ?? null,
+        dueDate: t.dueDate ?? t.due_date ?? null,
+        createdAt: t.createdAt ?? t.created_at ?? null,
+        updatedAt: t.updatedAt ?? t.updated_at ?? null,
+        requesterName:
+          t.requester?.fullName ??
+          t.requester?.name ??
+          t.requester_name ??
+          t.requesterEmail ??
+          undefined,
+        projectName: t.project?.name ?? t.project_name ?? undefined,
+        assignees: Array.isArray(t.assignees) ? t.assignees : [],
+      };
+
+      setTicket(normalized);
     } catch (err: any) {
       setError(err?.response?.data?.message || err?.message || "Gagal memuat ticket");
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, tokenHeader]);
 
   React.useEffect(() => {
     fetchTicket();
@@ -218,14 +166,9 @@ export default function ViewTickets() {
     if (!confirm.isConfirmed) return;
 
     try {
-      if (!USE_DUMMY) {
-        const token = localStorage.getItem("token");
-        await axios.delete(`${API_BASE}/tickets/${ticket.id}`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        });
-      } else {
-        await new Promise((r) => setTimeout(r, 400)); // simulasi
-      }
+      await axios.delete(`${API_BASE}/tickets/${ticket.id}`, {
+        headers: tokenHeader,
+      });
 
       await Swal.fire({
         icon: "success",
@@ -272,23 +215,13 @@ export default function ViewTickets() {
 
                   {ticket && (
                     <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        asChild
-                        className="cursor-pointer"
-                      >
+                      <Button variant="outline" size="sm" asChild className="cursor-pointer">
                         <Link to={`/admin/dashboard/tickets/edit/${ticket.id}`}>
                           <IconEdit className="h-4 w-4 mr-1" />
                           Edit
                         </Link>
                       </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={handleDelete}
-                        className="cursor-pointer"
-                      >
+                      <Button variant="destructive" size="sm" onClick={handleDelete} className="cursor-pointer">
                         <IconTrash className="h-4 w-4 mr-1" />
                         Delete
                       </Button>
@@ -297,9 +230,7 @@ export default function ViewTickets() {
                 </div>
 
                 <h1 className="text-2xl font-semibold">Ticket Details</h1>
-                <p className="text-muted-foreground">
-                  Lihat informasi lengkap ticket.
-                </p>
+                <p className="text-muted-foreground">Lihat informasi lengkap ticket.</p>
               </div>
 
               <div className="px-4 lg:px-6">
@@ -361,9 +292,7 @@ export default function ViewTickets() {
                         <div className="space-y-2">
                           <div className="text-xs text-muted-foreground">Status</div>
                           <div>
-                            <Badge variant={statusVariant(ticket.status)}>
-                              {ticket.status}
-                            </Badge>
+                            <Badge variant={statusVariant(ticket.status)}>{ticket.status}</Badge>
                           </div>
                         </div>
 
@@ -387,20 +316,34 @@ export default function ViewTickets() {
                           <div className="font-medium">{fmt(ticket.updatedAt)}</div>
                         </div>
 
+                        {/* Assignees (opsional, kalau backend kirim) */}
+                        {Array.isArray(ticket.assignees) && ticket.assignees.length > 0 && (
+                          <div className="md:col-span-2">
+                            <Separator className="my-2" />
+                            <div className="text-xs text-muted-foreground mb-2">Assignees</div>
+                            <div className="flex flex-wrap gap-2">
+                              {ticket.assignees.map((a, idx) => {
+                                const name =
+                                  a?.user?.fullName ||
+                                  a?.user?.name ||
+                                  a?.user?.email ||
+                                  `User#${a?.user?.id ?? idx + 1}`;
+                                return <Badge key={idx}>{name}</Badge>;
+                              })}
+                            </div>
+                          </div>
+                        )}
+
                         <div className="md:col-span-2">
                           <Separator className="my-2" />
-                          <div className="text-xs text-muted-foreground mb-1">
-                            Description
-                          </div>
+                          <div className="text-xs text-muted-foreground mb-1">Description</div>
                           <div className="leading-relaxed">
                             {ticket.description || <span className="text-muted-foreground">—</span>}
                           </div>
                         </div>
                       </div>
                     ) : (
-                      <div className="text-sm text-muted-foreground">
-                        Ticket tidak ditemukan.
-                      </div>
+                      <div className="text-sm text-muted-foreground">Ticket tidak ditemukan.</div>
                     )}
                   </CardContent>
                 </Card>
