@@ -65,7 +65,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"form">)
     >
       <FieldGroup>
         <div className="flex flex-col items-center gap-1 text-center mb-5">
-          <h1 className="text-3xl font-bold text-blue-800/100">
+          <h1 className="text-3xl font-bold text-primary">
             Project Management
           </h1>
           <p className="text-muted-foreground text-sm text-balance">

@@ -30,222 +30,223 @@ import EditTickets from './pages/dasboard/admin/tickets/editTickets'
 
 import { ProtectedRoute } from "./components/ProtectedRoute"
 import { View } from 'lucide-react'
+import { ThemeProvider } from './components/theme-provider'
 
 const rootElement = document.getElementById('root') as HTMLElement;
 
 createRoot(rootElement).render(
-  <StrictMode>
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<SigninUserPage />} />
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<SigninUserPage />} />
 
-        {/* === DASHBOARD ROUTES === */}
-        <Route
-          path="/admin/dashboard"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/admin/dashboard/users"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <AdminUsers />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/dashboard/project-owners"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <AdminProjectOwners />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/dashboard/project-owners/create"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <AdminProjectOwnersCreate />
-            </ProtectedRoute>
-          }
-        />
-        
-
-        <Route
-          path="/admin/dashboard/users/create"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <CreateUsers />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/admin/dashboard/users/view/:id"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <ViewUsers />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/dashboard/project-owners/view/:id"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <ViewProjectOwnnerPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/admin/dashboard/users/edit/:id"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <EditUsers />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/dashboard/project-owners/edit/:id"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <EditProjectOwnerPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/admin/dashboard/projects"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <AdminProjects />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/admin/dashboard/projects/create"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <CreateProjectPage />
-            </ProtectedRoute>
-          }
-        />
-
+          {/* === DASHBOARD ROUTES === */}
           <Route
-            path='/admin/dashboard/projects/view/:id'
+            path="/admin/dashboard"
             element={
               <ProtectedRoute allowedRoles={["admin"]}>
-                <ViewProject />
+                <AdminDashboard />
               </ProtectedRoute>
             }
           />
 
-        <Route
-          path='/admin/dashboard/projects/edit/:id'
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <EditProject />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/admin/dashboard/users"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminUsers />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/dashboard/project-owners"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminProjectOwners />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/dashboard/project-owners/create"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminProjectOwnersCreate />
+              </ProtectedRoute>
+            }
+          />
 
-          
-        <Route
-          path="/admin/dashboard/project-phases"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <AdminProjectPhases />
-            </ProtectedRoute>
-          }
-        />
 
-        <Route
-          path="/admin/dashboard/project-phases/create"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <CreateProjectPhases />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/admin/dashboard/users/create"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <CreateUsers />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/admin/dashboard/project-phases/view/:id"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <ViewProjectPhases />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/admin/dashboard/users/view/:id"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <ViewUsers />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/dashboard/project-owners/view/:id"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <ViewProjectOwnnerPage />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/admin/dashboard/project-phases/edit/:id"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <EditProjectPhases />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/admin/dashboard/users/edit/:id"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <EditUsers />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/dashboard/project-owners/edit/:id"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <EditProjectOwnerPage />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/admin/dashboard/tickets"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <AdminTickets />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/admin/dashboard/projects"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminProjects />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/admin/dashboard/tickets/create"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <CreateTickets />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/admin/dashboard/projects/create"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <CreateProjectPage />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/admin/dashboard/tickets/view/:id"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <ViewTickets />
-            </ProtectedRoute>
-          }
-        />
+            <Route
+              path='/admin/dashboard/projects/view/:id'
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <ViewProject />
+                </ProtectedRoute>
+              }
+            />
 
-        <Route
-          path="/admin/dashboard/tickets/edit/:id"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <EditTickets />
-            </ProtectedRoute>
-          }
-        />
-      
+          <Route
+            path='/admin/dashboard/projects/edit/:id'
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <EditProject />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/project-manager/dashboard"
-          element={
-            <ProtectedRoute allowedRoles={["project_manager"]}>
-              <PmDashboard />
-            </ProtectedRoute>
-          }
-        />
 
-        <Route
-          path="/developer/dashboard"
-          element={
-            <ProtectedRoute allowedRoles={["developer"]}>
-              <DevDashboard />
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
-    </BrowserRouter>
-  </StrictMode>,
+          <Route
+            path="/admin/dashboard/project-phases"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminProjectPhases />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/dashboard/project-phases/create"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <CreateProjectPhases />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/dashboard/project-phases/view/:id"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <ViewProjectPhases />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/dashboard/project-phases/edit/:id"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <EditProjectPhases />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/dashboard/tickets"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminTickets />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/dashboard/tickets/create"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <CreateTickets />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/dashboard/tickets/view/:id"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <ViewTickets />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/dashboard/tickets/edit/:id"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <EditTickets />
+              </ProtectedRoute>
+            }
+          />
+
+
+          <Route
+            path="/project-manager/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["project_manager"]}>
+                <PmDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/developer/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["developer"]}>
+                <DevDashboard />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </BrowserRouter>
+    </ThemeProvider>
 )
