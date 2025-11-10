@@ -4,7 +4,6 @@ import './index.css'
 import './App.css'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import SigninUserPage from './pages/signin/signinUser'
-import SigninAdminPage from './pages/signin/signinAdmin'
 import AdminDashboard from './pages/dasboard/admin/dashboard'
 import PmDashboard from './pages/dasboard/pm/dasboard'
 import DevDashboard from './pages/dasboard/dev/dasboard'
@@ -39,7 +38,6 @@ createRoot(rootElement).render(
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<SigninUserPage />} />
-        <Route path="/admin/signin" element={<SigninAdminPage />} />
 
         {/* === DASHBOARD ROUTES === */}
         <Route

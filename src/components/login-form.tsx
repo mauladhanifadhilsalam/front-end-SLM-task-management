@@ -4,26 +4,16 @@ import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { login, RoleApi } from "@/services/auth"
+import { login } from "@/services/auth"
 import Swal from "sweetalert2"
 
-export function LoginForm({
-  className,
-  roleType = "user",
-  ...props
-}: React.ComponentProps<"form"> & { roleType?: "admin" | "user" }) {
+export function LoginForm({ className, ...props }: React.ComponentProps<"form">) {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [justLoggedIn, setJustLoggedIn] = useState(false)
   const [redirectTo, setRedirectTo] = useState("")
   const navigate = useNavigate()
-
-  const allowed: RoleApi[] =
-    roleType === "admin"
-      ? ["admin"]
-      : ["project_manager", "developer"]
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -34,25 +24,22 @@ export function LoginForm({
       const data = await login(email, password)
       const role = data.user.role
 
-      if (!allowed.includes(role)) {
-        throw new Error("Akun tidak diizinkan untuk halaman ini.")
-      }
 
-      // Simpan token & role di localStorage
       localStorage.setItem("token", data.accessToken)
       localStorage.setItem("role", role)
       localStorage.setItem("email", data.user.email ?? "")
 
-      // Tentukan redirect path
+
       const to =
         role === "admin"
           ? "/admin/dashboard"
           : role === "project_manager"
           ? "/project-manager/dashboard"
-          : "/developer/dashboard"
+          : role === "developer"
+          ? "/developer/dashboard"
+          : "/user/dashboard"
 
       setRedirectTo(to)
-      setJustLoggedIn(true)
     } catch (err: any) {
       const message =
         err?.response?.data?.message ??
@@ -64,12 +51,11 @@ export function LoginForm({
     }
   }
 
-  // 🔹 Setelah login berhasil, langsung redirect tanpa fetch API
   useEffect(() => {
-    if (justLoggedIn && redirectTo) {
-      navigate(redirectTo)
+    if (redirectTo) {
+      setTimeout(() => navigate(redirectTo))
     }
-  }, [justLoggedIn, redirectTo, navigate])
+  }, [redirectTo, navigate])
 
   return (
     <form
@@ -83,7 +69,7 @@ export function LoginForm({
             Project Management
           </h1>
           <p className="text-muted-foreground text-sm text-balance">
-            Enter your email below to login to your account
+            Masukkan email dan password untuk login
           </p>
         </div>
 
