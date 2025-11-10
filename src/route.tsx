@@ -4,7 +4,6 @@ import './index.css'
 import './App.css'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import SigninUserPage from './pages/signin/signinUser'
-import SigninAdminPage from './pages/signin/signinAdmin'
 import AdminDashboard from './pages/dasboard/admin/dashboard'
 import PmDashboard from './pages/dasboard/pm/dasboard'
 import DevDashboard from './pages/dasboard/dev/dasboard'
@@ -36,12 +35,10 @@ import { ThemeProvider } from './components/theme-provider'
 const rootElement = document.getElementById('root') as HTMLElement;
 
 createRoot(rootElement).render(
-  <StrictMode>
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<SigninUserPage />} />
-          <Route path="/admin/signin" element={<SigninAdminPage />} />
 
           {/* === DASHBOARD ROUTES === */}
           <Route
@@ -252,5 +249,4 @@ createRoot(rootElement).render(
         </Routes>
       </BrowserRouter>
     </ThemeProvider>
-  </StrictMode>,
 )
