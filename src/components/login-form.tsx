@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login } from "@/services/auth";
 import Swal from "sweetalert2";
+import ReCAPTCHA from "react-google-recaptcha";
 
 
 import { loginSchema, type LoginValues, type LoginField } from "@/schemas/login-user.schema";
@@ -19,6 +20,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"form">)
   const [errors, setErrors] = useState<FieldErrors>({});
   const [loading, setLoading] = useState(false);
   const [redirectTo, setRedirectTo] = useState("");
+  const [verified, setVerified] = useState(false);
 
 
   function validateAll(v: LoginValues): FieldErrors {
@@ -50,6 +52,9 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"form">)
     setValues((p) => ({ ...p, [name]: val }));
     if (errors[name]) validateField(name, val);
   }
+
+  // this sitekey is for testing purposes only
+  const recaptchaTestSiteKey = "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -115,6 +120,11 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"form">)
     }
   }
 
+  const handleVerifiedChange = (value: string | null) => {
+    console.log("Captcha value:", value);
+    setVerified(true);
+  };
+
   useEffect(() => {
     if (redirectTo) {
       const t = setTimeout(() => navigate(redirectTo), 350);
@@ -173,7 +183,11 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"form">)
           )}
         </Field>
 
-        <Button type="submit" disabled={loading}>
+
+        <div className="w-full flex justify-center">
+          <ReCAPTCHA sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY || recaptchaTestSiteKey} onChange={handleVerifiedChange}/>
+        </div>
+        <Button type="submit" disabled={loading || !verified}>
           {loading ? "Logging in..." : "Login"}
         </Button>
       </FieldGroup>
