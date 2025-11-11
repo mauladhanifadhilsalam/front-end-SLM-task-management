@@ -156,7 +156,14 @@ export default function AdminProjects() {
 
 
   return (
-    <SidebarProvider>
+    <SidebarProvider
+    style={
+          {
+            "--sidebar-width": "calc(var(--spacing) * 72)",
+            "--header-height": "calc(var(--spacing) * 12)",
+          } as React.CSSProperties
+        }
+    >
       <AppSidebar variant="inset" />
       <SidebarInset>
         <SiteHeader />
@@ -192,7 +199,7 @@ export default function AdminProjects() {
                   <SelectItem value="all">ALL</SelectItem>
                   <SelectItem value="NOT_STARTED">NOT_STARTED</SelectItem>
                   <SelectItem value="IN_PROGRESS">IN_PROGRESS</SelectItem>
-                  <SelectItem value="COMPLETED">COMPLETED</SelectItem>
+                  <SelectItem value="DONE">DONE</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -241,7 +248,7 @@ export default function AdminProjects() {
                     {cols.owner && <th className="px-4 py-3 font-medium">Owner</th>}
                     {cols.status && <th className="px-4 py-3 font-medium">Status</th>}
                     {cols.completion && (
-                      <th className="px-4 py-3 font-medium">% Selesai</th>
+                      <th className="px-4 py-3 font-medium">Progress</th>
                     )}
                     {cols.startDate && (
                       <th className="px-4 py-3 font-medium">Mulai</th>
