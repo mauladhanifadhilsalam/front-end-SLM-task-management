@@ -27,10 +27,9 @@ import {
 } from "@/schemas/project-owner.schema";
 
 
-
+const API_BASE = import.meta.env.VITE_API_BASE
 export default function CreateProjectOwnerPage() {
     const navigate = useNavigate();
-    const API_BASE = "http://localhost:3000";
 
     const [form, setForm] = React.useState<ProjectOwnerValues>({
         name: "",

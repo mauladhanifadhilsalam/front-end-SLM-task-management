@@ -27,11 +27,11 @@ type Owner = {
   createdAt?: string;
 };
 
+const API_BASE = import.meta.env.VITE_API_BASE
 export default function ViewProjectOwnerPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
 
-    const API_BASE = "http://localhost:3000";
 
     const [owner, setOwner] = React.useState<Owner | null>(null);
     const [loading, setLoading] = React.useState(true);

@@ -38,9 +38,11 @@ type Phase = {
   project?: Project;
 };
 
+const API_BASE = import.meta.env.VITE_API_BASE
+
 export default function AdminProjectPhasePage() {
   const navigate = useNavigate();
-  const API_BASE = "http://localhost:3000";
+  
 
   const [phases, setPhases] = React.useState<Phase[]>([]);
   const [loading, setLoading] = React.useState(true);

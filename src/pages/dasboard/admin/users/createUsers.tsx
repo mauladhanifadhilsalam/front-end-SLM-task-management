@@ -20,6 +20,8 @@ import {
   type CreateUserField,
 } from "@/schemas/users.schema";
 
+const API_BASE = import.meta.env.VITE_API_BASE
+
 export default function CreateUserPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = React.useState(false);
@@ -37,7 +39,7 @@ export default function CreateUserPage() {
     Partial<Record<CreateUserField, string | null>>
   >({});
 
-  const API_BASE = "http://localhost:3000";
+  ;
 
   const handleInputChange = (field: CreateUserField, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
