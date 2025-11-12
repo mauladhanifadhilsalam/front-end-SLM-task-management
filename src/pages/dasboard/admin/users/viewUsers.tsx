@@ -20,6 +20,9 @@ type User = {
     createdAt: string;
 };
 
+
+const API_BASE = import.meta.env.VITE_API_BASE
+
 export default function ViewUser() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
@@ -27,7 +30,7 @@ export default function ViewUser() {
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState<string>("");
 
-    const API_BASE = "http://localhost:3000";
+    
 
     const fetchUser = React.useCallback(async () => {
         if (!id) return;
