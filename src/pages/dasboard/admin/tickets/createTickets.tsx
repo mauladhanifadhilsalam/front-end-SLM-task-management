@@ -7,34 +7,36 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
+  Card, CardContent, CardHeader, CardTitle, CardDescription,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { IconArrowLeft, IconCheck } from "@tabler/icons-react";
+
+import {
+  createTicketSchema,
+  type CreateTicketValues,
+  type CreateTicketField,
+  toCreateTicketPayload,
+} from "@/schemas/tickets.schema";
 
 const API_BASE = "http://localhost:3000";
 
 type TicketType = "ISSUE" | "TASK";
 type TicketPriority = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
-type TicketStatus = "NEW" | "TO_DO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE" | "RESOLVED" | "CLOSED";
+type TicketStatus =
+  | "NEW" | "TO_DO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE" | "RESOLVED" | "CLOSED";
 
 const TICKET_TYPES: TicketType[] = ["ISSUE", "TASK"];
 const TICKET_PRIORITIES: TicketPriority[] = ["LOW", "MEDIUM", "HIGH", "CRITICAL"];
-const TICKET_STATUSES: TicketStatus[] = ["NEW", "TO_DO", "IN_PROGRESS", "IN_REVIEW", "DONE", "RESOLVED", "CLOSED"];
+const TICKET_STATUSES: TicketStatus[] = [
+  "NEW", "TO_DO", "IN_PROGRESS", "IN_REVIEW", "DONE", "RESOLVED", "CLOSED",
+];
 
 export default function CreateTickets() {
   const navigate = useNavigate();
@@ -46,17 +48,21 @@ export default function CreateTickets() {
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  const [form, setForm] = React.useState({
-    projectId: "",
-    requesterId: "",
-    type: "" as "" | TicketType,
+  const [form, setForm] = React.useState<CreateTicketValues>({
+    projectId: 0 as any,
+    requesterId: 0 as any,
+    type: "" as any,
     title: "",
     description: "",
-    priority: "" as "" | TicketPriority,
-    status: "TO_DO" as TicketStatus | "",
+    priority: "" as any,
+    status: "TO_DO",
     startDate: "",
     dueDate: "",
   });
+
+  const [fieldErrors, setFieldErrors] = React.useState<
+    Partial<Record<CreateTicketField, string>>
+  >({});
 
   const tokenHeader = React.useMemo(() => {
     const token = localStorage.getItem("token");
@@ -103,60 +109,58 @@ export default function CreateTickets() {
     return () => {
       mounted = false;
     };
-  }, [API_BASE, tokenHeader]);
+  }, [tokenHeader]);
 
-  const handleChange = (field: keyof typeof form, value: string) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-  };
+  const handleChange = (field: CreateTicketField, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value as any }));
 
-  const validate = (): string | null => {
-    if (!form.projectId) return "Project wajib dipilih.";
-    if (!form.requesterId) return "Requester wajib dipilih.";
-    if (!form.type) return "Type wajib dipilih.";
-    if (!form.title.trim()) return "Title tidak boleh kosong.";
-    if (!form.priority) return "Priority wajib dipilih.";
-    if (!form.status) return "Status wajib dipilih.";
-    if (form.startDate && form.dueDate) {
-      const s = new Date(form.startDate).getTime();
+
+    if (fieldErrors[field]) {
+      const single = (createTicketSchema as any).pick({ [field]: true });
+      const forCheck =
+        field === "projectId" || field === "requesterId" ? Number(value) : value;
+      const res = single.safeParse({ [field]: forCheck });
+      setFieldErrors((fe) => ({
+        ...fe,
+        [field]: res.success ? undefined : res.error.issues[0]?.message,
+      }));
+    }
+
+
+    if (field === "startDate" && form.dueDate) {
+      const s = new Date(value).getTime();
       const d = new Date(form.dueDate).getTime();
       if (!Number.isNaN(s) && !Number.isNaN(d) && d < s) {
-        return "Due Date tidak boleh lebih awal dari Start Date.";
+        setForm((prev) => ({ ...prev, dueDate: "" }));
+        setFieldErrors((fe) => ({ ...fe, dueDate: undefined }));
       }
     }
-    return null;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSaving(true);
+    setFieldErrors({});
 
-    const v = validate();
-    if (v) {
-      setError(v);
+
+    const parsed = createTicketSchema.safeParse(form);
+    if (!parsed.success) {
+      const fe: Partial<Record<CreateTicketField, string>> = {};
+      for (const issue of parsed.error.issues) {
+        const k = issue.path[0] as CreateTicketField;
+        if (!fe[k]) fe[k] = issue.message;
+      }
+      setFieldErrors(fe);
+      setSaving(false);
       return;
     }
 
-    const payload = {
-      projectId: Number(form.projectId),
-      requesterId: Number(form.requesterId),
-      type: form.type,
-      title: form.title.trim(),
-      description: form.description.trim() || null,
-      priority: form.priority,
-      status: form.status || "TO_DO",
-      startDate: form.startDate ? new Date(form.startDate).toISOString() : null,
-      dueDate: form.dueDate ? new Date(form.dueDate).toISOString() : null,
-    };
+    const payload = toCreateTicketPayload(parsed.data);
 
     try {
-      setSaving(true);
+      await axios.post(`${API_BASE}/tickets`, payload, { headers: tokenHeader });
 
-      // POST ke API nyata
-      const res = await axios.post(`${API_BASE}/tickets`, payload, {
-        headers: tokenHeader,
-      });
-
-      // Opsional: bisa pakai res.data buat redirect ke detail ticket baru
       await Swal.fire({
         title: "Success",
         text: "Ticket berhasil dibuat",
@@ -214,7 +218,7 @@ export default function CreateTickets() {
                       <CardDescription>Enter the details for the new ticket</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <form onSubmit={handleSubmit} className="space-y-6">
+                      <form onSubmit={handleSubmit} className="space-y-6" noValidate>
                         {error && (
                           <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-3">
                             {error}
@@ -226,7 +230,7 @@ export default function CreateTickets() {
                           <div className="space-y-2">
                             <Label>Project *</Label>
                             <Select
-                              value={form.projectId}
+                              value={form.projectId ? String(form.projectId) : ""}
                               onValueChange={(v) => handleChange("projectId", v)}
                               disabled={saving || loadingOptions}
                             >
@@ -241,12 +245,15 @@ export default function CreateTickets() {
                                 ))}
                               </SelectContent>
                             </Select>
+                            {fieldErrors.projectId && (
+                              <p className="text-xs text-red-600 mt-1">{fieldErrors.projectId}</p>
+                            )}
                           </div>
 
                           <div className="space-y-2">
                             <Label>Requester *</Label>
                             <Select
-                              value={form.requesterId}
+                              value={form.requesterId ? String(form.requesterId) : ""}
                               onValueChange={(v) => handleChange("requesterId", v)}
                               disabled={saving || loadingOptions}
                             >
@@ -261,6 +268,9 @@ export default function CreateTickets() {
                                 ))}
                               </SelectContent>
                             </Select>
+                            {fieldErrors.requesterId && (
+                              <p className="text-xs text-red-600 mt-1">{fieldErrors.requesterId}</p>
+                            )}
                           </div>
                         </div>
 
@@ -269,7 +279,7 @@ export default function CreateTickets() {
                           <div className="space-y-2">
                             <Label>Type *</Label>
                             <Select
-                              value={form.type}
+                              value={form.type || ""}
                               onValueChange={(v) => handleChange("type", v)}
                               disabled={saving}
                             >
@@ -284,12 +294,15 @@ export default function CreateTickets() {
                                 ))}
                               </SelectContent>
                             </Select>
+                            {fieldErrors.type && (
+                              <p className="text-xs text-red-600 mt-1">{fieldErrors.type}</p>
+                            )}
                           </div>
 
                           <div className="space-y-2">
                             <Label>Priority *</Label>
                             <Select
-                              value={form.priority}
+                              value={form.priority || ""}
                               onValueChange={(v) => handleChange("priority", v)}
                               disabled={saving}
                             >
@@ -304,12 +317,15 @@ export default function CreateTickets() {
                                 ))}
                               </SelectContent>
                             </Select>
+                            {fieldErrors.priority && (
+                              <p className="text-xs text-red-600 mt-1">{fieldErrors.priority}</p>
+                            )}
                           </div>
 
                           <div className="space-y-2">
                             <Label>Status *</Label>
                             <Select
-                              value={form.status}
+                              value={form.status || ""}
                               onValueChange={(v) => handleChange("status", v)}
                               disabled={saving}
                             >
@@ -324,6 +340,9 @@ export default function CreateTickets() {
                                 ))}
                               </SelectContent>
                             </Select>
+                            {fieldErrors.status && (
+                              <p className="text-xs text-red-600 mt-1">{fieldErrors.status}</p>
+                            )}
                           </div>
                         </div>
 
@@ -336,43 +355,64 @@ export default function CreateTickets() {
                             value={form.title}
                             onChange={(e) => handleChange("title", e.target.value)}
                             disabled={saving}
+                            aria-invalid={!!fieldErrors.title}
+                            required
                           />
+                          {fieldErrors.title && (
+                            <p className="text-xs text-red-600 mt-1">{fieldErrors.title}</p>
+                          )}
                         </div>
 
-                        {/* Description */}
+                        {/* Description (WAJIB) */}
                         <div className="space-y-2">
-                          <Label htmlFor="description">Description</Label>
+                          <Label htmlFor="description">Description *</Label>
                           <Textarea
                             id="description"
                             rows={5}
-                            placeholder="Deskripsikan isu/permintaan secara jelas…"
+                            placeholder="Deskripsikan isu/permintaan secara jelas… (min 10 karakter)"
                             value={form.description}
                             onChange={(e) => handleChange("description", e.target.value)}
                             disabled={saving}
+                            aria-invalid={!!fieldErrors.description}
+                            required
                           />
+                          {fieldErrors.description && (
+                            <p className="text-xs text-red-600 mt-1">{fieldErrors.description}</p>
+                          )}
                         </div>
 
-                        {/* Dates */}
+                        {/* Dates (WAJIB) */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div className="space-y-2">
-                            <Label htmlFor="startDate">Start Date</Label>
+                            <Label htmlFor="startDate">Start Date *</Label>
                             <Input
                               id="startDate"
                               type="datetime-local"
                               value={form.startDate}
                               onChange={(e) => handleChange("startDate", e.target.value)}
                               disabled={saving}
+                              aria-invalid={!!fieldErrors.startDate}
+                              required
                             />
+                            {fieldErrors.startDate && (
+                              <p className="text-xs text-red-600 mt-1">{fieldErrors.startDate}</p>
+                            )}
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="endDate">Due Date</Label>
+                            <Label htmlFor="dueDate">Due Date *</Label>
                             <Input
-                              id="endDate"
+                              id="dueDate"
                               type="datetime-local"
                               value={form.dueDate}
                               onChange={(e) => handleChange("dueDate", e.target.value)}
                               disabled={saving}
+                              aria-invalid={!!fieldErrors.dueDate}
+                              min={form.startDate || undefined} // cegah pilih due < start di UI
+                              required
                             />
+                            {fieldErrors.dueDate && (
+                              <p className="text-xs text-red-600 mt-1">{fieldErrors.dueDate}</p>
+                            )}
                           </div>
                         </div>
 

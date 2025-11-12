@@ -1,3 +1,4 @@
+// src/pages/tickets/EditTickets.tsx
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
@@ -14,30 +15,33 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { IconArrowLeft, IconCheck } from "@tabler/icons-react";
 
+import {
+  editTicketSchema,
+  type EditTicketValues,
+  type EditTicketField,
+  toEditTicketPayload,
+} from "@/schemas/tickets.schema";
+
 const API_BASE = "http://localhost:3000";
 const OPTIONS_TTL_MS = 5 * 60 * 1000; // 5 menit
-
-type TicketType = "ISSUE" | "TASK" | string;
-type TicketPriority = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL" | string;
-type TicketStatus =
-  | "NEW"
-  | "TO_DO"
-  | "IN_PROGRESS"
-  | "IN_REVIEW"
-  | "DONE"
-  | "RESOLVED"
-  | "CLOSED"
-  | string;
 
 type Ticket = {
   id: number;
   projectId: number;
   requesterId: number;
-  type: TicketType;
+  type: "ISSUE" | "TASK" | string;
   title: string;
   description?: string | null;
-  priority?: TicketPriority | null;
-  status: TicketStatus;
+  priority?: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL" | string | null;
+  status:
+    | "NEW"
+    | "TO_DO"
+    | "IN_PROGRESS"
+    | "IN_REVIEW"
+    | "DONE"
+    | "RESOLVED"
+    | "CLOSED"
+    | string;
   startDate?: string | null;
   dueDate?: string | null;
   project?: { id: number; name: string } | null;
@@ -46,6 +50,7 @@ type Ticket = {
 
 type Opt = { id: number; name: string };
 
+/** konversi ISO → 'YYYY-MM-DDTHH:mm' untuk input datetime-local */
 function toLocalInput(iso?: string | null) {
   if (!iso) return "";
   const d = new Date(iso);
@@ -70,11 +75,35 @@ function mapUsers(raw: any[]): Opt[] {
   }));
 }
 
+/**
+ * UI form type (boleh "" sebelum dipilih).
+ * Ini menghindari error TS: Type 'string' is not assignable to union literal.
+ */
+type UiEditTicketForm = {
+  projectId: string;
+  requesterId: string;
+  type: "" | "ISSUE" | "TASK";
+  title: string;
+  description: string;
+  priority: "" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  status:
+    | ""
+    | "NEW"
+    | "TO_DO"
+    | "IN_PROGRESS"
+    | "IN_REVIEW"
+    | "DONE"
+    | "RESOLVED"
+    | "CLOSED";
+  startDate: string;
+  dueDate: string;
+};
+
 export default function EditTickets() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
-  // Options (projects, requesters) with localStorage TTL cache
+  // Options
   const [projects, setProjects] = React.useState<Opt[]>([]);
   const [requesters, setRequesters] = React.useState<Opt[]>([]);
   const [loadingOptions, setLoadingOptions] = React.useState(true);
@@ -83,24 +112,27 @@ export default function EditTickets() {
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [form, setForm] = React.useState({
+
+  const [form, setForm] = React.useState<UiEditTicketForm>({
     projectId: "",
     requesterId: "",
-    type: "" as "" | TicketType,
+    type: "",
     title: "",
     description: "",
-    priority: "" as "" | TicketPriority,
-    status: "" as "" | TicketStatus,
+    priority: "",
+    status: "",
     startDate: "",
     dueDate: "",
   });
+
+  const [fieldErrors, setFieldErrors] = React.useState<Partial<Record<EditTicketField, string>>>({});
 
   const tokenHeader = React.useMemo(() => {
     const token = localStorage.getItem("token");
     return token ? { Authorization: `Bearer ${token}` } : undefined;
   }, []);
 
-  // 1) Try read options from cache (instant)
+  // 1) Options dari cache (instant)
   React.useEffect(() => {
     try {
       const cached = localStorage.getItem("options_cache");
@@ -115,12 +147,12 @@ export default function EditTickets() {
     } catch {}
   }, []);
 
-  // 2) Revalidate options in background (abortable)
+  // 2) Revalidate options
   React.useEffect(() => {
     const controller = new AbortController();
     (async () => {
       try {
-        setLoadingOptions((prev) => prev && true); // kalau belum punya cache, tetap true
+        setLoadingOptions((prev) => prev && true);
         const [projRes, userRes] = await Promise.all([
           axios.get(`${API_BASE}/projects`, { headers: tokenHeader, signal: controller.signal }),
           axios.get(`${API_BASE}/users`, { headers: tokenHeader, signal: controller.signal }),
@@ -134,11 +166,9 @@ export default function EditTickets() {
 
         setProjects(p);
         setRequesters(u);
-
         localStorage.setItem("options_cache", JSON.stringify({ projects: p, requesters: u, ts: Date.now() }));
       } catch (e: any) {
         if (axios.isCancel?.(e)) return;
-        // Jangan timpa error form; cukup biarkan options pakai cache
       } finally {
         setLoadingOptions(false);
       }
@@ -146,7 +176,7 @@ export default function EditTickets() {
     return () => controller.abort();
   }, [tokenHeader]);
 
-  // 3) Fetch ticket detail
+  // 3) Load detail ticket
   const fetchTicket = React.useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -158,11 +188,11 @@ export default function EditTickets() {
       setForm({
         projectId: String(t.projectId ?? t.project?.id ?? ""),
         requesterId: String(t.requesterId ?? t.requester?.id ?? ""),
-        type: (t.type as TicketType) ?? "",
+        type: (t.type ?? "") as UiEditTicketForm["type"],
         title: t.title ?? "",
         description: t.description ?? "",
-        priority: (t.priority as TicketPriority) ?? "",
-        status: (t.status as TicketStatus) ?? "",
+        priority: (t.priority ?? "") as UiEditTicketForm["priority"],
+        status: (t.status ?? "") as UiEditTicketForm["status"],
         startDate: toLocalInput(t.startDate ?? null),
         dueDate: toLocalInput(t.dueDate ?? null),
       });
@@ -178,53 +208,66 @@ export default function EditTickets() {
     fetchTicket();
   }, [fetchTicket]);
 
-  const handleChange = (field: keyof typeof form, value: string) => {
+  const handleChange = (field: keyof UiEditTicketForm, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
-  };
 
-  const validate = (): string | null => {
-    if (!form.projectId) return "Project wajib dipilih.";
-    if (!form.requesterId) return "Requester wajib dipilih.";
-    if (!form.type) return "Type wajib dipilih.";
-    if (!form.title.trim()) return "Title tidak boleh kosong.";
-    if (!form.priority) return "Priority wajib dipilih.";
-    if (!form.status) return "Status wajib dipilih.";
-    if (form.startDate && form.dueDate) {
-      const s = new Date(form.startDate).getTime();
+    // re-validate field jika sebelumnya error
+    if (fieldErrors[field as EditTicketField]) {
+      const single = (editTicketSchema as any).pick({ [field]: true });
+      const forCheck =
+        field === "projectId" || field === "requesterId" ? Number(value) : value;
+      const res = single.safeParse({ [field]: forCheck });
+      setFieldErrors((fe) => ({
+        ...fe,
+        [field as EditTicketField]: res.success ? undefined : res.error.issues[0]?.message,
+      }));
+    }
+
+    // UX: jika startDate berubah dan dueDate < startDate, kosongkan dueDate
+    if (field === "startDate" && form.dueDate) {
+      const s = new Date(value).getTime();
       const d = new Date(form.dueDate).getTime();
       if (!Number.isNaN(s) && !Number.isNaN(d) && d < s) {
-        return "Due Date tidak boleh lebih awal dari Start Date.";
+        setForm((prev) => ({ ...prev, dueDate: "" }));
+        setFieldErrors((fe) => ({ ...fe, dueDate: undefined }));
       }
     }
-    return null;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSaving(true);
+    setFieldErrors({});
 
-    const v = validate();
-    if (v) {
-      setError(v);
+    // parse & validasi Zod
+    const parsed = editTicketSchema.safeParse({
+      projectId: form.projectId,
+      requesterId: form.requesterId,
+      type: form.type,
+      title: form.title.trim(),
+      description: form.description.trim(),
+      priority: form.priority,
+      status: form.status,
+      startDate: form.startDate,
+      dueDate: form.dueDate,
+    });
+
+    if (!parsed.success) {
+      const fe: Partial<Record<EditTicketField, string>> = {};
+      for (const issue of parsed.error.issues) {
+        const k = issue.path[0] as EditTicketField;
+        if (!fe[k]) fe[k] = issue.message;
+      }
+      setFieldErrors(fe);
+      setSaving(false);
       return;
     }
 
-    const payload = {
-      projectId: Number(form.projectId),
-      requesterId: Number(form.requesterId),
-      type: form.type,
-      title: form.title.trim(),
-      description: form.description.trim() || null,
-      priority: form.priority,
-      status: form.status,
-      startDate: form.startDate ? new Date(form.startDate).toISOString() : null,
-      dueDate: form.dueDate ? new Date(form.dueDate).toISOString() : null,
-    };
+    const payload = toEditTicketPayload(parsed.data);
 
     try {
-      setSaving(true);
       await axios.patch(`${API_BASE}/tickets/${id}`, payload, { headers: tokenHeader });
-
       await Swal.fire({
         title: "Saved",
         text: "Perubahan ticket berhasil disimpan.",
@@ -232,7 +275,7 @@ export default function EditTickets() {
         timer: 1400,
         showConfirmButton: false,
       });
-      navigate(`/admin/dashboard/tickets/view/${id}`);
+      navigate(`/admin/dashboard/tickets`);
     } catch (err: any) {
       const msg2 = err?.response?.data?.message || "Gagal menyimpan perubahan.";
       setError(msg2);
@@ -286,7 +329,7 @@ export default function EditTickets() {
                       </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                    <form onSubmit={handleSubmit} className="space-y-6" noValidate>
                       {/* Project & Requester */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
@@ -294,7 +337,7 @@ export default function EditTickets() {
                           <Select
                             value={form.projectId}
                             onValueChange={(v) => handleChange("projectId", v)}
-                            disabled={saving}
+                            disabled={saving || loading}
                           >
                             <SelectTrigger>
                               <SelectValue
@@ -317,6 +360,9 @@ export default function EditTickets() {
                               )}
                             </SelectContent>
                           </Select>
+                          {fieldErrors.projectId && (
+                            <p className="text-xs text-red-600 mt-1">{fieldErrors.projectId}</p>
+                          )}
                         </div>
 
                         <div className="space-y-2">
@@ -324,7 +370,7 @@ export default function EditTickets() {
                           <Select
                             value={form.requesterId}
                             onValueChange={(v) => handleChange("requesterId", v)}
-                            disabled={saving}
+                            disabled={saving || loading}
                           >
                             <SelectTrigger>
                               <SelectValue
@@ -347,6 +393,9 @@ export default function EditTickets() {
                               )}
                             </SelectContent>
                           </Select>
+                          {fieldErrors.requesterId && (
+                            <p className="text-xs text-red-600 mt-1">{fieldErrors.requesterId}</p>
+                          )}
                         </div>
                       </div>
 
@@ -370,6 +419,9 @@ export default function EditTickets() {
                               ))}
                             </SelectContent>
                           </Select>
+                          {fieldErrors.type && (
+                            <p className="text-xs text-red-600 mt-1">{fieldErrors.type}</p>
+                          )}
                         </div>
 
                         <div className="space-y-2">
@@ -390,6 +442,9 @@ export default function EditTickets() {
                               ))}
                             </SelectContent>
                           </Select>
+                          {fieldErrors.priority && (
+                            <p className="text-xs text-red-600 mt-1">{fieldErrors.priority}</p>
+                          )}
                         </div>
 
                         <div className="space-y-2">
@@ -412,6 +467,9 @@ export default function EditTickets() {
                               )}
                             </SelectContent>
                           </Select>
+                          {fieldErrors.status && (
+                            <p className="text-xs text-red-600 mt-1">{fieldErrors.status}</p>
+                          )}
                         </div>
                       </div>
 
@@ -424,43 +482,64 @@ export default function EditTickets() {
                           value={form.title}
                           onChange={(e) => handleChange("title", e.target.value)}
                           disabled={saving || loading}
+                          aria-invalid={!!fieldErrors.title}
+                          required
                         />
+                        {fieldErrors.title && (
+                          <p className="text-xs text-red-600 mt-1">{fieldErrors.title}</p>
+                        )}
                       </div>
 
-                      {/* Description */}
+                      {/* Description (WAJIB, min 10) */}
                       <div className="space-y-2">
-                        <Label htmlFor="description">Description</Label>
+                        <Label htmlFor="description">Description *</Label>
                         <Textarea
                           id="description"
                           rows={5}
-                          placeholder="Jelaskan isu/permintaan…"
+                          placeholder="Jelaskan isu/permintaan… (min 10 karakter)"
                           value={form.description}
                           onChange={(e) => handleChange("description", e.target.value)}
                           disabled={saving || loading}
+                          aria-invalid={!!fieldErrors.description}
+                          required
                         />
+                        {fieldErrors.description && (
+                          <p className="text-xs text-red-600 mt-1">{fieldErrors.description}</p>
+                        )}
                       </div>
 
-                      {/* Dates */}
+                      {/* Dates (WAJIB) */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                          <Label htmlFor="startDate">Start Date</Label>
+                          <Label htmlFor="startDate">Start Date *</Label>
                           <Input
                             id="startDate"
                             type="datetime-local"
                             value={form.startDate}
                             onChange={(e) => handleChange("startDate", e.target.value)}
                             disabled={saving || loading}
+                            aria-invalid={!!fieldErrors.startDate}
+                            required
                           />
+                          {fieldErrors.startDate && (
+                            <p className="text-xs text-red-600 mt-1">{fieldErrors.startDate}</p>
+                          )}
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="dueDate">Due Date</Label>
+                          <Label htmlFor="dueDate">Due Date *</Label>
                           <Input
                             id="dueDate"
                             type="datetime-local"
                             value={form.dueDate}
                             onChange={(e) => handleChange("dueDate", e.target.value)}
                             disabled={saving || loading}
+                            aria-invalid={!!fieldErrors.dueDate}
+                            min={form.startDate || undefined} // cegah pilih due < start via UI
+                            required
                           />
+                          {fieldErrors.dueDate && (
+                            <p className="text-xs text-red-600 mt-1">{fieldErrors.dueDate}</p>
+                          )}
                         </div>
                       </div>
 
@@ -468,12 +547,12 @@ export default function EditTickets() {
                         <Button
                           type="button"
                           variant="outline"
-                          onClick={() => navigate(`/admin/dashboard/tickets/view/${id}`)}
+                          onClick={() => navigate(`/admin/dashboard/tickets`)}
                           disabled={saving}
                         >
                           Cancel
                         </Button>
-                        <Button type="submit" disabled={saving}>
+                        <Button type="submit" disabled={saving || loading}>
                           <IconCheck className="mr-2 h-4 w-4" />
                           {saving ? "Saving..." : "Save Changes"}
                         </Button>

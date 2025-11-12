@@ -12,7 +12,8 @@ import {
   IconUserCheck,
   IconPaperclip,
   IconTimeline,
-  IconUserStar
+  IconUserStar,
+  IconLayoutDashboard
 } from "@tabler/icons-react"
 
 import { NavDocuments } from "@/components/nav-documents"
@@ -41,7 +42,7 @@ const data = {
     {
       title: "Dashboard",
       url: "/admin/dashboard",
-      icon: IconDashboard,
+      icon: IconLayoutDashboard,
     },
     {
       title: "Users",
