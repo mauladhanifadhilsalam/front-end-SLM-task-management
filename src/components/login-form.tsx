@@ -53,9 +53,6 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"form">)
     if (errors[name]) validateField(name, val);
   }
 
-  // this sitekey is for testing purposes only
-  const recaptchaTestSiteKey = "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
@@ -185,7 +182,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"form">)
 
 
         <div className="w-full flex justify-center">
-          <ReCAPTCHA sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY || recaptchaTestSiteKey} onChange={handleVerifiedChange}/>
+          <ReCAPTCHA sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY} onChange={handleVerifiedChange}/>
         </div>
         <Button type="submit" disabled={loading || !verified}>
           {loading ? "Logging in..." : "Login"}
