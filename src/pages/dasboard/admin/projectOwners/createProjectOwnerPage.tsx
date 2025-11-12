@@ -14,81 +14,107 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { IconArrowLeft, IconCheck } from "@tabler/icons-react";
-// ...existing code...
+
+
+import {
+  projectOwnerSchema,
+  type ProjectOwnerValues,
+  type ProjectOwnerField,
+} from "@/schemas/project-owner.schema";
+
+
 
 export default function CreateProjectOwnerPage() {
     const navigate = useNavigate();
     const API_BASE = "http://localhost:3000";
 
-    const [form, setForm] = React.useState({
+    const [form, setForm] = React.useState<ProjectOwnerValues>({
         name: "",
         company: "",
         email: "",
         phone: "",
         address: "",
     });
-    const [saving, setSaving] = React.useState(false);
-    const [error, setError] = React.useState<string | null>(null);
 
-    const handleChange = (field: string, value: string) =>
+    const [errors, setErrors] = React.useState<
+        Partial<Record<ProjectOwnerField, string>>
+    >({});
+
+    const [saving, setSaving] = React.useState(false);
+
+    // ---------- VALIDATION HELPERS ----------
+    const validateAll = (values: ProjectOwnerValues) => {
+        const parsed = projectOwnerSchema.safeParse(values);
+        if (parsed.success) return {};
+        const next: Partial<Record<ProjectOwnerField, string>> = {};
+        for (const issue of parsed.error.issues) {
+        const key = issue.path[0] as ProjectOwnerField | undefined;
+        if (key && !next[key]) next[key] = issue.message;
+        }
+        return next;
+    };
+
+    const validateField = (name: ProjectOwnerField, value: string) => {
+        const single = (projectOwnerSchema as any).pick({ [name]: true });
+        const res = single.safeParse({ [name]: value });
+        setErrors((prev) => ({
+        ...prev,
+        [name]: res.success ? undefined : res.error.issues[0]?.message,
+        }));
+    };
+    // ---------------------------------------
+
+    const handleChange = (field: ProjectOwnerField, value: string) => {
         setForm((p) => ({ ...p, [field]: value }));
+        if (errors[field]) validateField(field, value); // perbaiki error saat user mengetik
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError(null);
 
-        if (!form.name.trim()) {
-            setError("Nama wajib diisi.");
-            return;
-        }
+        // 1) Validasi Zod — tampilkan inline, tanpa Swal
+        const nextErrors = validateAll(form);
+        setErrors(nextErrors);
+        const hasError = Object.values(nextErrors).some(Boolean);
+        if (hasError) return;
 
+        // 2) Submit API
         setSaving(true);
         try {
-            const token = localStorage.getItem("token");
-            const payload = {
-                name: form.name.trim(),
-                company: form.company.trim() || null,
-                email: form.email.trim() || null,
-                phone: form.phone.trim() || null,
-                address: form.address.trim() || null,
-            };
+        const token = localStorage.getItem("token");
+        const payload = {
+            name: form.name.trim(),
+            company: form.company.trim(),
+            email: form.email.trim(),
+            phone: form.phone.trim(),
+            address: form.address.trim(),
+        };
 
-                await axios.post(`${API_BASE}/project-owners`, payload, {
-                headers: {
-                    "Content-Type": "application/json",
-                    ...(token ? { Authorization: `Bearer ${token}` } : {})
-                }
-                });
+        await axios.post(`${API_BASE}/project-owners`, payload, {
+            headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+        });
 
-            await Swal.fire({
-                title: "Berhasil",
-                text: "Project owner berhasil dibuat.",
-                icon: "success",
-                timer: 1300,
-                showConfirmButton: false,
-            });
-            navigate("/admin/dashboard/project-owners");
-        } catch (err) {
-            if ((err as any)?.response) {
-                const msg = (err as any)?.response?.data?.message || "Gagal membuat owner.";
-                await Swal.fire({ title: "Gagal", text: msg, icon: "error" });
-            } else {
-                // fallback dummy success
-                await new Promise((r) => setTimeout(r, 700));
-                await Swal.fire({
-                    title: "Berhasil (dummy)",
-                    text: "Project owner dibuat (dummy).",
-                    icon: "success",
-                    timer: 1200,
-                    showConfirmButton: false,
-                });
-                navigate("/admin/dashboard/project-owners");
-            }
+        await Swal.fire({
+            title: "Berhasil",
+            text: "Project owner berhasil dibuat.",
+            icon: "success",
+            timer: 1300,
+            showConfirmButton: false,
+        });
+        navigate("/admin/dashboard/project-owners");
+        } catch (err: any) {
+        const msg =
+            err?.response?.data?.message || "Gagal membuat owner. Coba lagi.";
+        await Swal.fire({ title: "Gagal", text: msg, icon: "error" });
         } finally {
-            setSaving(false);
+        setSaving(false);
         }
     };
 
@@ -113,85 +139,146 @@ export default function CreateProjectOwnerPage() {
                         <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => navigate("/admin/dashboard/project-owners")}
+                        onClick={() =>
+                            navigate("/admin/dashboard/project-owners")
+                        }
                         className="flex items-center gap-2 cursor-pointer"
                         >
                         <IconArrowLeft className="h-4 w-4 " />
                         Kembali
                         </Button>
                     </div>
-                    <h1 className="text-2xl font-semibold">Tambah Project Owner</h1>
+                    <h1 className="text-2xl font-semibold">
+                        Tambah Project Owner
+                    </h1>
                     </div>
 
                     <div className="px-4 lg:px-6">
                     <Card>
                         <CardHeader>
                         <CardTitle>Informasi Owner</CardTitle>
-                        <CardDescription>Isi data owner yang akan ditambahkan.</CardDescription>
+                        <CardDescription>
+                            Isi data owner yang akan ditambahkan.
+                        </CardDescription>
                         </CardHeader>
                         <CardContent>
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            {error && <div className="text-sm text-red-600">{error}</div>}
-
+                        <form onSubmit={handleSubmit} className="space-y-6" noValidate>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Name */}
                             <div className="space-y-2">
                                 <Label htmlFor="name">Nama *</Label>
                                 <Input
                                 id="name"
                                 value={form.name}
-                                onChange={(e) => handleChange("name", e.target.value)}
+                                onChange={(e) =>
+                                    handleChange("name", e.target.value)
+                                }
+                                onBlur={() => validateField("name", form.name)}
                                 placeholder="Nama lengkap"
-                                required
                                 disabled={saving}
+                                aria-invalid={!!errors.name}
+                                required
                                 />
+                                {errors.name && (
+                                <p className="text-xs text-red-600 mt-1">
+                                    {errors.name}
+                                </p>
+                                )}
                             </div>
 
+                            {/* Company */}
                             <div className="space-y-2">
-                                <Label htmlFor="company">Company</Label>
+                                <Label htmlFor="company">Company *</Label>
                                 <Input
                                 id="company"
                                 value={form.company}
-                                onChange={(e) => handleChange("company", e.target.value)}
-                                placeholder="Nama perusahaan (opsional)"
+                                onChange={(e) =>
+                                    handleChange("company", e.target.value)
+                                }
+                                onBlur={() =>
+                                    validateField("company", form.company)
+                                }
+                                placeholder="Nama perusahaan"
                                 disabled={saving}
+                                aria-invalid={!!errors.company}
+                                required
                                 />
+                                {errors.company && (
+                                <p className="text-xs text-red-600 mt-1">
+                                    {errors.company}
+                                </p>
+                                )}
                             </div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Email */}
                             <div className="space-y-2">
-                                <Label htmlFor="email">Email</Label>
+                                <Label htmlFor="email">Email *</Label>
                                 <Input
                                 id="email"
                                 type="email"
                                 value={form.email}
-                                onChange={(e) => handleChange("email", e.target.value)}
-                                placeholder="owner@company.id (opsional)"
+                                onChange={(e) =>
+                                    handleChange("email", e.target.value)
+                                }
+                                onBlur={() => validateField("email", form.email)}
+                                placeholder="owner@company.id"
                                 disabled={saving}
+                                aria-invalid={!!errors.email}
+                                required
                                 />
+                                {errors.email && (
+                                <p className="text-xs text-red-600 mt-1">
+                                    {errors.email}
+                                </p>
+                                )}
                             </div>
 
+                            {/* Phone */}
                             <div className="space-y-2">
-                                <Label htmlFor="phone">Phone</Label>
+                                <Label htmlFor="phone">Phone *</Label>
                                 <Input
                                 id="phone"
                                 value={form.phone}
-                                onChange={(e) => handleChange("phone", e.target.value)}
-                                placeholder="+62xxxxxxxxx (opsional)"
+                                onChange={(e) =>
+                                    handleChange("phone", e.target.value)
+                                }
+                                onBlur={() => validateField("phone", form.phone)}
+                                placeholder="+62xxxxxxxxx / 08xxxxxxxxx"
                                 disabled={saving}
+                                aria-invalid={!!errors.phone}
+                                required
                                 />
+                                {errors.phone && (
+                                <p className="text-xs text-red-600 mt-1">
+                                    {errors.phone}
+                                </p>
+                                )}
                             </div>
                             </div>
 
+                            {/* Address */}
                             <div className="space-y-2">
-                            <Label htmlFor="address">Address</Label>
-                            <Input
-                                id="address"
-                                value={form.address}
-                                onChange={(e) => handleChange("address", e.target.value)}
-                                placeholder="Alamat (opsional)"
-                                disabled={saving}
-                            />
+                                <Label htmlFor="address">Address *</Label>
+                                <Textarea
+                                    id="address"
+                                    value={form.address}
+                                    onChange={(e) =>
+                                    handleChange("address", e.target.value)
+                                    }
+                                    onBlur={() => validateField("address", form.address)}
+                                    placeholder="Tulis alamat lengkap di sini"
+                                    disabled={saving}
+                                    aria-invalid={!!errors.address}
+                                    required
+                                    className="min-h-[100px] resize-y"
+                                />
+                                {errors.address && (
+                                    <p className="text-xs text-red-600 mt-1">
+                                    {errors.address}
+                                    </p>
+                                )}
                             </div>
 
                             <div className="flex justify-end space-x-3">
@@ -212,4 +299,4 @@ export default function CreateProjectOwnerPage() {
         </div>
     );
 }
-// ...existing code...
+
