@@ -18,10 +18,6 @@ import EditProjectOwnerPage from './pages/dasboard/admin/projectOwners/editProje
 import ViewProjectOwnnerPage from './pages/dasboard/admin/projectOwners/viewProjectOwnnerPage'
 import { ProtectedRoute } from "./components/ProtectedRoute"
 import { View } from 'lucide-react'
-import CreateTicketAssigneePage from './pages/dasboard/admin/ticketAssignee/createTicketAssignee'
-import EditTicketAssignee from './pages/dasboard/admin/ticketAssignee/editTicketAssignee'
-import AdminTickets from './pages/dasboard/admin/adminTicketAssignee'
-import ViewTicketAssigneePage from './pages/dasboard/admin/ticketAssignee/viewTicketAssignee'
 const rootElement = document.getElementById('root') as HTMLElement;
 
 createRoot(rootElement).render(
@@ -49,16 +45,7 @@ createRoot(rootElement).render(
             </ProtectedRoute>
           }
         />
-
-         <Route
-          path="/admin/dashboard/tickets"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <AdminTickets />
-            </ProtectedRoute>
-          }
-        />
-
+        
         <Route
           path="/admin/dashboard/project-owners"
           element={
@@ -67,16 +54,6 @@ createRoot(rootElement).render(
             </ProtectedRoute>
           }
         />
-
-        <Route
-          path="/admin/dashboard/ticket-assignees/create"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <CreateTicketAssigneePage />
-            </ProtectedRoute>
-          }
-        />
-
 
         <Route
           path="/admin/dashboard/project-owners/create"
@@ -115,28 +92,10 @@ createRoot(rootElement).render(
         />
 
         <Route
-          path="/admin/dashboard/tickets/view/:id"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <ViewTicketAssigneePage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
           path="/admin/dashboard/users/edit/:id"
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
               <EditUsers />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/admin/dashboard/tickets/edit/:id"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <EditTicketAssignee />
             </ProtectedRoute>
           }
         />
