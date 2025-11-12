@@ -73,7 +73,7 @@ export default function AdminTicketAssignees() {
   })
 
   const navigate = useNavigate()
-  const API_BASE = "http://localhost:3000"
+  const API_BASE = import.meta.env.VITE_API_BASE;
 
   // 🔒 Helper untuk ambil header Authorization
   const getAuthHeaders = () => {
@@ -195,61 +195,56 @@ export default function AdminTicketAssignees() {
       .sort((a, b) => b.id - a.id)
   }, [assignees, search, statusFilter])
 
-  // 🔖 Badge helpers
-  const getStatusBadge = (status: string) => {
+  // 🔖 Badge helpers (konsisten dengan AdminTickets)
+  const statusVariant = (status?: string) => {
     switch (status) {
+      case "NEW":
+      case "TO_DO":
       case "OPEN":
-        return <Badge variant="destructive">Open</Badge>
+        return "secondary";
       case "IN_PROGRESS":
-        return (
-          <Badge className="bg-blue-500 hover:bg-blue-600 text-white">
-            In Progress
-          </Badge>
-        )
+        return "default";
+      case "IN_REVIEW":
+        return "outline";
+      case "DONE":
       case "RESOLVED":
-        return (
-          <Badge className="bg-green-500 hover:bg-green-600">Resolved</Badge>
-        )
       case "CLOSED":
-        return <Badge variant="outline">Closed</Badge>
+        return "default";
+      case "BLOCKED":
       case "PENDING":
-        return (
-          <Badge className="bg-yellow-500 hover:bg-yellow-600">Pending</Badge>
-        )
+        return "destructive";
       default:
-        return <Badge variant="outline">{status}</Badge>
+        return "secondary";
     }
-  }
+  };
 
-  const getPriorityBadge = (priority: string) => {
-    switch (priority) {
+  const priorityVariant = (p?: string) => {
+    switch (p) {
       case "LOW":
-        return <Badge variant="outline">Low</Badge>
+        return "outline";
       case "MEDIUM":
-        return <Badge variant="secondary">Medium</Badge>
+        return "secondary";
       case "HIGH":
-        return <Badge variant="destructive">High</Badge>
-      case "URGENT":
-        return (
-          <Badge className="bg-red-700 hover:bg-red-800 text-white">Urgent</Badge>
-        )
+        return "default";
+      case "CRITICAL":
+        return "destructive";
       default:
-        return <Badge variant="outline">{priority}</Badge>
+        return "secondary";
     }
-  }
+  };
 
-  const getTypeBadge = (type: string) => {
+  const typeVariant = (type?: string) => {
+    // Menggunakan variant serupa untuk konsistensi; bisa disesuaikan jika diperlukan
     switch (type) {
       case "TASK":
-        return <Badge className="bg-purple-500 hover:bg-purple-600">Task</Badge>
+        return "secondary";
       case "ISSUE":
-        return <Badge className="bg-orange-500 hover:bg-orange-600">Issue</Badge>
       case "BUG":
-        return <Badge className="bg-red-500 hover:bg-red-600">Bug</Badge>
+        return "destructive";
       default:
-        return <Badge variant="outline">{type}</Badge>
+        return "outline";
     }
-  }
+  };
 
   const formatDate = (iso: string) => {
     try {
@@ -264,7 +259,14 @@ export default function AdminTicketAssignees() {
   }
 
   return (
-    <SidebarProvider>
+    <SidebarProvider
+      style={
+        {
+          "--sidebar-width": "calc(var(--spacing) * 72)",
+          "--header-height": "calc(var(--spacing) * 12)",
+        } as React.CSSProperties
+      }
+    >
       <AppSidebar variant="inset" />
       <SidebarInset>
         <SiteHeader />
@@ -272,12 +274,12 @@ export default function AdminTicketAssignees() {
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-semibold">Ticket Assignments 📋</h1>
+              <h1 className="text-2xl font-semibold">Ticket Assignments</h1>
               <p className="text-muted-foreground">
                 Kelola assignment ticket ke user/developer.
               </p>
             </div>
-            <Button onClick={() => navigate("/admin/dashboard/ticket-assignee/create")}>
+            <Button onClick={() => navigate("/admin/dashboard/ticket-assignees/create")}>
               <IconPlus className="mr-2 h-4 w-4" />
               Assign Ticket Baru
             </Button>
@@ -298,11 +300,11 @@ export default function AdminTicketAssignees() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">ALL</SelectItem>
-                  <SelectItem value="OPEN">OPEN</SelectItem>
+                  <SelectItem value="NEW">NEW</SelectItem>
+                  <SelectItem value="TO_DO">TO_DO</SelectItem>
                   <SelectItem value="IN_PROGRESS">IN_PROGRESS</SelectItem>
                   <SelectItem value="RESOLVED">RESOLVED</SelectItem>
                   <SelectItem value="CLOSED">CLOSED</SelectItem>
-                  <SelectItem value="PENDING">PENDING</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -378,13 +380,19 @@ export default function AdminTicketAssignees() {
                         </td>
                       )}
                       {cols.type && (
-                        <td className="px-4 py-3">{getTypeBadge(a.ticket.type)}</td>
+                        <td className="px-4 py-3">
+                          <Badge variant={typeVariant(a.ticket.type)}>{a.ticket.type || "-"}</Badge>
+                        </td>
                       )}
                       {cols.priority && (
-                        <td className="px-4 py-3">{getPriorityBadge(a.ticket.priority)}</td>
+                        <td className="px-4 py-3">
+                          <Badge variant={priorityVariant(a.ticket.priority)}>{a.ticket.priority || "-"}</Badge>
+                        </td>
                       )}
                       {cols.status && (
-                        <td className="px-4 py-3">{getStatusBadge(a.ticket.status)}</td>
+                        <td className="px-4 py-3">
+                          <Badge variant={statusVariant(a.ticket.status)}>{a.ticket.status}</Badge>
+                        </td>
                       )}
                       {cols.createdAt && (
                         <td className="px-4 py-3">{formatDate(a.createdAt)}</td>
@@ -392,13 +400,13 @@ export default function AdminTicketAssignees() {
                       {cols.actions && (
                         <td className="px-4 py-3">
                           <div className="flex justify-center gap-3">
-                            <Link to={`/admin/dashboard/tickets/view/${a.ticket.id}`}>
+                            <Link to={`/admin/dashboard/ticket-assignees/view/${a.ticket.id}`}>
                               <IconEye className="h-4 w-4 text-blue-600 hover:text-blue-700" />
                             </Link>
                             <Link
-                              to={`/admin/dashboard/tickets/edit/${a.ticket.id}`}
+                              to={`/admin/dashboard/ticket-assignees/edit/${a.ticket.id}`}
                               className="cursor-pointer"
-                              >
+                            >
                               <IconEdit className="h-4 w-4" />
                             </Link>
                             <button

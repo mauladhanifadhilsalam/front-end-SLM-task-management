@@ -23,11 +23,12 @@ import { cn } from "@/lib/utils"
 import * as React from "react"
 import { useNavigate } from "react-router-dom"
 import axios from "axios"
+import Swal from "sweetalert2"
 
 // Define interface for User data to match API response (using fullName)
 interface User {
   id: number;
-  fullName: string; // <<< PERUBAHAN DI SINI: Menggunakan 'fullName' >>>
+  fullName: string;
   email: string;
 }
 
@@ -35,11 +36,9 @@ export default function CreateTicketAssigneePage() {
   const navigate = useNavigate()
   const [loading, setLoading] = React.useState(false)
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null)
-  const [successMsg, setSuccessMsg] = React.useState<string | null>(null)
 
   const [tickets, setTickets] = React.useState<{ id: number; title: string }[]>([])
-  // <<< PERUBAHAN DI SINI: Menggunakan 'fullName' untuk tipe data User >>>
-  const [users, setUsers] = React.useState<User[]>([]) 
+  const [users, setUsers] = React.useState<User[]>([])
 
   const [formData, setFormData] = React.useState({
     ticketId: undefined as number | undefined,
@@ -62,7 +61,7 @@ export default function CreateTicketAssigneePage() {
         ])
 
         setTickets(ticketRes.data || [])
-        setUsers(userRes.data || []) // Data API sudah cocok dengan tipe User
+        setUsers(userRes.data || [])
       } catch (err) {
         console.error("Gagal memuat data tiket/assignee", err)
       }
@@ -75,7 +74,6 @@ export default function CreateTicketAssigneePage() {
     e.preventDefault()
     setLoading(true)
     setErrorMsg(null)
-    setSuccessMsg(null)
 
     if (!formData.ticketId || !formData.userId) {
       setErrorMsg("Ticket dan Assignee wajib dipilih.")
@@ -105,35 +103,71 @@ export default function CreateTicketAssigneePage() {
         },
       })
 
-      setSuccessMsg("Ticket berhasil di-assign.")
-      setTimeout(() => navigate("/admin/dashboard/ticket-assignee"), 1000)
+      // Tampilkan SweetAlert2 untuk sukses
+      const selectedTicket = tickets.find((t) => t.id === formData.ticketId)
+      const selectedUser = users.find((u) => u.id === formData.userId)
+
+    await Swal.fire({
+      icon: "success",
+      title: "Berhasil!",
+      text: `Ticket "${selectedTicket?.title}" berhasil di-assign ke ${selectedUser?.fullName}`,
+      showConfirmButton: false,   // hilangkan tombol OK
+      timer: 1500,                // auto close setelah 1.5 detik
+      timerProgressBar: true,     // opsional: tampilkan progress bar
+    })
+
+
+      // Redirect setelah SweetAlert ditutup
+      navigate("/admin/dashboard/ticket-assignees")
     } catch (err: any) {
       console.error(err)
-      setErrorMsg(err?.response?.data?.message || "Gagal membuat penugasan.")
+      const errorMessage = err?.response?.data?.message || "Gagal membuat penugasan."
+      
+      // Tampilkan SweetAlert2 untuk error
+      await Swal.fire({
+        icon: "error",
+        title: "Gagal!",
+        text: errorMessage,
+        confirmButtonText: "OK",
+        confirmButtonColor: "#ef4444",
+      })
+      
+      setErrorMsg(errorMessage)
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <SidebarProvider>
+    <SidebarProvider
+      style={
+        {
+          "--sidebar-width": "calc(var(--spacing) * 72)",
+          "--header-height": "calc(var(--spacing) * 12)",
+        } as React.CSSProperties
+      }
+    >
       <AppSidebar variant="inset" />
       <SidebarInset>
         <SiteHeader />
-        <main className="flex-1 p-6">
+        <div className="flex flex-1 flex-col px-4 lg:px-6 py-6">
           <div className="flex items-center gap-4 mb-6">
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate("/admin/dashboard/ticket-assignee")}
+              onClick={() => navigate("/admin/dashboard/ticket-assignees")}
               className="flex items-center gap-2"
             >
               <ArrowLeft className="h-4 w-4" />
               Kembali
             </Button>
-            <h1 className="text-2xl font-semibold">Assign Ticket</h1>
           </div>
-
+          
+          <h1 className="text-2xl font-semibold">Assign Ticket</h1>
+          <p className="text-muted-foreground mb-6">
+            Buat penugasan tiket baru dengan memilih tiket dan user yang akan ditugaskan.
+          </p>
+          
           <Card>
             <CardHeader>
               <CardTitle>Ticket Assignee</CardTitle>
@@ -147,11 +181,6 @@ export default function CreateTicketAssigneePage() {
                 {errorMsg && (
                   <div className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-700">
                     {errorMsg}
-                  </div>
-                )}
-                {successMsg && (
-                  <div className="rounded border border-green-300 bg-green-50 p-3 text-sm text-green-700">
-                    {successMsg}
                   </div>
                 )}
 
@@ -205,9 +234,8 @@ export default function CreateTicketAssigneePage() {
                   <Popover open={openAssignee} onOpenChange={setOpenAssignee}>
                     <PopoverTrigger asChild>
                       <Button variant="outline" role="combobox" className="justify-between w-full">
-                        {/* <<< PERUBAHAN DI SINI: Mengakses 'fullName' untuk menampilkan nama Assignee >>> */}
                         {formData.userId
-                          ? users.find((u) => u.id === formData.userId)?.fullName 
+                          ? users.find((u) => u.id === formData.userId)?.fullName
                           : "Pilih user..."}
                         <ChevronsUpDown className="opacity-50 size-4" />
                       </Button>
@@ -220,8 +248,7 @@ export default function CreateTicketAssigneePage() {
                           {users.map((u) => (
                             <CommandItem
                               key={u.id}
-                              // Menggabungkan fullName dan email untuk pencarian
-                              value={`${u.fullName} ${u.email}`} 
+                              value={`${u.fullName} ${u.email}`}
                               onSelect={() => {
                                 setFormData((prev) => ({
                                   ...prev,
@@ -237,8 +264,7 @@ export default function CreateTicketAssigneePage() {
                                 )}
                               />
                               <div className="flex flex-col">
-                                {/* <<< PERUBAHAN DI SINI: Mengakses 'fullName' untuk menampilkan nama di CommandItem >>> */}
-                                <span className="font-medium">{u.fullName}</span> 
+                                <span className="font-medium">{u.fullName}</span>
                                 <span className="text-xs text-muted-foreground">
                                   {u.email}
                                 </span>
@@ -261,7 +287,7 @@ export default function CreateTicketAssigneePage() {
               </form>
             </CardContent>
           </Card>
-        </main>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   )

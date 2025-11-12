@@ -58,7 +58,7 @@ export default function ViewTicketAssignee() {
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState<string>("");
 
-    const API_BASE = "http://localhost:3000";
+    const API_BASE = import.meta.env.VITE_API_BASE;
 
     const getAuthHeaders = () => {
         const token = localStorage.getItem("token");
@@ -174,55 +174,58 @@ export default function ViewTicketAssignee() {
         }
     };
 
-    // Badge Status (Tidak diubah)
-    const getStatusBadge = (status: TicketStatus) => {
+    // 🔖 Badge helpers (konsisten dengan AdminTickets)
+    const statusVariant = (status?: TicketStatus) => {
         switch (status) {
             case "OPEN":
-                return <Badge variant="destructive">Open</Badge>;
-            case "IN_PROGRESS":
-                return <Badge className="bg-blue-500 hover:bg-blue-600 text-white">In Progress</Badge>;
-            case "RESOLVED":
-                return <Badge className="bg-green-500 hover:bg-green-600">Resolved</Badge>;
-            case "CLOSED":
             case "PENDING":
-                return <Badge className="bg-yellow-500 hover:bg-yellow-600">Pending</Badge>;
+                return "secondary";
+            case "IN_PROGRESS":
+                return "default";
+            case "RESOLVED":
+            case "CLOSED":
+                return "default";
             default:
-                return <Badge variant="outline">{status}</Badge>;
+                return "secondary";
         }
     };
 
-    // Badge Priority (Tidak diubah)
-    const getPriorityBadge = (priority: TicketPriority) => {
-        switch (priority) {
+    const priorityVariant = (p?: TicketPriority) => {
+        switch (p) {
             case "LOW":
-                return <Badge variant="outline">Low</Badge>;
+                return "outline";
             case "MEDIUM":
-                return <Badge variant="secondary">Medium</Badge>;
+                return "secondary";
             case "HIGH":
-                return <Badge variant="destructive">High</Badge>;
+                return "default";
             case "URGENT":
-                return <Badge className="bg-red-700 hover:bg-red-800 text-white">URGENT</Badge>;
+                return "destructive"; // Menggunakan "destructive" untuk URGENT, mirip CRITICAL
             default:
-                return <Badge variant="outline">{priority}</Badge>;
+                return "secondary";
         }
     };
 
-    // Badge Type (Tidak diubah)
-    const getTypeBadge = (type: TicketType) => {
+    const typeVariant = (type?: TicketType) => {
         switch (type) {
             case "TASK":
-                return <Badge className="bg-purple-500 hover:bg-purple-600">Task</Badge>;
+                return "secondary";
             case "ISSUE":
-                return <Badge className="bg-orange-500 hover:bg-orange-600">Issue</Badge>;
             case "BUG":
-                return <Badge className="bg-red-500 hover:bg-red-600">Bug</Badge>;
+                return "destructive";
             default:
-                return <Badge variant="outline">{type}</Badge>;
+                return "outline";
         }
     };
 
     return (
-        <SidebarProvider>
+        <SidebarProvider
+            style={
+                {
+                    "--sidebar-width": "calc(var(--spacing) * 72)",
+                    "--header-height": "calc(var(--spacing) * 12)",
+                } as React.CSSProperties
+            }
+        >
             <AppSidebar variant="inset" />
             <SidebarInset>
                 <SiteHeader />
@@ -232,11 +235,11 @@ export default function ViewTicketAssignee() {
                         <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => navigate("/admin/dashboard/ticket-assignee")}
+                            onClick={() => navigate("/admin/dashboard/ticket-assignees")}
                             className="flex items-center gap-2"
                         >
                             <IconArrowLeft className="h-4 w-4" />
-                            Kembali
+                            Back
                         </Button>
 
                         <div className="ml-auto flex items-center gap-2">
@@ -255,12 +258,12 @@ export default function ViewTicketAssignee() {
                                 className="flex items-center gap-2"
                             >
                                 <IconTrash className="h-4 w-4" />
-                                Hapus
+                                Delete
                             </Button>
                         </div>
                     </div>
 
-                    <h1 className="text-2xl font-semibold mb-2">Detail Ticket Assignment 🎫</h1>
+                    <h1 className="text-2xl font-semibold mb-2">Detail Ticket Assignment</h1>
                     <p className="text-muted-foreground mb-6">
                         Lihat informasi lengkap dan detail assignment tiket ini.
                     </p>
@@ -290,22 +293,22 @@ export default function ViewTicketAssignee() {
                                             <div className="font-medium">#{ticket.id}</div>
                                         </div>
 
-                                        {/* Type (Tidak diubah) */}
+                                        {/* Type (Diubah untuk konsistensi) */}
                                         <div>
                                             <div className="text-sm text-muted-foreground">Type</div>
-                                            {getTypeBadge(ticket.type)}
+                                            <Badge variant={typeVariant(ticket.type)}>{ticket.type}</Badge>
                                         </div>
 
-                                        {/* Status (Tidak diubah) */}
+                                        {/* Status (Diubah untuk konsistensi) */}
                                         <div>
                                             <div className="text-sm text-muted-foreground">Status</div>
-                                            {getStatusBadge(ticket.status)}
+                                            <Badge variant={statusVariant(ticket.status)}>{ticket.status}</Badge>
                                         </div>
 
-                                        {/* Priority (Tidak diubah) */}
+                                        {/* Priority (Diubah untuk konsistensi) */}
                                         <div>
-                                            <div className="text-sm text-muted-foreground">Prioritas</div>
-                                            {getPriorityBadge(ticket.priority)}
+                                            <div className="text-sm text-muted-foreground">Priority</div>
+                                            <Badge variant={priorityVariant(ticket.priority)}>{ticket.priority}</Badge>
                                         </div>
 
                                         {/* Project ID (Tidak diubah) */}
@@ -331,18 +334,18 @@ export default function ViewTicketAssignee() {
                                         {/* Start Date (Tidak diubah) */}
                                         <div>
                                             <div className="text-sm text-muted-foreground">Start Date</div>
-                                            <div className="font-medium">{formatDateShort(ticket.startDate)}</div>
+                                            <div className="font-medium">{formatDate(ticket.startDate)}</div>
                                         </div>
 
                                         {/* Due Date (Tidak diubah) */}
                                         <div>
                                             <div className="text-sm text-muted-foreground">Due Date</div>
-                                            <div className="font-medium">{formatDateShort(ticket.dueDate)}</div>
+                                            <div className="font-medium">{formatDate(ticket.dueDate)}</div>
                                         </div>
 
                                         {/* Created At (Tidak diubah) */}
                                         <div>
-                                            <div className="text-sm text-muted-foreground">Dibuat Pada</div>
+                                            <div className="text-sm text-muted-foreground">Created</div>
                                             <div className="font-medium">{formatDate(ticket.createdAt)}</div>
                                         </div>
                                     </div>

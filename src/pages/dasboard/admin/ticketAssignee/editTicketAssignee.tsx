@@ -40,7 +40,7 @@ interface TicketData {
     id: number;
     user: {
       id: number;
-      name: string;
+      fullName: string;
       email: string;
     };
   }[];
@@ -48,23 +48,25 @@ interface TicketData {
 
 interface User {
   id: number;
-  name: string;
+  fullName: string;
   email: string;
 }
 
 const STATUS_OPTIONS = [
-  { value: "OPEN", label: "Open" },
+  { value: "NEW", label: "New" },
+  { value: "TO_DO", label: "To do" },
   { value: "IN_PROGRESS", label: "In Progress" },
+  { value: "IN_REVIEW", label: "In Review" },
+  { value: "DONE", label: "Done" },
   { value: "RESOLVED", label: "Resolved" },
-  { value: "CLOSED", label: "Closed" },
-  { value: "PENDING", label: "Pending" },
+  { value: "CLOSED", label: "Closed" }
 ];
 
 const PRIORITY_OPTIONS = [
   { value: "LOW", label: "Low" },
   { value: "MEDIUM", label: "Medium" },
   { value: "HIGH", label: "High" },
-  { value: "URGENT", label: "Urgent" },
+  { value: "CRITICAL", label: "Critical" },
 ];
 
 export default function EditTicketAssignee() {
@@ -84,7 +86,7 @@ export default function EditTicketAssignee() {
     assigneeIds: [] as number[],
   });
 
-  const API_BASE = "http://localhost:3000";
+  const API_BASE = import.meta.env.VITE_API_BASE;
 
   const getAuthHeaders = () => {
     const token = localStorage.getItem("token");
@@ -168,30 +170,72 @@ export default function EditTicketAssignee() {
         return;
       }
 
-      const payload = {
+      // 1. Update status dan priority saja (tanpa assigneeIds)
+      const ticketPayload = {
         status: form.status,
         priority: form.priority,
-        assigneeIds: form.assigneeIds,
       };
 
-      console.log("Payload dikirim:", payload);
+      console.log("Update ticket payload:", ticketPayload);
 
-      await axios.patch(`${API_BASE}/tickets/${id}`, payload, {
+      await axios.patch(`${API_BASE}/tickets/${id}`, ticketPayload, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });
 
+      // 2. Manage assignees separately
+      const currentAssigneeIds = ticket.assignees.map((a) => a.user.id);
+      const newAssigneeIds = form.assigneeIds;
+
+      // Assignees to remove (ada di current tapi tidak di new)
+      const toRemove = ticket.assignees.filter(
+        (a) => !newAssigneeIds.includes(a.user.id)
+      );
+
+      // Assignees to add (ada di new tapi tidak di current)
+      const toAdd = newAssigneeIds.filter(
+        (userId) => !currentAssigneeIds.includes(userId)
+      );
+
+      // Remove assignees
+      for (const assignee of toRemove) {
+        await axios.delete(`${API_BASE}/ticket-assignees/${assignee.id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      }
+
+      // Add new assignees
+      for (const userId of toAdd) {
+        await axios.post(
+          `${API_BASE}/ticket-assignees`,
+          {
+            ticketId: ticket.id,
+            userId: userId,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+      }
+
       await Swal.fire({
         title: "Berhasil",
         text: `Tiket "${ticket.title}" berhasil diperbarui.`,
         icon: "success",
-        timer: 1500,
-        showConfirmButton: false,
+        showConfirmButton: false,   // hilangkan tombol OK
+        timer: 1500,                // auto close setelah 1.5 detik
+        timerProgressBar: true,     // opsional: tampilkan progress bar
       });
 
-      navigate("/admin/dashboard/ticket-assignee");
+
+      navigate("/admin/dashboard/ticket-assignees");
     } catch (err: any) {
       console.error(err);
       const message = err?.response?.data?.message || "Gagal menyimpan perubahan.";
@@ -200,6 +244,8 @@ export default function EditTicketAssignee() {
         title: "Gagal",
         text: message,
         icon: "error",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#ef4444",
       });
     } finally {
       setSaving(false);
@@ -216,16 +262,16 @@ export default function EditTicketAssignee() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate("/admin/dashboard/tickets")}
+              onClick={() => navigate("/admin/dashboard/ticket-assignees")}
               className="flex items-center gap-2"
             >
               <IconArrowLeft className="h-4 w-4" />
-              Kembali
+              Back
             </Button>
           </div>
 
           <h1 className="text-2xl font-semibold">
-            Edit Ticket Assignment 🎫
+            Edit Ticket Assignment
           </h1>
           <p className="text-muted-foreground mb-6">
             {ticket ? `Edit: ${ticket.title}` : "Memuat data..."}
@@ -329,7 +375,7 @@ export default function EditTicketAssignee() {
                             />
                             <div className="flex-1">
                               <div className="font-medium text-sm">
-                                {user.name}
+                                {user.fullName}
                               </div>
                               <div className="text-xs text-muted-foreground">
                                 {user.email}
@@ -353,14 +399,14 @@ export default function EditTicketAssignee() {
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => navigate("/admin/dashboard/ticket-assignee")}
+                      onClick={() => navigate("/admin/dashboard/ticket-assignees")}
                       disabled={saving}
                     >
-                      Batal
+                      Cancel
                     </Button>
                     <Button type="submit" disabled={saving}>
                       <IconCheck className="mr-2 h-4 w-4" />
-                      {saving ? "Menyimpan..." : "Simpan Perubahan"}
+                      {saving ? "Saving..." : "Save Changes"}
                     </Button>
                   </div>
                 </form>
