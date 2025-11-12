@@ -29,6 +29,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 
+
+const API_BASE = import.meta.env.VITE_API_BASE
 export function NavUser() {
   const { isMobile } = useSidebar()
   const [user, setUser] = useState<{ fullName: string; email: string }>({
@@ -40,7 +42,7 @@ export function NavUser() {
     const fetchProfile = async () => {
       try {
         const token = localStorage.getItem("token") 
-        const res = await axios.get("http://localhost:3000/auth/profile", {
+        const res = await axios.get(`${API_BASE}/auth/profile`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
