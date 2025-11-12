@@ -23,6 +23,8 @@ import {
   type CreateProjectPhaseField,
 } from "@/schemas/project-phase.schema";
 
+const API_BASE = import.meta.env.VITE_API_BASE
+
 type Project = {
   id: number;
   name: string;
@@ -31,7 +33,7 @@ type Project = {
 
 export default function CreateProjectPhases() {
   const navigate = useNavigate();
-  const API_BASE = "http://localhost:3000";
+  
 
   const [projects, setProjects] = React.useState<Project[]>([]);
   const [loading, setLoading] = React.useState(false);

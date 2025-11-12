@@ -19,7 +19,7 @@ import { Separator } from "@/components/ui/separator";
 import { IconArrowLeft, IconEdit, IconTrash } from "@tabler/icons-react";
 
 
-const API_BASE = "http://localhost:3000";
+const API_BASE = import.meta.env.VITE_API_BASE
 
 
 type TicketType = "ISSUE" | "TASK" | string;

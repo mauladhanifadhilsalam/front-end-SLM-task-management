@@ -37,6 +37,8 @@ import {
 
 type FieldErrors = Partial<Record<EditUserField, string>>;
 
+const API_BASE = import.meta.env.VITE_API_BASE
+
 export default function EditUsers() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
@@ -53,7 +55,7 @@ export default function EditUsers() {
         password: "", 
     });
 
-    const API_BASE = "http://localhost:3000";
+    
 
     
     const normalizeRole = (v: unknown): EditUserValues["role"] => {

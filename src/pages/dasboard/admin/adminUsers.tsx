@@ -33,6 +33,8 @@ export type User = {
   role: Role;
 };
 
+
+const API_BASE = import.meta.env.VITE_API_BASE
 export default function AdminUsers() {
     const [users, setUsers] = React.useState<User[]>([]);
     const [loading, setLoading] = React.useState<boolean>(true);
@@ -51,7 +53,7 @@ export default function AdminUsers() {
       actions: true,
     });
 
-    const API_BASE = "http://localhost:3000";
+    
 
     const fetchUsers = async () => {
         try {

@@ -28,10 +28,10 @@ import {
   type ProjectOwnerField,
 } from "@/schemas/project-owner.schema";
 
+const API_BASE =  import.meta.env.VITE_API_BASE
 export default function EditProjectOwnerPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const API_BASE = "http://localhost:3000";
 
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);

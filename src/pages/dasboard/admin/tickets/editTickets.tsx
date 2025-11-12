@@ -22,7 +22,7 @@ import {
   toEditTicketPayload,
 } from "@/schemas/tickets.schema";
 
-const API_BASE = "http://localhost:3000";
+const API_BASE = import.meta.env.VITE_API_BASE
 const OPTIONS_TTL_MS = 5 * 60 * 1000; // 5 menit
 
 type Ticket = {
