@@ -13,7 +13,11 @@ import {
   IconPaperclip,
   IconTimeline,
   IconUserStar,
-  IconLayoutDashboard
+  IconLayoutDashboard,
+  IconMessage,
+  IconMessageDots,
+  IconActivity,
+  IconActivityHeartbeat
 } from "@tabler/icons-react"
 
 import { NavDocuments } from "@/components/nav-documents"
@@ -75,9 +79,19 @@ const data = {
       icon: IconUserCheck,
     },
     {
+      title: "Comments",
+      url: "/admin/dashboard/comments",
+      icon: IconMessageDots,
+    },
+    {
       title: "File Attachment",
       url: "#",
       icon: IconPaperclip,
+    },
+    {
+      title: "Activity Log",
+      url: "#",
+      icon: IconActivityHeartbeat,
     }
   ],
   navClouds: [
