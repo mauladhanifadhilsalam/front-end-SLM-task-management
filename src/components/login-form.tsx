@@ -17,9 +17,6 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"form">)
   const [verified, setVerified] = useState(false)
   const navigate = useNavigate()
 
-  // this sitekey is for testing purposes only
-  const recaptchaTestSiteKey = "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
@@ -110,7 +107,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"form">)
         {error && <p className="text-sm text-red-500 text-center">{error}</p>}
 
         <div className="w-full flex justify-center">
-          <ReCAPTCHA sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY || recaptchaTestSiteKey} onChange={handleChange}/>
+          <ReCAPTCHA sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY} onChange={handleChange}/>
         </div>
         <Button type="submit" disabled={loading || !verified}>
           {loading ? "Logging in..." : "Login"}
