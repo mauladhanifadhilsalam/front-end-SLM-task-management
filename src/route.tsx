@@ -27,14 +27,8 @@ import AdminTickets from './pages/dasboard/admin/adminTickets'
 import CreateTickets from './pages/dasboard/admin/tickets/createTickets'
 import ViewTickets from './pages/dasboard/admin/tickets/viewTickets'
 import EditTickets from './pages/dasboard/admin/tickets/editTickets'
-import AdminTicketAssignees from './pages/dasboard/admin/adminTicketAssignee'
-import CreateTicketAssignees from './pages/dasboard/admin/ticketAssignee/createTicketAssignee'
-import ViewTicketAssignees from './pages/dasboard/admin/ticketAssignee/viewTicketAssignee'
-import EditTicketAssignees from './pages/dasboard/admin/ticketAssignee/editTicketAssignee'
-
 import { ProtectedRoute } from "./components/ProtectedRoute"
 import { View } from 'lucide-react'
-
 import { ThemeProvider } from './components/theme-provider'
 import CreateTicketAssigneePage from './pages/dasboard/admin/ticketAssignee/createTicketAssignee'
 
@@ -253,41 +247,7 @@ createRoot(rootElement).render(
             }
           />
 
-          <Route
-            path="/admin/dashboard/ticket-assignees"
-            element={
-              <ProtectedRoute allowedRoles={["admin"]}>
-                <AdminTicketAssignees />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/dashboard/ticket-assignees/create"
-            element={
-              <ProtectedRoute allowedRoles={["admin"]}>
-                <CreateTicketAssignees />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/dashboard/ticket-assignees/view/:id"
-            element={
-              <ProtectedRoute allowedRoles={["admin"]}>
-                <ViewTicketAssignees />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/dashboard/ticket-assignees/edit/:id"
-            element={
-              <ProtectedRoute allowedRoles={["admin"]}>
-                <EditTicketAssignees />
-              </ProtectedRoute>
-            }
-          />
+          
 
         </Routes>
       </BrowserRouter>
