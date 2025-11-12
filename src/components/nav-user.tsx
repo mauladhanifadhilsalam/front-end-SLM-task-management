@@ -1,3 +1,5 @@
+import React, { useEffect, useState } from "react"
+import axios from "axios"
 import {
   IconCreditCard,
   IconDotsVertical,
@@ -27,16 +29,41 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 
-export function NavUser({
-  user,
-}: {
-  user: {
-    name: string
-    email: string
-    avatar: string
-  }
-}) {
+
+const API_BASE = import.meta.env.VITE_API_BASE
+export function NavUser() {
   const { isMobile } = useSidebar()
+  const [user, setUser] = useState<{ fullName: string; email: string }>({
+    fullName: "",
+    email: "",
+  })
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem("token") 
+        const res = await axios.get(`${API_BASE}/auth/profile`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        setUser({
+          fullName: res.data.fullName,
+          email: res.data.email,
+        })
+      } catch (err) {
+        console.error("Failed to fetch profile:", err)
+      }
+    }
+
+    fetchProfile()
+  }, [])
+
+
+  const handleLogout = () => {
+    localStorage.removeItem("token")
+    window.location.href = "/"
+  }
 
   return (
     <SidebarMenu>
@@ -48,11 +75,13 @@ export function NavUser({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg grayscale">
-                <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                <AvatarImage src="/default-avatar.png" alt={user.fullName} />
+                <AvatarFallback className="rounded-lg">
+                  {user.fullName ? user.fullName[0].toUpperCase() : "U"}
+                </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
+                <span className="truncate font-medium">{user.fullName}</span>
                 <span className="text-muted-foreground truncate text-xs">
                   {user.email}
                 </span>
@@ -60,6 +89,7 @@ export function NavUser({
               <IconDotsVertical className="ml-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
+
           <DropdownMenuContent
             className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
             side={isMobile ? "bottom" : "right"}
@@ -69,11 +99,13 @@ export function NavUser({
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                  <AvatarImage src="/default-avatar.png" alt={user.fullName} />
+                  <AvatarFallback className="rounded-lg">
+                    {user.fullName ? user.fullName[0].toUpperCase() : "U"}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.name}</span>
+                  <span className="truncate font-medium">{user.fullName}</span>
                   <span className="text-muted-foreground truncate text-xs">
                     {user.email}
                   </span>
@@ -96,7 +128,10 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem
+              onSelect={handleLogout}
+              className="cursor-pointer"
+            >
               <IconLogout />
               Log out
             </DropdownMenuItem>
