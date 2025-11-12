@@ -37,7 +37,7 @@ import axios from "axios"
 import Swal from "sweetalert2"
 
 // Konstanta API Base URL
-const API_BASE = "http://localhost:3000"
+const API_BASE = import.meta.env.VITE_API_BASE;
 
 // Definisikan Tipe Data
 interface ProjectOwner {

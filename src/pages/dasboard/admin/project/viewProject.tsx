@@ -57,7 +57,7 @@ export default function ViewProject() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string>("");
 
-  const API_BASE = "http://localhost:3000";
+  const API_BASE = import.meta.env.VITE_API_BASE;
 
   const fetchProject = React.useCallback(async () => {
     if (!id) return;
