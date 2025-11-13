@@ -8,6 +8,12 @@ import {
   IconFolder,
   IconSettings,
   IconUsers,
+  IconTicket,
+  IconUserCheck,
+  IconPaperclip,
+  IconTimeline,
+  IconUserStar,
+  IconLayoutDashboard
 } from "@tabler/icons-react"
 
 import { NavDocuments } from "@/components/nav-documents"
@@ -23,6 +29,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { title } from "process"
+import { url } from "inspector"
 
 const data = {
   user: {
@@ -34,7 +42,7 @@ const data = {
     {
       title: "Dashboard",
       url: "/admin/dashboard",
-      icon: IconDashboard,
+      icon: IconLayoutDashboard,
     },
     {
       title: "Users",
@@ -44,13 +52,33 @@ const data = {
     {
       title: "Project Owners",
       url: "/admin/dashboard/project-owners",
-      icon: IconUsers,
+      icon: IconUserStar,
     },
     {
       title: "Projects",
-      url: "#",
+      url: "/admin/dashboard/projects",
       icon: IconFolder,
     },
+    {
+      title: "Project Phase",
+      url: "/admin/dashboard/project-phases",
+      icon: IconTimeline,
+    },
+    {
+      title: "Tickets",
+      url: "/admin/dashboard/tickets",
+      icon: IconTicket,
+    },
+    {
+      title: "Ticket Assignee",
+      url: "#",
+      icon: IconUserCheck,
+    },
+    {
+      title: "File Attachment",
+      url: "#",
+      icon: IconPaperclip,
+    }
   ],
   navClouds: [
     {
@@ -133,7 +161,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
 
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser />
       </SidebarFooter>
     </Sidebar>
   )

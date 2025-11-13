@@ -1,28 +1,28 @@
+// src/pages/admin/EditProjectPhases.tsx
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import Swal from "sweetalert2";
+
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
+  Card, CardContent, CardHeader, CardTitle, CardDescription,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { IconArrowLeft, IconCheck } from "@tabler/icons-react";
+
+import {
+  editProjectPhaseSchema,
+  type CreateProjectPhaseField as EditField,    
+  type CreateProjectPhaseValues as EditValues,  
+} from "@/schemas/project-phase.schema";
 
 type Project = {
   id: number;
@@ -30,64 +30,62 @@ type Project = {
   status: string;
 };
 
-type Phase = {
-  id: number;
-  name: string;
-  startDate: string;
-  endDate: string;
-  projectId: number;
-  project?: Project;
-};
+const API_BASE = import.meta.env.VITE_API_BASE
 
 export default function EditProjectPhases() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const API_BASE = "http://localhost:3000";
+  
 
   const [projects, setProjects] = React.useState<Project[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  const [form, setForm] = React.useState({
+  // Simpan projectId sebagai string (dari <Select>), schema akan transform ke number saat validasi
+  const [form, setForm] = React.useState<EditValues>({
     name: "",
     startDate: "",
     endDate: "",
-    projectId: "",
+    projectId: 0 as any,
   });
 
-  // Load phase data and available projects
+  const [fieldErrors, setFieldErrors] = React.useState<
+    Partial<Record<EditField, string>>
+  >({});
+
+  // helper: format ISO ke YYYY-MM-DD untuk input[type=date]
+  const toInputDate = (isoOrDateStr: string) => {
+    const d = new Date(isoOrDateStr);
+    if (Number.isNaN(d.getTime())) return "";
+    return d.toISOString().slice(0, 10);
+  };
+
+  // Load phase & daftar projects
   React.useEffect(() => {
     const loadData = async () => {
       if (!id) return;
       setLoading(true);
       setError(null);
+      setFieldErrors({});
 
       try {
         const token = localStorage.getItem("token");
         const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
 
-        // Fetch phase details
         const phaseRes = await axios.get(`${API_BASE}/project-phases/${id}`, { headers });
         const phaseData = phaseRes.data?.data ?? phaseRes.data;
 
-        // Format dates for input fields (YYYY-MM-DD)
-        const formatDateForInput = (dateStr: string) => {
-          const date = new Date(dateStr);
-          return date.toISOString().split('T')[0];
-        };
-
         setForm({
-          name: phaseData.name,
-          startDate: formatDateForInput(phaseData.startDate),
-          endDate: formatDateForInput(phaseData.endDate),
-          projectId: String(phaseData.projectId),
+          name: phaseData.name ?? "",
+          startDate: toInputDate(phaseData.startDate),
+          endDate: toInputDate(phaseData.endDate),
+          projectId: String(phaseData.projectId) as any,
         });
 
-        // Fetch available projects
         const projectsRes = await axios.get(`${API_BASE}/projects`, { headers });
-        const projectsData = Array.isArray(projectsRes.data) 
-          ? projectsRes.data 
+        const projectsData = Array.isArray(projectsRes.data)
+          ? projectsRes.data
           : projectsRes.data?.data ?? [];
         setProjects(projectsData);
       } catch (err: any) {
@@ -102,44 +100,46 @@ export default function EditProjectPhases() {
     loadData();
   }, [id]);
 
-  const handleChange = (field: string, value: string) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
+  const handleChange = (field: EditField, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value as any }));
+
+    // re-validate field jika sebelumnya error
+    if (fieldErrors[field]) {
+      const single = (editProjectPhaseSchema as any).pick({ [field]: true });
+      const valueForCheck = field === "projectId" ? Number(value) : value;
+      const res = single.safeParse({ [field]: valueForCheck });
+      setFieldErrors((fe) => ({
+        ...fe,
+        [field]: res.success ? undefined : res.error.issues[0]?.message,
+      }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id) return;
+
     setError(null);
-
-    // Validate form
-    if (!form.name.trim()) {
-      setError("Phase name is required");
-      return;
-    }
-    if (!form.startDate) {
-      setError("Start date is required");
-      return;
-    }
-    if (!form.endDate) {
-      setError("End date is required");
-      return;
-    }
-    if (!form.projectId) {
-      setError("Project selection is required");
-      return;
-    }
-
     setSaving(true);
+    setFieldErrors({});
+
+    // Validasi pakai schema edit (endDate harus setelah startDate)
+    const parsed = editProjectPhaseSchema.safeParse(form);
+    if (!parsed.success) {
+      const fe: Partial<Record<EditField, string>> = {};
+      for (const issue of parsed.error.issues) {
+        const k = issue.path[0] as EditField;
+        if (!fe[k]) fe[k] = issue.message;
+      }
+      setFieldErrors(fe);
+      setSaving(false);
+      return;
+    }
+
     try {
       const token = localStorage.getItem("token");
-      const payload = {
-        name: form.name.trim(),
-        startDate: form.startDate,
-        endDate: form.endDate,
-        projectId: parseInt(form.projectId),
-      };
+      const payload = parsed.data; // projectId sudah number & tanggal valid
 
-      // Use PATCH to update the phase
       await axios.patch(`${API_BASE}/project-phases/${id}`, payload, {
         headers: {
           "Content-Type": "application/json",
@@ -206,52 +206,72 @@ export default function EditProjectPhases() {
                       {loading ? (
                         <div className="rounded border p-6">Loading phase data...</div>
                       ) : (
-                        <form onSubmit={handleSubmit} className="space-y-6">
+                        <form onSubmit={handleSubmit} className="space-y-6" noValidate>
                           {error && (
                             <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-3">
                               {error}
                             </div>
                           )}
 
+                          {/* Name */}
                           <div className="space-y-2">
                             <Label htmlFor="name">Phase Name *</Label>
                             <Input
                               id="name"
-                              value={form.name}
+                              value={form.name as string}
                               onChange={(e) => handleChange("name", e.target.value)}
                               placeholder="Enter phase name"
                               disabled={saving}
+                              aria-invalid={!!fieldErrors.name}
+                              required
                             />
+                            {fieldErrors.name && (
+                              <p className="text-xs text-red-600 mt-1">{fieldErrors.name}</p>
+                            )}
                           </div>
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Start Date */}
                             <div className="space-y-2">
                               <Label htmlFor="startDate">Start Date *</Label>
                               <Input
                                 id="startDate"
                                 type="date"
-                                value={form.startDate}
+                                value={form.startDate as string}
                                 onChange={(e) => handleChange("startDate", e.target.value)}
                                 disabled={saving}
+                                aria-invalid={!!fieldErrors.startDate}
+                                required
                               />
+                              {fieldErrors.startDate && (
+                                <p className="text-xs text-red-600 mt-1">{fieldErrors.startDate}</p>
+                              )}
                             </div>
 
+                            {/* End Date (dibatasi min=startDate) */}
                             <div className="space-y-2">
                               <Label htmlFor="endDate">End Date *</Label>
                               <Input
                                 id="endDate"
                                 type="date"
-                                value={form.endDate}
+                                value={form.endDate as string}
                                 onChange={(e) => handleChange("endDate", e.target.value)}
                                 disabled={saving}
+                                aria-invalid={!!fieldErrors.endDate}
+                                required
+                                min={form.startDate || undefined}
                               />
+                              {fieldErrors.endDate && (
+                                <p className="text-xs text-red-600 mt-1">{fieldErrors.endDate}</p>
+                              )}
                             </div>
                           </div>
 
+                          {/* Project */}
                           <div className="space-y-2">
                             <Label htmlFor="project">Project *</Label>
                             <Select
-                              value={form.projectId}
+                              value={form.projectId ? String(form.projectId) : ""}
                               onValueChange={(value) => handleChange("projectId", value)}
                               disabled={saving}
                             >
@@ -266,6 +286,9 @@ export default function EditProjectPhases() {
                                 ))}
                               </SelectContent>
                             </Select>
+                            {fieldErrors.projectId && (
+                              <p className="text-xs text-red-600 mt-1">{fieldErrors.projectId}</p>
+                            )}
                           </div>
 
                           <div className="flex justify-end space-x-3">
