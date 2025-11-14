@@ -31,10 +31,10 @@ import AdminComments from './pages/dasboard/admin/adminComments'
 import CreateComments from './pages/dasboard/admin/comments/createComments'
 import EditComments from './pages/dasboard/admin/comments/editComments'
 import ViewComments from './pages/dasboard/admin/comments/viewComments'
-
 import { ProtectedRoute } from "./components/ProtectedRoute"
 import { View } from 'lucide-react'
 import { ThemeProvider } from './components/theme-provider'
+import CreateTicketAssigneePage from './pages/dasboard/admin/ticketAssignee/createTicketAssignee'
 
 const rootElement = document.getElementById('root') as HTMLElement;
 
@@ -79,7 +79,6 @@ createRoot(rootElement).render(
             }
           />
 
-
           <Route
             path="/admin/dashboard/users/create"
             element={
@@ -105,6 +104,7 @@ createRoot(rootElement).render(
               </ProtectedRoute>
             }
           />
+
 
           <Route
             path="/admin/dashboard/users/edit/:id"
@@ -285,6 +285,9 @@ createRoot(rootElement).render(
               </ProtectedRoute>
             }
           />
+
+          
+
         </Routes>
       </BrowserRouter>
     </ThemeProvider>
