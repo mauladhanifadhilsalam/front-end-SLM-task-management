@@ -27,6 +27,10 @@ import AdminTickets from './pages/dasboard/admin/adminTickets'
 import CreateTickets from './pages/dasboard/admin/tickets/createTickets'
 import ViewTickets from './pages/dasboard/admin/tickets/viewTickets'
 import EditTickets from './pages/dasboard/admin/tickets/editTickets'
+import AdminComments from './pages/dasboard/admin/adminComments'
+import CreateComments from './pages/dasboard/admin/comments/createComments'
+import EditComments from './pages/dasboard/admin/comments/editComments'
+import ViewComments from './pages/dasboard/admin/comments/viewComments'
 import { ProtectedRoute } from "./components/ProtectedRoute"
 import { View } from 'lucide-react'
 import { ThemeProvider } from './components/theme-provider'
@@ -228,6 +232,41 @@ createRoot(rootElement).render(
             }
           />
 
+          <Route
+            path="/admin/dashboard/comments"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminComments />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/dashboard/comments/create"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <CreateComments />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/dashboard/comments/edit/:id"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <EditComments />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/dashboard/comments/view/:id"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <ViewComments />
+              </ProtectedRoute>
+            }
+          />
 
           <Route
             path="/project-manager/dashboard"
