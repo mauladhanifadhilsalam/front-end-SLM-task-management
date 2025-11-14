@@ -75,7 +75,7 @@ const data = {
     },
     {
       title: "Ticket Assignee",
-      url: "#",
+      url: "/admin/dashboard/ticket-assignees",
       icon: IconUserCheck,
     },
     {
@@ -85,7 +85,7 @@ const data = {
     },
     {
       title: "File Attachment",
-      url: "#",
+      url: "/admin/dashboard/file-attachments",
       icon: IconPaperclip,
     },
     {
