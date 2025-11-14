@@ -31,10 +31,16 @@ import AdminComments from './pages/dasboard/admin/adminComments'
 import CreateComments from './pages/dasboard/admin/comments/createComments'
 import EditComments from './pages/dasboard/admin/comments/editComments'
 import ViewComments from './pages/dasboard/admin/comments/viewComments'
+import TicketAssignee from './pages/dasboard/admin/adminTicketAssignee'
+import CreateTicketAssigneePage from './pages/dasboard/admin/ticketAssignee/createTicketAssignee'
+import ViewTicketAssignee from './pages/dasboard/admin/ticketAssignee/viewTicketAssignee'
+import EditTicketAssignee from './pages/dasboard/admin/ticketAssignee/editTicketAssignee'
+import AdminFileAttachments from './pages/dasboard/admin/adminFileAttachment'
+import CreateFileAttachment from './pages/dasboard/admin/fileAttachment/createFileAttachment'
+
 import { ProtectedRoute } from "./components/ProtectedRoute"
 import { View } from 'lucide-react'
 import { ThemeProvider } from './components/theme-provider'
-import CreateTicketAssigneePage from './pages/dasboard/admin/ticketAssignee/createTicketAssignee'
 
 const rootElement = document.getElementById('root') as HTMLElement;
 
@@ -264,6 +270,60 @@ createRoot(rootElement).render(
             element={
               <ProtectedRoute allowedRoles={["admin"]}>
                 <ViewComments />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/dashboard/ticket-assignees"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <TicketAssignee />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/dashboard/ticket-assignees/create"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <CreateTicketAssigneePage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/dashboard/ticket-assignees/view/:id"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <ViewTicketAssignee />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/dashboard/ticket-assignees/edit/:id"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <EditTicketAssignee />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/dashboard/file-attachments"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminFileAttachments />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/dashboard/file-attachments/create"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <CreateFileAttachment />
               </ProtectedRoute>
             }
           />
