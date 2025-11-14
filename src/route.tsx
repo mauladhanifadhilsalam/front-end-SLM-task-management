@@ -37,6 +37,7 @@ import ViewTicketAssignee from './pages/dasboard/admin/ticketAssignee/viewTicket
 import EditTicketAssignee from './pages/dasboard/admin/ticketAssignee/editTicketAssignee'
 import AdminFileAttachments from './pages/dasboard/admin/adminFileAttachment'
 import CreateFileAttachment from './pages/dasboard/admin/fileAttachment/createFileAttachment'
+import { NotFoundError } from './pages/errors/not-found-error'
 
 import { ProtectedRoute } from "./components/ProtectedRoute"
 import { View } from 'lucide-react'
@@ -49,6 +50,7 @@ createRoot(rootElement).render(
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<SigninUserPage />} />
+          <Route path='/*' element={<NotFoundError />}/>
 
           {/* === DASHBOARD ROUTES === */}
           <Route
