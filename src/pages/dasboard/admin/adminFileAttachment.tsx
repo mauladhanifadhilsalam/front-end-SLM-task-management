@@ -84,7 +84,15 @@ const fmtDate = (iso?: string) => {
   if (!iso) return "-";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "-";
-  return d.toLocaleString();
+
+  return d.toLocaleString("id-ID", {
+    weekday: "short", 
+    day: "2-digit",
+    month: "short",  
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 };
 
 const isImage = (att: Attachment) => {
@@ -99,20 +107,14 @@ const isImage = (att: Attachment) => {
   );
 };
 
-// kalau ada base64 → pakai data URL
-// kalau tidak, fallback ke url biasa
+
 const getFileSrc = (att: Attachment) => {
   if (att.base64) {
-    const mime = att.mimeType || "application/octet-stream";
-    return `data:${mime};base64,${att.base64}`;
+    return `data:${att.mimeType};base64,${att.base64}`;
   }
-
-  if (att.url) return att.url;
-
-  return "";
+  return att.url || "";
 };
 
-// khusus untuk <img>, tapi sumbernya sama
 const getImageSrc = (att: Attachment) => getFileSrc(att);
 
 export default function AdminFileAttachments() {
@@ -136,9 +138,7 @@ export default function AdminFileAttachments() {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
 
-        const data = res.data;
-
-        const mapped: Attachment[] = data.map((a) => {
+        const mapped: Attachment[] = res.data.map((a) => {
           let fileUrl: string | undefined = a.filePath;
           if (fileUrl && !fileUrl.startsWith("http")) {
             fileUrl = fileUrl.startsWith("/")
@@ -148,8 +148,8 @@ export default function AdminFileAttachments() {
 
           return {
             id: a.id,
-            fileName: a.fileName || `Attachment #${a.id}`,
-            mimeType: a.mimeType || "application/octet-stream",
+            fileName: a.fileName,
+            mimeType: a.mimeType,
             size: a.fileSize,
             url: fileUrl,
             base64: a.base64,
@@ -178,7 +178,7 @@ export default function AdminFileAttachments() {
   }, []);
 
   const openPreview = (att: Attachment) => {
-    if (!isImage(att) || !(att.base64 || att.url)) return;
+    if (!isImage(att)) return;
     setPreviewItem(att);
     setPreviewOpen(true);
   };
@@ -186,11 +186,9 @@ export default function AdminFileAttachments() {
   const handleDelete = async (id: number) => {
     try {
       const token = localStorage.getItem("token");
-
       await axios.delete(`${API_BASE}/attachments/${id}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
-
       setAttachments((prev) => prev.filter((a) => a.id !== id));
     } catch (err) {
       console.error(err);
@@ -200,14 +198,9 @@ export default function AdminFileAttachments() {
 
   const handleDownload = (att: Attachment) => {
     const src = getFileSrc(att);
-    if (!src) {
-      console.error("No file source available for download");
-      return;
-    }
-
     const link = document.createElement("a");
     link.href = src;
-    link.download = att.fileName || "attachment";
+    link.download = att.fileName;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -226,180 +219,153 @@ export default function AdminFileAttachments() {
         <AppSidebar variant="inset" />
         <SidebarInset>
           <SiteHeader />
+
+          {/* CONTENT */}
           <div className="flex flex-1 flex-col">
-            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-              <div className="px-4 lg:px-6 flex justify-between">
-                <div>
-                  <h1 className="text-2xl font-semibold">File Attachments</h1>
-                  <p className="text-muted-foreground">
-                    Daftar file yang diunggah ke ticket. Klik thumbnail untuk
-                    melihat gambar lebih besar.
-                  </p>
-                </div>
-                <Button onClick={() => navigate("/admin/dashboard/file-attachments/create")}>
-                  <IconPlus className="mr-2 h-4 w-4" />
-                  Add File Attachment
-                </Button>
+            <div className="px-4 lg:px-6 flex justify-between py-4">
+              <div>
+                <h1 className="text-2xl font-semibold">File Attachments</h1>
+                <p className="text-muted-foreground">
+                  Daftar file yang diunggah ke ticket.
+                </p>
               </div>
+              <Button onClick={() => navigate("/admin/dashboard/file-attachments/create")}>
+                <IconPlus className="mr-2 h-4 w-4" />
+                Add File Attachment
+              </Button>
+            </div>
 
-              <div className="px-4 lg:px-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Attachment List</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {loading && (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />
-                        Loading attachments...
-                      </div>
-                    )}
+            <div className="px-4 lg:px-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Attachment List</CardTitle>
+                </CardHeader>
 
-                    {!loading && error && (
-                      <div className="flex items-start gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-3">
-                        <IconAlertCircle className="h-4 w-4 mt-0.5" />
-                        <span>{error}</span>
-                      </div>
-                    )}
+                <CardContent>
+                  {loading && <p className="text-sm">Loading…</p>}
+                  {error && (
+                    <div className="text-sm text-red-600 bg-red-50 p-2 border border-red-200 rounded">
+                      {error}
+                    </div>
+                  )}
 
-                    {!loading && !error && attachments.length === 0 && (
-                      <div className="text-sm text-muted-foreground">
-                        Belum ada attachment yang diunggah.
-                      </div>
-                    )}
+                  {!loading && attachments.length === 0 && (
+                    <p className="text-sm text-muted-foreground">
+                      Belum ada file.
+                    </p>
+                  )}
 
-                    {!loading && !error && attachments.length > 0 && (
-                      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                        {attachments.map((att) => (
-                          <Card key={att.id} className="overflow-hidden">
-                            <CardContent className="p-0">
-                              <div className="relative">
-                                {isImage(att) && (att.base64 || att.url) ? (
-                                  <button
-                                    type="button"
-                                    className="w-full focus:outline-none"
-                                    onClick={() => openPreview(att)}
-                                  >
-                                    <img
-                                      src={getImageSrc(att)}
-                                      alt={att.fileName}
-                                      className="h-40 w-full object-cover"
-                                    />
-                                  </button>
-                                ) : (
-                                  <div className="h-40 flex items-center justify-center bg-muted">
-                                    <IconPhoto className="h-10 w-10 text-muted-foreground" />
-                                  </div>
-                                )}
+                  {!loading && attachments.length > 0 && (
+                    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                      {attachments.map((att) => (
+                        <Card key={att.id} className="overflow-hidden">
+                          <CardContent className="p-0">
+                            <div className="relative">
+                              {isImage(att) ? (
+                                <button
+                                  className="w-full"
+                                  onClick={() => openPreview(att)}
+                                >
+                                  <img
+                                    src={getImageSrc(att)}
+                                    className="h-40 w-full object-cover"
+                                  />
+                                </button>
+                              ) : (
+                                <div className="h-40 bg-muted flex items-center justify-center">
+                                  <IconPhoto className="h-10 w-10 text-muted-foreground" />
+                                </div>
+                              )}
 
-                                <div className="absolute top-2 right-2">
-                                  <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                      <Button
-                                        size="icon"
-                                        variant="secondary"
-                                        className="h-8 w-8 rounded-full"
+                              {/* MENU */}
+                              <div className="absolute top-2 right-2">
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button size="icon" variant="secondary">
+                                      <IconDotsVertical className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+
+                                  <DropdownMenuContent className="w-40" align="end">
+                                    {isImage(att) && (
+                                      <DropdownMenuItem
+                                        onClick={() => openPreview(att)}
                                       >
-                                        <IconDotsVertical className="h-4 w-4" />
-                                      </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent
-                                      align="end"
-                                      className="w-40"
+                                        <IconEye className="h-4 w-4 mr-2" />
+                                        Preview
+                                      </DropdownMenuItem>
+                                    )}
+                                    <DropdownMenuItem
+                                      onClick={() => handleDownload(att)}
                                     >
-                                      {isImage(att) && (att.base64 || att.url) && (
-                                        <DropdownMenuItem
-                                          onClick={() => openPreview(att)}
-                                        >
-                                          <IconEye className="h-4 w-4 mr-2" />
-                                          Preview
-                                        </DropdownMenuItem>
-                                      )}
-                                      <DropdownMenuItem
-                                        onClick={() => handleDownload(att)}
-                                      >
-                                        <IconDownload className="h-4 w-4 mr-2" />
-                                        Download
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem
-                                        className="text-destructive focus:text-destructive"
-                                        onClick={() => handleDelete(att.id)}
-                                      >
-                                        <IconTrash className="h-4 w-4 mr-2" />
-                                        Delete
-                                      </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
-                                </div>
+                                      <IconDownload className="h-4 w-4 mr-2" />
+                                      Download
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      className="text-destructive"
+                                      onClick={() => handleDelete(att.id)}
+                                    >
+                                      <IconTrash className="h-4 w-4 mr-2" />
+                                      Delete
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
+                            </div>
+
+                            {/* INFO */}
+                            <div className="p-3 space-y-2">
+                              <div className="text-sm font-medium line-clamp-2">
+                                {att.fileName}
                               </div>
 
-                              <div className="p-3 space-y-2">
-                                <div className="text-sm font-medium line-clamp-2">
-                                  {att.fileName}
-                                </div>
-
-                                <div className="flex flex-wrap gap-1 text-xs text-muted-foreground">
-                                  <Badge variant="outline">{att.mimeType}</Badge>
-                                  {att.size != null && (
-                                    <Badge variant="outline">
-                                      {fmtBytes(att.size)}
-                                    </Badge>
-                                  )}
-                                </div>
-
-                                {att.ticketId && (
-                                  <div className="text-xs text-muted-foreground">
-                                    Ticket:{" "}
-                                    <span className="font-medium">
-                                      #{att.ticketId}
-                                    </span>
-                                  </div>
-                                )}
-
-                                {att.uploader && (
-                                  <div className="text-xs text-muted-foreground">
-                                    Uploaded by:{" "}
-                                    <span className="font-medium">
-                                      {att.uploader.fullName}
-                                    </span>
-                                  </div>
-                                )}
-
-                                {att.createdAt && (
-                                  <div className="text-[11px] text-muted-foreground">
-                                    Uploaded at: {fmtDate(att.createdAt)}
-                                  </div>
-                                )}
+                              <div className="flex flex-wrap gap-1 text-xs">
+                                <Badge variant="outline">{att.mimeType}</Badge>
+                                <Badge variant="outline">
+                                  {fmtBytes(att.size)}
+                                </Badge>
                               </div>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
+
+                              {att.ticketId && (
+                                <div className="text-xs text-muted-foreground">
+                                  Ticket:{" "}
+                                  <span className="font-medium">
+                                    #{att.ticketId}
+                                  </span>
+                                </div>
+                              )}
+
+                              <div className="text-[11px] text-muted-foreground">
+                                Uploaded at: {fmtDate(att.createdAt)}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
           </div>
         </SidebarInset>
       </SidebarProvider>
 
+      {/* PREVIEW POPUP */}
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>{previewItem?.fileName || "Preview"}</DialogTitle>
+            <DialogTitle>{previewItem?.fileName}</DialogTitle>
           </DialogHeader>
-          {previewItem &&
-            isImage(previewItem) &&
-            (previewItem.base64 || previewItem.url) && (
-              <div className="w-full max-h-[70vh] overflow-auto flex justify-center">
-                <img
-                  src={getImageSrc(previewItem)}
-                  alt={previewItem.fileName}
-                  className="max-h-[70vh] rounded"
-                />
-              </div>
-            )}
+
+          {previewItem && isImage(previewItem) && (
+            <div className="flex justify-center max-h-[70vh] overflow-auto">
+              <img
+                src={getImageSrc(previewItem)}
+                className="max-h-[70vh] rounded"
+              />
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
