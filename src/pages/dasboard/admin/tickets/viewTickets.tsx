@@ -1,3 +1,4 @@
+// src/pages/tickets/ViewTickets.tsx
 import * as React from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import axios from "axios";
@@ -18,9 +19,10 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { IconArrowLeft, IconEdit, IconTrash } from "@tabler/icons-react";
 
+// 🔗 Komponen komentar (pisah file)
+import TicketComments from "./components/viewTicketsComment";
 
-const API_BASE = import.meta.env.VITE_API_BASE
-
+const API_BASE = import.meta.env.VITE_API_BASE;
 
 type TicketType = "ISSUE" | "TASK" | string;
 type TicketPriority = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL" | string;
@@ -55,6 +57,7 @@ type Ticket = {
   assignees?: Assignee[];
 };
 
+// ================= Utils =================
 const fmt = (iso?: string | null) => {
   if (!iso) return "-";
   const d = new Date(iso);
@@ -94,6 +97,7 @@ const priorityVariant = (p?: TicketPriority | null) => {
   }
 };
 
+// ================= Page =================
 export default function ViewTickets() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -105,17 +109,14 @@ export default function ViewTickets() {
   const tokenHeader = React.useMemo(() => {
     const token = localStorage.getItem("token");
     return token ? { Authorization: `Bearer ${token}` } : undefined;
-    // kalau backend kamu tidak butuh token, boleh dikosongkan
   }, []);
 
   const fetchTicket = React.useCallback(async () => {
+    if (!id) return;
     setLoading(true);
     setError(null);
     try {
-      const res = await axios.get(`${API_BASE}/tickets/${id}`, {
-        headers: tokenHeader,
-      });
-
+      const res = await axios.get(`${API_BASE}/tickets/${id}`, { headers: tokenHeader });
       const t = res.data?.data ?? res.data;
 
       const normalized: Ticket = {
@@ -221,7 +222,13 @@ export default function ViewTickets() {
                           Edit
                         </Link>
                       </Button>
-                      <Button variant="destructive" size="sm" onClick={handleDelete} className="cursor-pointer">
+
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={handleDelete}
+                        className="cursor-pointer"
+                      >
                         <IconTrash className="h-4 w-4 mr-1" />
                         Delete
                       </Button>
@@ -316,7 +323,7 @@ export default function ViewTickets() {
                           <div className="font-medium">{fmt(ticket.updatedAt)}</div>
                         </div>
 
-                        {/* Assignees (opsional, kalau backend kirim) */}
+                        {/* Assignees (opsional) */}
                         {Array.isArray(ticket.assignees) && ticket.assignees.length > 0 && (
                           <div className="md:col-span-2">
                             <Separator className="my-2" />
@@ -338,9 +345,17 @@ export default function ViewTickets() {
                           <Separator className="my-2" />
                           <div className="text-xs text-muted-foreground mb-1">Description</div>
                           <div className="leading-relaxed">
-                            {ticket.description || <span className="text-muted-foreground">—</span>}
+                            {ticket.description || (
+                              <span className="text-muted-foreground">—</span>
+                            )}
                           </div>
                         </div>
+
+                        {/* ================= COMMENTS (import) ================= */}
+                        <div className="md:col-span-2">
+                          <TicketComments ticketId={ticket.id} />
+                        </div>
+                        {/* ================= END COMMENTS ===================== */}
                       </div>
                     ) : (
                       <div className="text-sm text-muted-foreground">Ticket tidak ditemukan.</div>
