@@ -401,7 +401,7 @@ export default function AdminTicketAssignees() {
                         <td className="px-4 py-3">
                           <div className="flex justify-center gap-3">
                             <Link to={`/admin/dashboard/ticket-assignees/view/${a.ticket.id}`}>
-                              <IconEye className="h-4 w-4 text-blue-600 hover:text-blue-700" />
+                              <IconEye className="h-4 w-4" />
                             </Link>
                             <Link
                               to={`/admin/dashboard/ticket-assignees/edit/${a.ticket.id}`}
