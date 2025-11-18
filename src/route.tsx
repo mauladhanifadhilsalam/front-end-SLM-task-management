@@ -27,6 +27,18 @@ import AdminTickets from './pages/dasboard/admin/adminTickets'
 import CreateTickets from './pages/dasboard/admin/tickets/createTickets'
 import ViewTickets from './pages/dasboard/admin/tickets/viewTickets'
 import EditTickets from './pages/dasboard/admin/tickets/editTickets'
+import AdminComments from './pages/dasboard/admin/adminComments'
+import CreateComments from './pages/dasboard/admin/comments/createComments'
+import EditComments from './pages/dasboard/admin/comments/editComments'
+import ViewComments from './pages/dasboard/admin/comments/viewComments'
+import TicketAssignee from './pages/dasboard/admin/adminTicketAssignee'
+import CreateTicketAssigneePage from './pages/dasboard/admin/ticketAssignee/createTicketAssignee'
+import ViewTicketAssignee from './pages/dasboard/admin/ticketAssignee/viewTicketAssignee'
+import EditTicketAssignee from './pages/dasboard/admin/ticketAssignee/editTicketAssignee'
+import AdminFileAttachments from './pages/dasboard/admin/adminFileAttachment'
+import CreateFileAttachment from './pages/dasboard/admin/fileAttachment/createFileAttachment'
+import { NotFoundError } from './pages/errors/not-found-error'
+
 import { ProtectedRoute } from "./components/ProtectedRoute"
 import { View } from 'lucide-react'
 import { ThemeProvider } from './components/theme-provider'
@@ -38,6 +50,7 @@ createRoot(rootElement).render(
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<SigninUserPage />} />
+          <Route path='/*' element={<NotFoundError />}/>
 
           {/* === DASHBOARD ROUTES === */}
           <Route
@@ -100,6 +113,7 @@ createRoot(rootElement).render(
               </ProtectedRoute>
             }
           />
+
 
           <Route
             path="/admin/dashboard/users/edit/:id"
@@ -227,6 +241,95 @@ createRoot(rootElement).render(
             }
           />
 
+          <Route
+            path="/admin/dashboard/comments"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminComments />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/dashboard/comments/create"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <CreateComments />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/dashboard/comments/edit/:id"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <EditComments />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/dashboard/comments/view/:id"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <ViewComments />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/dashboard/ticket-assignees"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <TicketAssignee />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/dashboard/ticket-assignees/create"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <CreateTicketAssigneePage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/dashboard/ticket-assignees/view/:id"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <ViewTicketAssignee />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/dashboard/ticket-assignees/edit/:id"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <EditTicketAssignee />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/dashboard/file-attachments"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminFileAttachments />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/dashboard/file-attachments/create"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <CreateFileAttachment />
+              </ProtectedRoute>
+            }
+          />
 
           <Route
             path="/project-manager/dashboard"
@@ -245,6 +348,9 @@ createRoot(rootElement).render(
               </ProtectedRoute>
             }
           />
+
+          
+
         </Routes>
       </BrowserRouter>
     </ThemeProvider>

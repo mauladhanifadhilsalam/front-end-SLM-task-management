@@ -1,3 +1,4 @@
+// src/pages/tickets/ViewTickets.tsx
 import * as React from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import axios from "axios";
@@ -19,8 +20,10 @@ import { Separator } from "@/components/ui/separator";
 import { IconArrowLeft, IconEdit, IconTrash } from "@tabler/icons-react";
 
 
-const API_BASE = import.meta.env.VITE_API_BASE
+import TicketComments from "./components/viewTicketsComment";
+import TicketAttachments from "./components/viewTicketsAttacment";
 
+const API_BASE = import.meta.env.VITE_API_BASE;
 
 type TicketType = "ISSUE" | "TASK" | string;
 type TicketPriority = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL" | string;
@@ -34,7 +37,13 @@ type TicketStatus =
   | "CLOSED"
   | string;
 
-type UserLite = { id: number; fullName?: string; name?: string; email?: string; role?: string };
+type UserLite = {
+  id: number;
+  fullName?: string;
+  name?: string;
+  email?: string;
+  role?: string;
+};
 type Assignee = { id?: number; assignedAt?: string; user?: UserLite };
 
 type Ticket = {
@@ -55,6 +64,7 @@ type Ticket = {
   assignees?: Assignee[];
 };
 
+// ================= Utils =================
 const fmt = (iso?: string | null) => {
   if (!iso) return "-";
   const d = new Date(iso);
@@ -94,6 +104,7 @@ const priorityVariant = (p?: TicketPriority | null) => {
   }
 };
 
+// ================= Page =================
 export default function ViewTickets() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -105,23 +116,24 @@ export default function ViewTickets() {
   const tokenHeader = React.useMemo(() => {
     const token = localStorage.getItem("token");
     return token ? { Authorization: `Bearer ${token}` } : undefined;
-    // kalau backend kamu tidak butuh token, boleh dikosongkan
   }, []);
 
   const fetchTicket = React.useCallback(async () => {
+    if (!id) return;
     setLoading(true);
     setError(null);
     try {
       const res = await axios.get(`${API_BASE}/tickets/${id}`, {
         headers: tokenHeader,
       });
-
       const t = res.data?.data ?? res.data;
 
       const normalized: Ticket = {
         id: Number(t.id),
         projectId: Number(t.projectId ?? t.project_id ?? t.project?.id ?? 0),
-        requesterId: Number(t.requesterId ?? t.requester_id ?? t.requester?.id ?? 0),
+        requesterId: Number(
+          t.requesterId ?? t.requester_id ?? t.requester?.id ?? 0
+        ),
         type: String(t.type ?? ""),
         title: String(t.title ?? ""),
         description: t.description ?? null,
@@ -143,7 +155,11 @@ export default function ViewTickets() {
 
       setTicket(normalized);
     } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || "Gagal memuat ticket");
+      setError(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Gagal memuat ticket"
+      );
     } finally {
       setLoading(false);
     }
@@ -215,13 +231,26 @@ export default function ViewTickets() {
 
                   {ticket && (
                     <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" asChild className="cursor-pointer">
-                        <Link to={`/admin/dashboard/tickets/edit/${ticket.id}`}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        asChild
+                        className="cursor-pointer"
+                      >
+                        <Link
+                          to={`/admin/dashboard/tickets/edit/${ticket.id}`}
+                        >
                           <IconEdit className="h-4 w-4 mr-1" />
                           Edit
                         </Link>
                       </Button>
-                      <Button variant="destructive" size="sm" onClick={handleDelete} className="cursor-pointer">
+
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={handleDelete}
+                        className="cursor-pointer"
+                      >
                         <IconTrash className="h-4 w-4 mr-1" />
                         Delete
                       </Button>
@@ -230,13 +259,17 @@ export default function ViewTickets() {
                 </div>
 
                 <h1 className="text-2xl font-semibold">Ticket Details</h1>
-                <p className="text-muted-foreground">Lihat informasi lengkap ticket.</p>
+                <p className="text-muted-foreground">
+                  Lihat informasi lengkap ticket.
+                </p>
               </div>
 
               <div className="px-4 lg:px-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>{loading ? "Loading…" : ticket?.title ?? "-"}</CardTitle>
+                    <CardTitle>
+                      {loading ? "Loading…" : ticket?.title ?? "-"}
+                    </CardTitle>
                     <CardDescription>
                       {loading
                         ? "Mengambil data ticket…"
@@ -260,28 +293,38 @@ export default function ViewTickets() {
                     ) : ticket ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                          <div className="text-xs text-muted-foreground">Project</div>
+                          <div className="text-xs text-muted-foreground">
+                            Project
+                          </div>
                           <div className="font-medium">
                             {ticket.projectName || `#${ticket.projectId}`}
                           </div>
                         </div>
 
                         <div className="space-y-2">
-                          <div className="text-xs text-muted-foreground">Requester</div>
+                          <div className="text-xs text-muted-foreground">
+                            Requester
+                          </div>
                           <div className="font-medium">
                             {ticket.requesterName || `#${ticket.requesterId}`}
                           </div>
                         </div>
 
                         <div className="space-y-2">
-                          <div className="text-xs text-muted-foreground">Type</div>
+                          <div className="text-xs text-muted-foreground">
+                            Type
+                          </div>
                           <div>
-                            <Badge variant="secondary">{ticket.type || "-"}</Badge>
+                            <Badge variant="secondary">
+                              {ticket.type || "-"}
+                            </Badge>
                           </div>
                         </div>
 
                         <div className="space-y-2">
-                          <div className="text-xs text-muted-foreground">Priority</div>
+                          <div className="text-xs text-muted-foreground">
+                            Priority
+                          </div>
                           <div>
                             <Badge variant={priorityVariant(ticket.priority)}>
                               {ticket.priority || "-"}
@@ -290,60 +333,103 @@ export default function ViewTickets() {
                         </div>
 
                         <div className="space-y-2">
-                          <div className="text-xs text-muted-foreground">Status</div>
+                          <div className="text-xs text-muted-foreground">
+                            Status
+                          </div>
                           <div>
-                            <Badge variant={statusVariant(ticket.status)}>{ticket.status}</Badge>
+                            <Badge variant={statusVariant(ticket.status)}>
+                              {ticket.status}
+                            </Badge>
                           </div>
                         </div>
 
                         <div className="space-y-2">
-                          <div className="text-xs text-muted-foreground">Start Date</div>
-                          <div className="font-medium">{fmt(ticket.startDate)}</div>
+                          <div className="text-xs text-muted-foreground">
+                            Start Date
+                          </div>
+                          <div className="font-medium">
+                            {fmt(ticket.startDate)}
+                          </div>
                         </div>
 
                         <div className="space-y-2">
-                          <div className="text-xs text-muted-foreground">Due Date</div>
-                          <div className="font-medium">{fmt(ticket.dueDate)}</div>
+                          <div className="text-xs text-muted-foreground">
+                            Due Date
+                          </div>
+                          <div className="font-medium">
+                            {fmt(ticket.dueDate)}
+                          </div>
                         </div>
 
                         <div className="space-y-2">
-                          <div className="text-xs text-muted-foreground">Created</div>
-                          <div className="font-medium">{fmt(ticket.createdAt)}</div>
+                          <div className="text-xs text-muted-foreground">
+                            Created
+                          </div>
+                          <div className="font-medium">
+                            {fmt(ticket.createdAt)}
+                          </div>
                         </div>
 
                         <div className="space-y-2">
-                          <div className="text-xs text-muted-foreground">Updated</div>
-                          <div className="font-medium">{fmt(ticket.updatedAt)}</div>
+                          <div className="text-xs text-muted-foreground">
+                            Updated
+                          </div>
+                          <div className="font-medium">
+                            {fmt(ticket.updatedAt)}
+                          </div>
                         </div>
 
-                        {/* Assignees (opsional, kalau backend kirim) */}
-                        {Array.isArray(ticket.assignees) && ticket.assignees.length > 0 && (
-                          <div className="md:col-span-2">
-                            <Separator className="my-2" />
-                            <div className="text-xs text-muted-foreground mb-2">Assignees</div>
-                            <div className="flex flex-wrap gap-2">
-                              {ticket.assignees.map((a, idx) => {
-                                const name =
-                                  a?.user?.fullName ||
-                                  a?.user?.name ||
-                                  a?.user?.email ||
-                                  `User#${a?.user?.id ?? idx + 1}`;
-                                return <Badge key={idx}>{name}</Badge>;
-                              })}
+                        {/* Assignees (opsional) */}
+                        {Array.isArray(ticket.assignees) &&
+                          ticket.assignees.length > 0 && (
+                            <div className="md:col-span-2">
+                              <Separator className="my-2" />
+                              <div className="text-xs text-muted-foreground mb-2">
+                                Assignees
+                              </div>
+                              <div className="flex flex-wrap gap-2">
+                                {ticket.assignees.map((a, idx) => {
+                                  const name =
+                                    a?.user?.fullName ||
+                                    a?.user?.name ||
+                                    a?.user?.email ||
+                                    `User#${a?.user?.id ?? idx + 1}`;
+                                  return (
+                                    <Badge key={idx}>{name}</Badge>
+                                  );
+                                })}
+                              </div>
                             </div>
-                          </div>
-                        )}
+                          )}
 
                         <div className="md:col-span-2">
                           <Separator className="my-2" />
-                          <div className="text-xs text-muted-foreground mb-1">Description</div>
-                          <div className="leading-relaxed">
-                            {ticket.description || <span className="text-muted-foreground">—</span>}
+                          <div className="text-xs text-muted-foreground mb-1">
+                            Description
                           </div>
+                          <div className="leading-relaxed">
+                            {ticket.description || (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </div>
+                        </div>
+
+
+                        <div className="md:col-span-2">
+                          <Separator className="my-4" />
+                          <TicketAttachments ticketId={ticket.id} />
+                        </div>
+
+
+                        <div className="md:col-span-2">
+                          <Separator className="my-4" />
+                          <TicketComments ticketId={ticket.id} />
                         </div>
                       </div>
                     ) : (
-                      <div className="text-sm text-muted-foreground">Ticket tidak ditemukan.</div>
+                      <div className="text-sm text-muted-foreground">
+                        Ticket tidak ditemukan.
+                      </div>
                     )}
                   </CardContent>
                 </Card>
