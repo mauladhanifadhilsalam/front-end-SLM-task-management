@@ -37,6 +37,7 @@ import ViewTicketAssignee from './pages/dasboard/admin/ticketAssignee/viewTicket
 import EditTicketAssignee from './pages/dasboard/admin/ticketAssignee/editTicketAssignee'
 import AdminFileAttachments from './pages/dasboard/admin/adminFileAttachment'
 import CreateFileAttachment from './pages/dasboard/admin/fileAttachment/createFileAttachment'
+import ActivityLogPage from './pages/dasboard/admin/adminActivityLogs'
 import { NotFoundError } from './pages/errors/not-found-error'
 
 import { ProtectedRoute } from "./components/ProtectedRoute"
@@ -345,6 +346,15 @@ createRoot(rootElement).render(
             element={
               <ProtectedRoute allowedRoles={["developer"]}>
                 <DevDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/dashboard/activity-logs"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <ActivityLogPage />
               </ProtectedRoute>
             }
           />

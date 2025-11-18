@@ -90,7 +90,7 @@ const data = {
     },
     {
       title: "Activity Log",
-      url: "#",
+      url: "/admin/dashboard/activity-logs",
       icon: IconActivityHeartbeat,
     }
   ],
