@@ -73,15 +73,14 @@ export default function AdminTicketAssignees() {
   })
 
   const navigate = useNavigate()
-  const API_BASE = import.meta.env.VITE_API_BASE;
+  const API_BASE = import.meta.env.VITE_API_BASE
 
-  // 🔒 Helper untuk ambil header Authorization
   const getAuthHeaders = () => {
     const token = localStorage.getItem("token")
     return token ? { Authorization: `Bearer ${token}` } : {}
   }
 
-  // 🔄 FETCH DATA DARI API
+  // 🔄 FETCH LANGSUNG DARI /ticket-assignees
   const fetchTicketAssignees = async () => {
     try {
       setLoading(true)
@@ -94,36 +93,43 @@ export default function AdminTicketAssignees() {
         return
       }
 
-      // Ambil semua tickets untuk mendapatkan assignees
-      const res = await axios.get(`${API_BASE}/tickets`, {
+      const res = await axios.get(`${API_BASE}/ticket-assignees`, {
         headers: getAuthHeaders(),
       })
 
-      // Transform data dari tickets menjadi list assignees
-      const allAssignees: TicketAssignee[] = []
-      res.data.forEach((ticket: any) => {
-        if (ticket.assignees && ticket.assignees.length > 0) {
-          ticket.assignees.forEach((assignee: any) => {
-            allAssignees.push({
-              id: assignee.id,
-              ticketId: ticket.id,
-              userId: assignee.user.id,
-              ticket: {
-                id: ticket.id,
-                title: ticket.title,
-                description: ticket.description,
-                status: ticket.status,
-                priority: ticket.priority,
-                type: ticket.type,
-              },
-              user: assignee.user,
-              createdAt: assignee.createdAt || ticket.createdAt,
-            })
-          })
+      const raw: any[] = Array.isArray(res.data) ? res.data : res.data?.data ?? []
+
+      const normalized: TicketAssignee[] = raw.map((item) => {
+        const ticket = item.ticket ?? {}
+        const user = item.user ?? {}
+
+        return {
+          id: Number(item.id),
+          ticketId: Number(item.ticketId ?? item.ticket_id ?? ticket.id),
+          userId: Number(item.userId ?? item.user_id ?? user.id),
+          ticket: {
+            id: Number(ticket.id ?? item.ticketId ?? item.ticket_id),
+            title: ticket.title ?? "",
+            description: ticket.description ?? null,
+            status: ticket.status ?? "",
+            priority: ticket.priority ?? "",
+            type: ticket.type ?? "",
+          },
+          user: {
+            id: Number(user.id ?? item.userId ?? item.user_id),
+            name: user.name ?? user.fullName ?? "",
+            email: user.email ?? "",
+          },
+          createdAt:
+            item.createdAt ??
+            item.created_at ??
+            ticket.createdAt ??
+            ticket.created_at ??
+            new Date().toISOString(),
         }
       })
 
-      setAssignees(allAssignees)
+      setAssignees(normalized)
     } catch (e: any) {
       console.error(e)
       if (e.response?.status === 401) {
@@ -136,7 +142,6 @@ export default function AdminTicketAssignees() {
     }
   }
 
-  // 🗑️ DELETE DATA
   const handleDelete = async (id: number) => {
     const confirm = await Swal.fire({
       title: "Hapus Assignment?",
@@ -179,7 +184,6 @@ export default function AdminTicketAssignees() {
     fetchTicketAssignees()
   }, [])
 
-  // 🔹 Filter data
   const filteredAssignees = React.useMemo(() => {
     const ql = search.trim().toLowerCase()
     return assignees
@@ -195,56 +199,54 @@ export default function AdminTicketAssignees() {
       .sort((a, b) => b.id - a.id)
   }, [assignees, search, statusFilter])
 
-  // 🔖 Badge helpers (konsisten dengan AdminTickets)
   const statusVariant = (status?: string) => {
     switch (status) {
       case "NEW":
       case "TO_DO":
       case "OPEN":
-        return "secondary";
+        return "secondary"
       case "IN_PROGRESS":
-        return "default";
+        return "default"
       case "IN_REVIEW":
-        return "outline";
+        return "outline"
       case "DONE":
       case "RESOLVED":
       case "CLOSED":
-        return "default";
+        return "default"
       case "BLOCKED":
       case "PENDING":
-        return "destructive";
+        return "destructive"
       default:
-        return "secondary";
+        return "secondary"
     }
-  };
+  }
 
   const priorityVariant = (p?: string) => {
     switch (p) {
       case "LOW":
-        return "outline";
+        return "outline"
       case "MEDIUM":
-        return "secondary";
+        return "secondary"
       case "HIGH":
-        return "default";
+        return "default"
       case "CRITICAL":
-        return "destructive";
+        return "destructive"
       default:
-        return "secondary";
+        return "secondary"
     }
-  };
+  }
 
   const typeVariant = (type?: string) => {
-    // Menggunakan variant serupa untuk konsistensi; bisa disesuaikan jika diperlukan
     switch (type) {
       case "TASK":
-        return "secondary";
+        return "secondary"
       case "ISSUE":
       case "BUG":
-        return "destructive";
+        return "destructive"
       default:
-        return "outline";
+        return "outline"
     }
-  };
+  }
 
   const formatDate = (iso: string) => {
     try {
@@ -270,8 +272,7 @@ export default function AdminTicketAssignees() {
       <AppSidebar variant="inset" />
       <SidebarInset>
         <SiteHeader />
-        <main className="flex flex-col flex-1 p-6 space-y-6">
-          {/* Header */}
+        <main className="flex flex-1 flex-col space-y-6 p-6">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-semibold">Ticket Assignments</h1>
@@ -285,8 +286,7 @@ export default function AdminTicketAssignees() {
             </Button>
           </div>
 
-          {/* Filter */}
-          <div className="flex flex-wrap gap-3 items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex gap-3">
               <Input
                 placeholder="Cari ticket atau assignee..."
@@ -309,7 +309,6 @@ export default function AdminTicketAssignees() {
               </Select>
             </div>
 
-            {/* Kolom toggle */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="flex items-center gap-2">
@@ -324,7 +323,10 @@ export default function AdminTicketAssignees() {
                     key={key}
                     checked={(cols as any)[key]}
                     onCheckedChange={(v) =>
-                      setCols((c) => ({ ...c, [key]: !!v }))
+                      setCols((c) => ({
+                        ...c,
+                        [key]: !!v,
+                      }))
                     }
                   >
                     {key.toUpperCase()}
@@ -334,8 +336,7 @@ export default function AdminTicketAssignees() {
             </DropdownMenu>
           </div>
 
-          {/* Table */}
-          <div className="rounded-md border overflow-x-auto">
+          <div className="overflow-x-auto rounded-md border">
             {loading ? (
               <div className="p-6">Memuat data dari server...</div>
             ) : error ? (
@@ -360,7 +361,7 @@ export default function AdminTicketAssignees() {
                   {filteredAssignees.map((a) => (
                     <tr
                       key={a.id}
-                      className="border-t text-center hover:bg-muted/50 transition-colors"
+                      className="border-t text-center transition-colors hover:bg-muted/50"
                     >
                       {cols.id && <td className="px-4 py-3">{a.id}</td>}
                       {cols.ticket && (
@@ -381,17 +382,23 @@ export default function AdminTicketAssignees() {
                       )}
                       {cols.type && (
                         <td className="px-4 py-3">
-                          <Badge variant={typeVariant(a.ticket.type)}>{a.ticket.type || "-"}</Badge>
+                          <Badge variant={typeVariant(a.ticket.type)}>
+                            {a.ticket.type || "-"}
+                          </Badge>
                         </td>
                       )}
                       {cols.priority && (
                         <td className="px-4 py-3">
-                          <Badge variant={priorityVariant(a.ticket.priority)}>{a.ticket.priority || "-"}</Badge>
+                          <Badge variant={priorityVariant(a.ticket.priority)}>
+                            {a.ticket.priority || "-"}
+                          </Badge>
                         </td>
                       )}
                       {cols.status && (
                         <td className="px-4 py-3">
-                          <Badge variant={statusVariant(a.ticket.status)}>{a.ticket.status}</Badge>
+                          <Badge variant={statusVariant(a.ticket.status)}>
+                            {a.ticket.status}
+                          </Badge>
                         </td>
                       )}
                       {cols.createdAt && (
