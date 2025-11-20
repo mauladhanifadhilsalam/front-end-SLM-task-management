@@ -1,120 +1,127 @@
-import { AppSidebar } from "@/components/app-sidebar";
-import { SiteHeader } from "@/components/site-header";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { IconArrowLeft, IconCheck } from "@tabler/icons-react";
-import * as React from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import Swal from "sweetalert2";
-
+import { AppSidebar } from "@/components/app-sidebar"
+import { SiteHeader } from "@/components/site-header"
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { IconArrowLeft, IconCheck } from "@tabler/icons-react"
+import * as React from "react"
+import { useNavigate } from "react-router-dom"
+import axios from "axios"
+import { toast } from "sonner"
 
 import {
   createUserSchema,
   RoleEnum,
   type CreateUserValues,
   type CreateUserField,
-} from "@/schemas/users.schema";
+} from "@/schemas/users.schema"
 
 const API_BASE = import.meta.env.VITE_API_BASE
 
 export default function CreateUserPage() {
-  const navigate = useNavigate();
-  const [loading, setLoading] = React.useState(false);
-  const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = React.useState<string | null>(null);
+  const navigate = useNavigate()
+  const [loading, setLoading] = React.useState(false)
+  const [errorMsg, setErrorMsg] = React.useState<string | null>(null)
+  const [successMsg, setSuccessMsg] = React.useState<string | null>(null)
 
   const [formData, setFormData] = React.useState<CreateUserValues>({
     fullName: "",
     email: "",
     role: "PROJECT_MANAGER",
     password: "",
-  });
+  })
 
   const [fieldErrors, setFieldErrors] = React.useState<
     Partial<Record<CreateUserField, string | null>>
-  >({});
-
-  ;
+  >({})
 
   const handleInputChange = (field: CreateUserField, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }))
     if (fieldErrors[field]) {
-      const single = (createUserSchema as any).pick({ [field]: true });
-      const res = single.safeParse({ [field]: value });
+      const single = (createUserSchema as any).pick({ [field]: true })
+      const res = single.safeParse({ [field]: value })
       setFieldErrors((prev) => ({
         ...prev,
         [field]: res.success ? null : res.error.issues[0]?.message ?? null,
-      }));
+      }))
     }
-  };
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setErrorMsg(null);
-    setSuccessMsg(null);
-    setFieldErrors({});
+    e.preventDefault()
+    setLoading(true)
+    setErrorMsg(null)
+    setSuccessMsg(null)
+    setFieldErrors({})
 
-    const parsed = createUserSchema.safeParse(formData);
+    const parsed = createUserSchema.safeParse(formData)
     if (!parsed.success) {
-      const newErrors: Partial<Record<CreateUserField, string>> = {};
+      const newErrors: Partial<Record<CreateUserField, string>> = {}
       for (const issue of parsed.error.issues) {
-        const path = issue.path[0] as CreateUserField;
-        if (path && !newErrors[path]) newErrors[path] = issue.message;
+        const path = issue.path[0] as CreateUserField
+        if (path && !newErrors[path]) newErrors[path] = issue.message
       }
-      setFieldErrors(newErrors);
-      setLoading(false);
-      return;
+      setFieldErrors(newErrors)
+      setLoading(false)
+      return
     }
 
     try {
-      const token = localStorage.getItem("token") || "";
+      const token = localStorage.getItem("token") || ""
       const res = await axios.post(`${API_BASE}/users`, parsed.data, {
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      });
+      })
 
-      const createdUser = res.data;
+      const createdUser = res.data
 
-      await Swal.fire({
-        title: "Berhasil",
-        text: `User "${createdUser.fullName}" berhasil dibuat.`,
-        icon: "success",
-        timer: 1400,
-        showConfirmButton: false,
-      });
+      setSuccessMsg(`User "${createdUser.fullName}" berhasil dibuat.`)
+      toast.success("User berhasil dibuat", {
+        description: `User "${createdUser.fullName}" berhasil dibuat.`,
+      })
 
-      navigate("/admin/dashboard/users");
+      navigate("/admin/dashboard/users")
     } catch (err: any) {
+      let message = "Gagal membuat user."
+
       if (err?.response?.status === 400 && err.response.data) {
-        const zodFmt = err.response.data;
+        const zodFmt = err.response.data
         const firstIssue =
           zodFmt?.fullName?._errors?.[0] ||
           zodFmt?.email?._errors?.[0] ||
           zodFmt?.role?._errors?.[0] ||
           zodFmt?.password?._errors?.[0] ||
-          zodFmt?._errors?.[0];
+          zodFmt?._errors?.[0]
 
-        setErrorMsg(firstIssue || "Data tidak valid.");
+        message = firstIssue || "Data tidak valid."
       } else if (err?.response?.status === 409) {
-        setErrorMsg(err.response.data?.message || "Email sudah digunakan.");
+        message = err.response.data?.message || "Email sudah digunakan."
       } else {
-        setErrorMsg(err?.response?.data?.message || "Gagal membuat user.");
+        message = err?.response?.data?.message || "Gagal membuat user."
       }
 
-      await Swal.fire({
-        title: "Gagal",
-        text: err?.response?.data?.message || "Terjadi kesalahan saat membuat user.",
-        icon: "error",
-      });
+      setErrorMsg(message)
+      toast.error("Gagal membuat user", {
+        description: message,
+      })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div>
@@ -145,7 +152,19 @@ export default function CreateUserPage() {
                     </Button>
                   </div>
                   <h1 className="text-2xl font-semibold">Tambah User Baru</h1>
-                  <p className="text-muted-foreground">Buat user baru di sini.</p>
+                  <p className="text-muted-foreground">
+                    Buat user baru di sini.
+                  </p>
+
+                  {/* Optional: tampilkan errorMsg / successMsg di atas form */}
+                  {errorMsg && (
+                    <p className="mt-3 text-sm text-red-600">{errorMsg}</p>
+                  )}
+                  {successMsg && (
+                    <p className="mt-3 text-sm text-emerald-600">
+                      {successMsg}
+                    </p>
+                  )}
                 </div>
 
                 <div className="px-4 lg:px-6">
@@ -158,21 +177,29 @@ export default function CreateUserPage() {
                     </CardHeader>
 
                     <CardContent>
-                      <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+                      <form
+                        onSubmit={handleSubmit}
+                        className="space-y-6"
+                        noValidate
+                      >
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div className="space-y-2">
                             <Label htmlFor="fullName">Nama Lengkap *</Label>
                             <Input
                               id="fullName"
                               value={formData.fullName}
-                              onChange={(e) => handleInputChange("fullName", e.target.value)}
+                              onChange={(e) =>
+                                handleInputChange("fullName", e.target.value)
+                              }
                               placeholder="Masukkan nama lengkap"
                               disabled={loading}
                               aria-invalid={!!fieldErrors.fullName}
                               required
                             />
                             {fieldErrors.fullName && (
-                              <p className="text-xs pl-1 text-red-600">{fieldErrors.fullName}</p>
+                              <p className="text-xs pl-1 text-red-600">
+                                {fieldErrors.fullName}
+                              </p>
                             )}
                           </div>
 
@@ -182,14 +209,18 @@ export default function CreateUserPage() {
                               id="email"
                               type="email"
                               value={formData.email}
-                              onChange={(e) => handleInputChange("email", e.target.value)}
+                              onChange={(e) =>
+                                handleInputChange("email", e.target.value)
+                              }
                               placeholder="user@example.com"
                               disabled={loading}
                               aria-invalid={!!fieldErrors.email}
                               required
                             />
                             {fieldErrors.email && (
-                              <p className="text-xs pl-1 text-red-600">{fieldErrors.email}</p>
+                              <p className="text-xs pl-1 text-red-600">
+                                {fieldErrors.email}
+                              </p>
                             )}
                           </div>
                         </div>
@@ -199,7 +230,9 @@ export default function CreateUserPage() {
                             <Label htmlFor="role">Role *</Label>
                             <Select
                               value={formData.role}
-                              onValueChange={(value) => handleInputChange("role", value)}
+                              onValueChange={(value) =>
+                                handleInputChange("role", value)
+                              }
                               disabled={loading}
                             >
                               <SelectTrigger>
@@ -215,7 +248,9 @@ export default function CreateUserPage() {
                               </SelectContent>
                             </Select>
                             {fieldErrors.role && (
-                              <p className="text-xs pl-1 text-red-600">{fieldErrors.role}</p>
+                              <p className="text-xs pl-1 text-red-600">
+                                {fieldErrors.role}
+                              </p>
                             )}
                           </div>
 
@@ -225,14 +260,18 @@ export default function CreateUserPage() {
                               id="password"
                               type="password"
                               value={formData.password}
-                              onChange={(e) => handleInputChange("password", e.target.value)}
+                              onChange={(e) =>
+                                handleInputChange("password", e.target.value)
+                              }
                               placeholder="Masukkan password"
                               disabled={loading}
                               aria-invalid={!!fieldErrors.password}
                               required
                             />
                             {fieldErrors.password && (
-                              <p className="text-xs text-red-600">{fieldErrors.password}</p>
+                              <p className="text-xs text-red-600">
+                                {fieldErrors.password}
+                              </p>
                             )}
                           </div>
                         </div>
@@ -253,5 +292,5 @@ export default function CreateUserPage() {
         </SidebarInset>
       </SidebarProvider>
     </div>
-  );
+  )
 }
