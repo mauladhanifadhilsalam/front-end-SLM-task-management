@@ -17,7 +17,8 @@ import {
   IconMessage,
   IconMessageDots,
   IconActivity,
-  IconActivityHeartbeat
+  IconActivityHeartbeat,
+  IconNotification
 } from "@tabler/icons-react"
 
 import { NavDocuments } from "@/components/nav-documents"
@@ -87,6 +88,11 @@ const data = {
       title: "File Attachment",
       url: "/admin/dashboard/file-attachments",
       icon: IconPaperclip,
+    },
+    {
+      title: "Notifications",
+      url: "/admin-dashboard/notifications",
+      icon: IconNotification,
     },
     {
       title: "Activity Log",
