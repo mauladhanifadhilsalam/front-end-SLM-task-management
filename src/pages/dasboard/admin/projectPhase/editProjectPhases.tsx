@@ -2,7 +2,7 @@
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import Swal from "sweetalert2";
+import { toast } from "sonner";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
@@ -91,10 +91,13 @@ export default function EditProjectPhases() {
       } catch (err: any) {
         const msg = err?.response?.data?.message || "Failed to load phase data";
         setError(msg);
-        await Swal.fire({ title: "Error", text: msg, icon: "error" });
+        toast.error("Failed to load phase data", {
+          description: msg,
+        });
       } finally {
         setLoading(false);
       }
+
     };
 
     loadData();
@@ -123,22 +126,27 @@ export default function EditProjectPhases() {
     setSaving(true);
     setFieldErrors({});
 
-    // Validasi pakai schema edit (endDate harus setelah startDate)
+    
     const parsed = editProjectPhaseSchema.safeParse(form);
-    if (!parsed.success) {
-      const fe: Partial<Record<EditField, string>> = {};
-      for (const issue of parsed.error.issues) {
-        const k = issue.path[0] as EditField;
-        if (!fe[k]) fe[k] = issue.message;
-      }
-      setFieldErrors(fe);
-      setSaving(false);
-      return;
-    }
+      if (!parsed.success) {
+        const fe: Partial<Record<EditField, string>> = {};
+        for (const issue of parsed.error.issues) {
+          const k = issue.path[0] as EditField;
+          if (!fe[k]) fe[k] = issue.message;
+        }
+        setFieldErrors(fe);
+
+        toast.warning("Form belum valid", {
+          description: "Periksa kembali nama phase, tanggal, dan project.",
+        });
+
+        setSaving(false);
+        return;
+}
 
     try {
       const token = localStorage.getItem("token");
-      const payload = parsed.data; // projectId sudah number & tanggal valid
+      const payload = parsed.data;
 
       await axios.patch(`${API_BASE}/project-phases/${id}`, payload, {
         headers: {
@@ -147,21 +155,22 @@ export default function EditProjectPhases() {
         },
       });
 
-      await Swal.fire({
-        title: "Success",
-        text: "Project phase updated successfully",
-        icon: "success",
-        timer: 1500,
-        showConfirmButton: false,
+      toast.success("Project phase updated", {
+        description: "Project phase updated successfully.",
       });
+
       navigate("/admin/dashboard/project-phases");
     } catch (err: any) {
-      const msg = err?.response?.data?.message || "Failed to update project phase";
-      setError(msg);
-      await Swal.fire({ title: "Error", text: msg, icon: "error" });
-    } finally {
-      setSaving(false);
-    }
+  const msg = err?.response?.data?.message || "Failed to update project phase";
+  setError(msg);
+  toast.error("Failed to update project phase", {
+    description: msg,
+  });
+} finally {
+  setSaving(false);
+}
+
+
   };
 
   return (

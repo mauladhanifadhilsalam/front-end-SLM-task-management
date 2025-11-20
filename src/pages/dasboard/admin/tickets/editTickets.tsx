@@ -1,8 +1,9 @@
-// src/pages/tickets/EditTickets.tsx
+
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import Swal from "sweetalert2";
+import { toast } from "sonner";
+
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
@@ -252,7 +253,6 @@ export default function EditTickets() {
       startDate: form.startDate,
       dueDate: form.dueDate,
     });
-
     if (!parsed.success) {
       const fe: Partial<Record<EditTicketField, string>> = {};
       for (const issue of parsed.error.issues) {
@@ -260,29 +260,35 @@ export default function EditTickets() {
         if (!fe[k]) fe[k] = issue.message;
       }
       setFieldErrors(fe);
+
+      toast.warning("Form ticket belum valid", {
+        description:
+          "Periksa kembali project, requester, type, priority, status, dan tanggal.",
+      });
+
       setSaving(false);
       return;
     }
+
 
     const payload = toEditTicketPayload(parsed.data);
 
     try {
       await axios.patch(`${API_BASE}/tickets/${id}`, payload, { headers: tokenHeader });
-      await Swal.fire({
-        title: "Saved",
-        text: "Perubahan ticket berhasil disimpan.",
-        icon: "success",
-        timer: 1400,
-        showConfirmButton: false,
+      toast.success("Perubahan ticket disimpan", {
+        description: "Update ticket berhasil tersimpan.",
       });
       navigate(`/admin/dashboard/tickets`);
     } catch (err: any) {
       const msg2 = err?.response?.data?.message || "Gagal menyimpan perubahan.";
       setError(msg2);
-      await Swal.fire({ title: "Error", text: msg2, icon: "error" });
+      toast.error("Gagal menyimpan ticket", {
+        description: msg2,
+      });
     } finally {
       setSaving(false);
     }
+
   };
 
   return (

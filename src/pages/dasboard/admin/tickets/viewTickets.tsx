@@ -2,7 +2,18 @@
 import * as React from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import axios from "axios";
-import Swal from "sweetalert2";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
@@ -112,6 +123,7 @@ export default function ViewTickets() {
   const [ticket, setTicket] = React.useState<Ticket | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const [deleting, setDeleting] = React.useState(false);
 
   const tokenHeader = React.useMemo(() => {
     const token = localStorage.getItem("token");
@@ -154,51 +166,48 @@ export default function ViewTickets() {
       };
 
       setTicket(normalized);
-    } catch (err: any) {
-      setError(
+   } catch (err: any) {
+      const msg =
         err?.response?.data?.message ||
-          err?.message ||
-          "Gagal memuat ticket"
-      );
+        err?.message ||
+        "Gagal memuat ticket";
+
+      setError(msg);
+      toast.error("Gagal memuat ticket", {
+        description: msg,
+      });
     } finally {
       setLoading(false);
     }
+
   }, [id, tokenHeader]);
 
   React.useEffect(() => {
     fetchTicket();
   }, [fetchTicket]);
 
-  const handleDelete = async () => {
-    if (!ticket) return;
-    const confirm = await Swal.fire({
-      title: "Hapus ticket?",
-      text: `Yakin ingin menghapus tiket “${ticket.title}”? Tindakan ini tidak dapat dikembalikan.`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Ya, hapus",
-      cancelButtonText: "Batal",
-    });
-    if (!confirm.isConfirmed) return;
+    const handleConfirmDelete = async () => {
+      if (!ticket) return;
+      setDeleting(true);
+      try {
+        await axios.delete(`${API_BASE}/tickets/${ticket.id}`, {
+          headers: tokenHeader,
+        });
 
-    try {
-      await axios.delete(`${API_BASE}/tickets/${ticket.id}`, {
-        headers: tokenHeader,
-      });
+        toast.success("Ticket dihapus", {
+          description: `Ticket "${ticket.title}" berhasil dihapus.`,
+        });
 
-      await Swal.fire({
-        icon: "success",
-        title: "Terhapus",
-        text: "Ticket berhasil dihapus.",
-        showConfirmButton: false,
-        timer: 1100,
-      });
-      navigate("/admin/dashboard/tickets");
-    } catch (err: any) {
-      const msg = err?.response?.data?.message || "Gagal menghapus ticket.";
-      await Swal.fire({ icon: "error", title: "Gagal", text: msg });
-    }
-  };
+        navigate("/admin/dashboard/tickets");
+      } catch (err: any) {
+        const msg = err?.response?.data?.message || "Gagal menghapus ticket.";
+        toast.error("Gagal menghapus ticket", {
+          description: msg,
+        });
+        setDeleting(false);
+      }
+    };
+
 
   return (
     <div>
@@ -245,15 +254,40 @@ export default function ViewTickets() {
                         </Link>
                       </Button>
 
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={handleDelete}
-                        className="cursor-pointer"
-                      >
-                        <IconTrash className="h-4 w-4 mr-1" />
-                        Delete
-                      </Button>
+                     <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="flex items-center gap-2 cursor-pointer"
+                          disabled={deleting}
+                        >
+                          <IconTrash className="h-4 w-4 mr-1" />
+                          {deleting ? "Deleting..." : "Delete"}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Hapus ticket?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            {ticket
+                              ? `Yakin ingin menghapus tiket “${ticket.title}”? Tindakan ini tidak dapat dikembalikan.`
+                              : "Yakin ingin menghapus tiket ini? Tindakan ini tidak dapat dikembalikan."}
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel disabled={deleting}>Batal</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={handleConfirmDelete}
+                            disabled={deleting}
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            {deleting ? "Menghapus..." : "Ya, hapus"}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+
                     </div>
                   )}
                 </div>

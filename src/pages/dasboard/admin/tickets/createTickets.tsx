@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import Swal from "sweetalert2";
+import { toast } from "sonner";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
@@ -143,40 +143,38 @@ export default function CreateTickets() {
     setSaving(true);
     setFieldErrors({});
 
-
-    const parsed = createTicketSchema.safeParse(form);
-    if (!parsed.success) {
-      const fe: Partial<Record<CreateTicketField, string>> = {};
-      for (const issue of parsed.error.issues) {
-        const k = issue.path[0] as CreateTicketField;
-        if (!fe[k]) fe[k] = issue.message;
+      const parsed = createTicketSchema.safeParse(form);
+      if (!parsed.success) {
+        const fe: Partial<Record<CreateTicketField, string>> = {};
+        for (const issue of parsed.error.issues) {
+          const k = issue.path[0] as CreateTicketField;
+          if (!fe[k]) fe[k] = issue.message;
+        }
+        setFieldErrors(fe);
+        setSaving(false);
+        return;
       }
-      setFieldErrors(fe);
-      setSaving(false);
-      return;
-    }
+
 
     const payload = toCreateTicketPayload(parsed.data);
 
     try {
       await axios.post(`${API_BASE}/tickets`, payload, { headers: tokenHeader });
 
-      await Swal.fire({
-        title: "Success",
-        text: "Ticket berhasil dibuat",
-        icon: "success",
-        timer: 1400,
-        showConfirmButton: false,
+       toast.success("Ticket berhasil dibuat", {
+        description: "Ticket baru sudah tersimpan .",
       });
 
       navigate("/admin/dashboard/tickets");
-    } catch (err: any) {
+        } catch (err: any) {
       const msg = err?.response?.data?.message || "Gagal membuat ticket.";
       setError(msg);
-      await Swal.fire({ title: "Error", text: msg, icon: "error" });
+      toast.error("Gagal membuat ticket", {
+        description: msg,
+      });
     } finally {
       setSaving(false);
-    }
+}
   };
 
   return (

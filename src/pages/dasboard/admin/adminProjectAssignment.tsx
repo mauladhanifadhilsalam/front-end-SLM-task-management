@@ -375,18 +375,6 @@ export default function AdminProjectAssignment() {
                               {cols.actions && (
                                 <td className="px-4 py-3">
                                   <div className="flex items-center justify-center gap-2">
-                                    <Link
-                                      to={`/admin/dashboard/project-assignments/view/${a.id}`}
-                                      className="rounded px-2 py-1"
-                                    >
-                                      <IconEye className="h-4 w-4" />
-                                    </Link>
-                                    <Link
-                                      to={`/admin/dashboard/project-assignments/edit/${a.id}`}
-                                      className="rounded px-2 py-1"
-                                    >
-                                      <IconEdit className="h-4 w-4" />
-                                    </Link>
                                     <button
                                       onClick={() => requestDelete(a.id)}
                                       className="cursor-pointer rounded px-2 py-1 text-red-600 hover:text-red-700"
