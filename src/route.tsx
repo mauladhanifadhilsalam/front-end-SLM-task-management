@@ -37,6 +37,7 @@ import ViewTicketAssignee from './pages/dasboard/admin/ticketAssignee/viewTicket
 import EditTicketAssignee from './pages/dasboard/admin/ticketAssignee/editTicketAssignee'
 import AdminFileAttachments from './pages/dasboard/admin/adminFileAttachment'
 import CreateFileAttachment from './pages/dasboard/admin/fileAttachment/createFileAttachment'
+import ActivityLogPage from './pages/dasboard/admin/adminActivityLogs'
 import AdminNotification from './pages/dasboard/admin/adminNotification'
 import ViewNotification from './pages/dasboard/admin/notification/viewNotification'
 import NotificationPage from './pages/notification/notification'
@@ -82,6 +83,7 @@ createRoot(rootElement).render(
               </ProtectedRoute>
             }
           />
+
 
           <Route
             path="/admin/dashboard/users"
@@ -384,6 +386,15 @@ createRoot(rootElement).render(
             element={
               <ProtectedRoute allowedRoles={["developer"]}>
                 <DevDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/dashboard/activity-logs"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <ActivityLogPage />
               </ProtectedRoute>
             }
           />
