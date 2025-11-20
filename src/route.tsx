@@ -42,6 +42,7 @@ import AdminNotification from './pages/dasboard/admin/adminNotification'
 import ViewNotification from './pages/dasboard/admin/notification/viewNotification'
 import NotificationPage from './pages/notification/notification'
 import NotificationMeRedirect from './pages/notification/notificationRedirect/notificationMeRedirect'
+import { Toaster } from './components/ui/sonner'
 import { NotFoundError } from './pages/errors/not-found-error'
 
 import { ProtectedRoute } from "./components/ProtectedRoute"
@@ -402,6 +403,11 @@ createRoot(rootElement).render(
           
 
         </Routes>
+        <Toaster
+          richColors
+          position="top-center"
+          duration={3000}
+        />
       </BrowserRouter>
     </ThemeProvider>
 )
