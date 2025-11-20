@@ -37,6 +37,10 @@ import ViewTicketAssignee from './pages/dasboard/admin/ticketAssignee/viewTicket
 import EditTicketAssignee from './pages/dasboard/admin/ticketAssignee/editTicketAssignee'
 import AdminFileAttachments from './pages/dasboard/admin/adminFileAttachment'
 import CreateFileAttachment from './pages/dasboard/admin/fileAttachment/createFileAttachment'
+import AdminNotification from './pages/dasboard/admin/adminNotification'
+import ViewNotification from './pages/dasboard/admin/notification/viewNotification'
+import NotificationPage from './pages/notification/notification'
+import NotificationMeRedirect from './pages/notification/notificationRedirect/notificationMeRedirect'
 import { NotFoundError } from './pages/errors/not-found-error'
 
 import { ProtectedRoute } from "./components/ProtectedRoute"
@@ -51,6 +55,23 @@ createRoot(rootElement).render(
         <Routes>
           <Route path="/" element={<SigninUserPage />} />
           <Route path='/*' element={<NotFoundError />}/>
+          <Route path='/notification/me' element={<NotificationMeRedirect />} />
+            <Route
+              path="/project-manager-dashboard/notifications/me"
+              element={
+                <ProtectedRoute allowedRoles={["project_manager"]}>
+                  <NotificationPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/developer-dashboard/notifications/me"
+              element={
+                <ProtectedRoute allowedRoles={["developer"]}>
+                  <NotificationPage />
+                </ProtectedRoute>
+              }
+            />
 
           {/* === DASHBOARD ROUTES === */}
           <Route
@@ -329,6 +350,25 @@ createRoot(rootElement).render(
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path="/admin-dashboard/notifications"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminNotification />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin-dashboard/notifications/view/:id"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <ViewNotification />
+              </ProtectedRoute>
+            }
+          />
+
 
           <Route
             path="/project-manager/dashboard"
