@@ -15,7 +15,19 @@ import { Badge } from "@/components/ui/badge";
 import * as React from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import axios from "axios";
-import Swal from "sweetalert2";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
 import { IconArrowLeft, IconEdit, IconTrash } from "@tabler/icons-react";
 
 type Owner = {
@@ -55,6 +67,8 @@ export default function ViewProject() {
   const navigate = useNavigate();
   const [project, setProject] = React.useState<Project | null>(null);
   const [loading, setLoading] = React.useState(true);
+  const [deleting, setDeleting] = React.useState(false)
+
   const [error, setError] = React.useState<string>("");
 
   const API_BASE = import.meta.env.VITE_API_BASE;
@@ -82,41 +96,32 @@ export default function ViewProject() {
     fetchProject();
   }, [fetchProject]);
 
-  const handleDelete = async () => {
-    if (!project) return;
+    const handleConfirmDelete = async () => {
+      if (!project) return
+      setDeleting(true)
 
-    const confirm = await Swal.fire({
-      title: "Hapus Project?",
-      text: `Yakin ingin menghapus project "${project.name}"?`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Ya, hapus",
-      cancelButtonText: "Batal",
-      reverseButtons: true,
-    });
+      try {
+        const token = localStorage.getItem("token")
+        await axios.delete(`${API_BASE}/projects/${project.id}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        })
 
-    if (!confirm.isConfirmed) return;
+        toast.success("Project dihapus", {
+          description: `Project "${project.name}" berhasil dihapus.`,
+        })
 
-    try {
-      const token = localStorage.getItem("token");
-      await axios.delete(`${API_BASE}/projects/${project.id}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      });
-
-      await Swal.fire({
-        title: "Berhasil",
-        text: `Project "${project.name}" berhasil dihapus.`,
-        icon: "success",
-        timer: 1400,
-        showConfirmButton: false,
-      });
-
-      navigate("/admin/dashboard/projects");
-    } catch (e: any) {
-      const msg = e?.response?.data?.message || "Gagal menghapus project";
-      await Swal.fire({ title: "Gagal", text: msg, icon: "error" });
+        navigate("/admin/dashboard/projects")
+      } catch (e: any) {
+        const msg = e?.response?.data?.message || "Gagal menghapus project"
+        setError(msg)
+        toast.error("Gagal menghapus project", {
+          description: msg,
+        })
+      } finally {
+        setDeleting(false)
+      }
     }
-  };
+
 
   const formatDate = (iso?: string) => {
     if (!iso) return "-";
@@ -177,15 +182,42 @@ export default function ViewProject() {
                   </Button>
                 </Link>
               )}
-              <Button
-                size="sm"
-                variant="destructive"
-                onClick={handleDelete}
-                className="flex items-center gap-2"
-              >
-                <IconTrash className="h-4 w-4" />
-                Hapus
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    className="flex items-center gap-2"
+                    disabled={!project || deleting}
+                  >
+                    <IconTrash className="h-4 w-4" />
+                    {deleting ? "Menghapus..." : "Hapus"}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Hapus project?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {project
+                        ? `Yakin ingin menghapus project "${project.name}"? Tindakan ini tidak dapat dikembalikan.`
+                        : "Yakin ingin menghapus project ini? Tindakan ini tidak dapat dikembalikan."}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel disabled={deleting}>
+                      Batal
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleConfirmDelete}
+                      disabled={deleting}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      {deleting ? "Menghapus..." : "Ya, hapus"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+
             </div>
           </div>
 

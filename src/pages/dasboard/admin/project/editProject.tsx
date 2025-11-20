@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import Swal from "sweetalert2";
+import { toast } from "sonner";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -255,33 +255,40 @@ export default function EditProject() {
     if (!id || saving) return;
 
     if (!formData.name.trim()) {
-      await Swal.fire({ title: "Gagal", text: "Nama project wajib diisi.", icon: "error" });
+      toast.warning("Nama project wajib diisi", {
+        description: "Harap isi nama project sebelum menyimpan.",
+      });
       return;
     }
+
     if (formData.categories.length === 0 || formData.categories[0].trim() === "") {
-      await Swal.fire({ title: "Gagal", text: "Kategori wajib diisi.", icon: "error" });
+      toast.warning("Kategori wajib diisi", {
+        description: "Project minimal harus punya satu kategori.",
+      });
       return;
     }
     if (!formData.startDate || !formData.endDate) {
-      await Swal.fire({ title: "Gagal", text: "Tanggal mulai dan selesai wajib diisi.", icon: "error" });
-      return;
-    }
-    if (isInvalidProjectDateRange) {
-      await Swal.fire({
-        title: "Tanggal Project Tidak Valid",
-        text: "Tanggal selesai proyek harus setelah tanggal mulai.",
-        icon: "warning",
+      toast.warning("Tanggal belum lengkap", {
+        description: "Tanggal mulai dan tanggal selesai wajib diisi.",
       });
       return;
     }
+
+   if (isInvalidProjectDateRange) {
+      toast.warning("Tanggal project tidak valid", {
+        description: "Tanggal selesai proyek harus setelah tanggal mulai.",
+      });
+      return;
+    }
+
     if (isAnyPhaseInvalid) {
-      await Swal.fire({
-        title: "Fase Tidak Valid",
-        text: "Terdapat fase dengan tanggal yang tidak valid. Periksa kembali tanggal fase, pastikan berada dalam rentang tanggal project.",
-        icon: "warning",
+      toast.warning("Fase tidak valid", {
+        description:
+          "Ada fase dengan tanggal di luar rentang project atau tanggal mulai/selesai tidak valid. Periksa kembali semua fase.",
       });
       return;
     }
+
 
     setSaving(true);
     setError("");
@@ -289,15 +296,21 @@ export default function EditProject() {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        await Swal.fire({ title: "Otorisasi Gagal", text: "Silakan login ulang.", icon: "warning" });
+        toast.error("Otorisasi gagal", {
+          description: "Sesi login berakhir. Silakan login ulang.",
+        });
         navigate("/login");
         return;
       }
 
+
       if (!formData.ownerId) {
-        await Swal.fire({ title: "Error", text: "Owner ID tidak ditemukan", icon: "error" });
+        toast.error("Data project tidak valid", {
+          description: "Owner ID tidak ditemukan. Coba muat ulang halaman dulu.",
+        });
         return;
       }
+
 
       // ✅ Parse sebagai float untuk support desimal
       const completionValue = parseFloat(formData.completion) || 0;
@@ -371,15 +384,12 @@ export default function EditProject() {
         }
       }
 
-      await Swal.fire({
-        title: "Berhasil",
-        text: "Perubahan project & phases berhasil disimpan.",
-        icon: "success",
-        timer: 1500,
-        showConfirmButton: false,
-      });
+      toast.success("Project berhasil diperbarui", {
+          description: "Perubahan project dan phases berhasil disimpan.",
+        });
 
-      navigate("/admin/dashboard/projects");
+        navigate("/admin/dashboard/projects");
+
     } catch (err: any) {
       console.error("❌ Submit error:", err);
       console.error("Error response:", JSON.stringify(err.response?.data, null, 2));
@@ -395,12 +405,10 @@ export default function EditProject() {
       }
       
       setError(errorText);
-      await Swal.fire({ 
-        title: "Gagal", 
-        text: errorText, 
-        icon: "error",
-        footer: "Lihat console (F12) untuk detail error"
+            toast.error("Gagal menyimpan perubahan project", {
+        description: `${errorText} (cek console/F12 untuk detail teknis)`,
       });
+
     } finally {
       setSaving(false);
     }
