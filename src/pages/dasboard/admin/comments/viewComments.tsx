@@ -1,8 +1,20 @@
-// src/pages/admin/ViewComments.tsx
 import * as React from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import axios from "axios";
-import Swal from "sweetalert2";
+import { toast } from "sonner";
+
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
+
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
@@ -125,38 +137,32 @@ export default function ViewComments() {
         fetchComment();
     }, [id, tokenHeader]);
 
-    const handleDelete = async () => {
+   const handleDelete = async () => {
         if (!comment) return;
-        const confirm = await Swal.fire({
-        title: "Delete comment?",
-        text: `Are you sure you want to delete comment #${comment.id}? This action cannot be undone.`,
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Yes, delete",
-        cancelButtonText: "Cancel",
-        reverseButtons: true,
-        });
-        if (!confirm.isConfirmed) return;
 
         setDeleting(true);
+        setError(null);
+
         try {
-        await axios.delete(`${API_BASE}/comments/${comment.id}`, {
+            await axios.delete(`${API_BASE}/comments/${comment.id}`, {
             headers: tokenHeader,
-        });
-        await Swal.fire({
-            title: "Deleted",
-            text: "Comment has been deleted successfully.",
-            icon: "success",
-            timer: 1500,
-            showConfirmButton: false,
-        });
-        navigate("/admin/dashboard/comments");
+            });
+
+            toast.success("Comment deleted", {
+            description: `Comment #${comment.id} has been deleted successfully.`,
+            });
+
+            navigate("/admin/dashboard/comments");
         } catch (err: any) {
-        const msg = err?.response?.data?.message || "Failed to delete comment";
-        await Swal.fire({ title: "Error", text: msg, icon: "error" });
-        setDeleting(false);
+            const msg = err?.response?.data?.message || "Failed to delete comment";
+            setError(msg);
+            toast.error("Failed to delete comment", {
+            description: msg,
+            });
+            setDeleting(false);
         }
-    };
+        };
+
 
     return (
         <div>
@@ -195,16 +201,38 @@ export default function ViewComments() {
                                 Edit
                             </Button>
                             </Link>
-                            <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={handleDelete}
-                            disabled={deleting}
-                            className="flex items-center gap-2"
-                            >
-                            <IconTrash className="h-4 w-4" />
-                            {deleting ? "Deleting..." : "Delete"}
-                            </Button>
+                                <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    disabled={deleting}
+                                    className="flex items-center gap-2"
+                                    >
+                                    <IconTrash className="h-4 w-4" />
+                                    Delete
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete comment?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Are you sure you want to delete comment #{comment.id}? This action cannot be undone.
+                                    </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                    <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                        onClick={handleDelete}
+                                        disabled={deleting}
+                                        className="bg-red-600 focus:ring-red-600 hover:bg-red-700"
+                                    >
+                                        {deleting ? "Deleting..." : "Delete"}
+                                    </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                                </AlertDialog>
+
                         </div>
                         )}
                     </div>

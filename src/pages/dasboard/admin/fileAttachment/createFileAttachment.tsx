@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import Swal from "sweetalert2";
+import { toast } from "sonner";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
@@ -280,21 +280,20 @@ export default function CreateFileAttachment() {
         },
       });
 
-      await Swal.fire({
-        icon: "success",
-        title: "Uploaded",
-        text: "Attachment berhasil diunggah.",
-        timer: 1200,
-        showConfirmButton: false,
+      toast.success("Attachment uploaded", {
+        description: "Attachment berhasil diunggah.",
       });
 
       navigate("/admin/dashboard/file-attachments");
-    } catch (err: any) {
-      const msg2 =
-        err?.response?.data?.message || "Gagal mengunggah attachment.";
-      setError(msg2);
-      await Swal.fire({ icon: "error", title: "Error", text: msg2 });
-    } finally {
+      } catch (err: any) {
+        const msg2 =
+          err?.response?.data?.message || "Gagal mengunggah attachment.";
+        setError(msg2);
+        toast.error("Failed to upload attachment", {
+          description: msg2,
+        });
+      } finally {
+
       setSaving(false);
       setProgress(0);
     }

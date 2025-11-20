@@ -3,7 +3,8 @@
 import * as React from "react"
 import { useNavigate } from "react-router-dom"
 import axios from "axios"
-import Swal from "sweetalert2"
+import { toast } from "sonner"
+
 
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
@@ -168,22 +169,23 @@ export default function CreateProjectAssignment() {
             },
         })
 
-        await Swal.fire({
-            title: "Berhasil",
-            text: "Project assignment berhasil dibuat.",
-            icon: "success",
-            timer: 1300,
-            showConfirmButton: false,
-        })
+        toast.success("Project assignment berhasil dibuat", {
+            description: "Project assignment baru sudah tersimpan.",
+            })
 
-        navigate("/admin/dashboard/project-assignments")
-        } catch (err: any) {
-        const msg =
-            err?.response?.data?.message || "Gagal membuat project assignment. Coba lagi."
-        await Swal.fire({ title: "Gagal", text: msg, icon: "error" })
-        } finally {
-        setSaving(false)
-        }
+
+
+        navigate("/admin-dashboard/project-assignments")
+       } catch (err: any) {
+            const msg =
+                err?.response?.data?.message || "Gagal membuat project assignment. Coba lagi."
+            toast.error("Gagal membuat project assignment", {
+                description: msg,
+            })
+            } finally {
+            setSaving(false)
+            }
+
     }
 
     return (
@@ -208,7 +210,7 @@ export default function CreateProjectAssignment() {
                         variant="ghost"
                         size="sm"
                         onClick={() =>
-                            navigate("/admin/dashboard/project-assignments")
+                            navigate("/admin-dashboard/project-assignments")
                         }
                         className="flex cursor-pointer items-center gap-2"
                         >
@@ -356,7 +358,7 @@ export default function CreateProjectAssignment() {
                                 disabled={saving}
                                 onClick={() =>
                                 navigate(
-                                    "/admin/dashboard/project-assignments",
+                                    "/admin-dashboard/project-assignments",
                                 )
                                 }
                             >

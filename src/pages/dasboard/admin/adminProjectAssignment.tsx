@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Link, useNavigate } from "react-router-dom"
-import Swal from "sweetalert2"
 import axios from "axios"
+import { toast } from "sonner"
 
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
@@ -24,6 +24,16 @@ import {
   IconEdit,
   IconEye,
 } from "@tabler/icons-react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 type AssignmentStatus = "PLANNED" | "IN_PROGRESS" | "ON_HOLD" | "COMPLETED" | string
 
@@ -60,6 +70,11 @@ export default function AdminProjectAssignment() {
     actions: true,
   })
 
+  // state untuk AlertDialog delete
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
+  const [deletingId, setDeletingId] = React.useState<number | null>(null)
+  const [deleting, setDeleting] = React.useState(false)
+
   const fetchAssignments = React.useCallback(async () => {
     setLoading(true)
     setError("")
@@ -95,7 +110,9 @@ export default function AdminProjectAssignment() {
 
       setAssignments(normalized)
     } catch (e: any) {
-      setError(e?.response?.data?.message || "Gagal memuat data project assignments")
+      const msg = e?.response?.data?.message || "Gagal memuat data project assignments"
+      setError(msg)
+      toast.error("Gagal memuat data assignments", { description: msg })
     } finally {
       setLoading(false)
     }
@@ -134,48 +151,49 @@ export default function AdminProjectAssignment() {
 
   const statusVariant = (status?: AssignmentStatus) => {
     const s = String(status ?? "").toUpperCase()
-    if (s === "IN_PROGRESS") return "default"
-    if (s === "COMPLETED") return "success"
-    if (s === "ON_HOLD") return "secondary"
-    if (s === "PLANNED") return "outline"
-    return "secondary"
+    if (s === "IN_PROGRESS") return "default" as const
+    if (s === "COMPLETED") return "secondary" as const
+    if (s === "ON_HOLD") return "outline" as const
+    if (s === "PLANNED") return "outline" as const
+    return "secondary" as const
   }
 
-  const handleDelete = async (id: number) => {
-    const assignment = assignments.find((x) => x.id === id)
+  // buka dialog konfirmasi
+  const requestDelete = (id: number) => {
+    setDeletingId(id)
+    setDeleteDialogOpen(true)
+  }
 
-    const confirm = await Swal.fire({
-      title: "Hapus assignment?",
-      text: `Yakin ingin menghapus assignment untuk ${
-        assignment?.assigneeName ?? "user"
-      } pada proyek ${assignment?.projectName ?? ""}? Tindakan ini tidak dapat dikembalikan.`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Ya, hapus",
-      cancelButtonText: "Batal",
-    })
+  // eksekusi delete setelah konfirmasi
+  const confirmDelete = async () => {
+    if (!deletingId) return
 
-    if (!confirm.isConfirmed) return
-
+    const assignment = assignments.find((x) => x.id === deletingId)
     const prev = assignments
-    setAssignments((p) => p.filter((x) => x.id !== id))
+
+    setDeleting(true)
+    setAssignments((p) => p.filter((x) => x.id !== deletingId))
 
     try {
       const token = localStorage.getItem("token")
-      await axios.delete(`${API_BASE}/project-assignments/${id}`, {
+      await axios.delete(`${API_BASE}/project-assignments/${deletingId}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       })
-      await Swal.fire({
-        title: "Terhapus",
-        text: "Assignment berhasil dihapus.",
-        icon: "success",
-        timer: 1200,
-        showConfirmButton: false,
+
+      toast.success("Assignment berhasil dihapus", {
+        description:
+          assignment
+            ? `${assignment.assigneeName ?? "User"} – ${assignment.projectName ?? "Project"}`
+            : undefined,
       })
     } catch (err: any) {
       setAssignments(prev)
       const msg = err?.response?.data?.message || "Gagal menghapus assignment."
-      await Swal.fire({ title: "Gagal", text: msg, icon: "error" })
+      toast.error("Gagal menghapus assignment", { description: msg })
+    } finally {
+      setDeleting(false)
+      setDeletingId(null)
+      setDeleteDialogOpen(false)
     }
   }
 
@@ -356,16 +374,10 @@ export default function AdminProjectAssignment() {
 
                               {cols.actions && (
                                 <td className="px-4 py-3">
-                                  <div className="flex items-center justify-center">
-                                    <Link
-                                      to={`/admin/dashboard/project-assignments/view/${a.id}`}
-                                      className="rounded px-2 py-1"
-                                    >
-                                      <IconEye className="h-4 w-4" />
-                                    </Link>
+                                  <div className="flex items-center justify-center gap-2">
                                     <button
-                                      onClick={() => handleDelete(a.id)}
-                                      className="cursor-pointer rounded px-2 py-1 text-red-600"
+                                      onClick={() => requestDelete(a.id)}
+                                      className="cursor-pointer rounded px-2 py-1 text-red-600 hover:text-red-700"
                                     >
                                       <IconTrash className="h-4 w-4" />
                                     </button>
@@ -470,7 +482,7 @@ export default function AdminProjectAssignment() {
                               <Button
                                 onClick={() =>
                                   navigate(
-                                    "/admin-dashboard/project-assignments/create",
+                                    "/admin/dashboard/project-assignments/create",
                                   )
                                 }
                               >
@@ -488,6 +500,30 @@ export default function AdminProjectAssignment() {
           </div>
         </SidebarInset>
       </SidebarProvider>
+
+      {/* AlertDialog konfirmasi hapus */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus assignment?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tindakan ini tidak dapat dibatalkan. Assignment yang dihapus tidak bisa dipulihkan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>
+              Batal
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              disabled={deleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {deleting ? "Menghapus..." : "Hapus"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

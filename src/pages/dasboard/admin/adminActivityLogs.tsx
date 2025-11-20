@@ -22,6 +22,17 @@ import {
   IconTrash,
   IconReload,
 } from "@tabler/icons-react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { toast } from "sonner"
 
 export type ActivityLog = {
   id: number
@@ -47,7 +58,7 @@ export default function AdminActivityLogsPage() {
   const [error, setError] = React.useState("")
   const [search, setSearch] = React.useState("")
 
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false)
   const [logToDelete, setLogToDelete] = React.useState<ActivityLog | null>(null)
   const [isDeleting, setIsDeleting] = React.useState(false)
 
@@ -118,7 +129,9 @@ export default function AdminActivityLogsPage() {
 
       setLogs(list)
     } catch (e: any) {
-      setError(e?.response?.data?.message || "Gagal memuat data.")
+      const msg = e?.response?.data?.message || "Gagal memuat data."
+      setError(msg)
+      toast.error("Gagal memuat activity logs", { description: msg })
     } finally {
       setLoading(false)
     }
@@ -128,30 +141,34 @@ export default function AdminActivityLogsPage() {
     fetchLogs()
   }, [fetchLogs])
 
-  const openDeleteModal = (log: ActivityLog) => {
+  const openDeleteDialog = (log: ActivityLog) => {
     setLogToDelete(log)
-    setIsDeleteModalOpen(true)
-  }
-
-  const closeDeleteModal = () => {
-    setLogToDelete(null)
-    setIsDeleteModalOpen(false)
+    setIsDeleteDialogOpen(true)
   }
 
   const handleDeleteLog = async () => {
     if (!logToDelete) return
 
     setIsDeleting(true)
+    const prev = logs
+    setLogs((p) => p.filter((l) => l.id !== logToDelete.id))
+
     try {
       await axios.delete(`${API_BASE}/activity-logs/${logToDelete.id}`, {
         headers: getAuthHeaders(),
       })
-      setLogs((prev) => prev.filter((l) => l.id !== logToDelete.id))
-      closeDeleteModal()
+
+      toast.success("Log berhasil dihapus", {
+        description: `ID: ${logToDelete.id} • ${logToDelete.action}`,
+      })
+
+      setIsDeleteDialogOpen(false)
+      setLogToDelete(null)
     } catch (e: any) {
-      setError(
-        e?.response?.data?.message || "Gagal menghapus log.",
-      )
+      setLogs(prev)
+      const msg = e?.response?.data?.message || "Gagal menghapus log."
+      setError(msg)
+      toast.error("Gagal menghapus log", { description: msg })
     } finally {
       setIsDeleting(false)
     }
@@ -188,38 +205,6 @@ export default function AdminActivityLogsPage() {
   }
 
   const visibleColCount = Object.values(cols).filter(Boolean).length
-
-  const DeleteConfirmationModal = ({ log }: { log: ActivityLog }) => (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-2xl max-w-lg w-full border border-gray-200 dark:border-gray-700">
-        <h2 className="text-xl font-bold mb-3 text-red-600">
-          Konfirmasi Hapus
-        </h2>
-        <p className="mb-4 text-gray-700 dark:text-gray-300">
-          Yakin ingin menghapus activity log ini?
-        </p>
-
-        <div className="p-3 rounded-lg border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950 mb-6">
-          <p className="text-sm font-medium">ID Log: {log.id}</p>
-          <p className="text-sm">Action: {log.action}</p>
-          <p className="text-sm">User: {log.user.fullName}</p>
-        </div>
-
-        <div className="flex justify-end gap-3">
-          <Button variant="outline" onClick={closeDeleteModal}>
-            Batal
-          </Button>
-          <Button
-            variant="destructive"
-            onClick={handleDeleteLog}
-            disabled={isDeleting}
-          >
-            {isDeleting ? "Menghapus..." : "Hapus"}
-          </Button>
-        </div>
-      </div>
-    </div>
-  )
 
   return (
     <div>
@@ -455,7 +440,7 @@ export default function AdminActivityLogsPage() {
 
                               {cols.action && (
                                 <td className="px-4 py-3 whitespace-nowrap">
-                                  <Badge variant={actionVariant(log.action)}>
+                                  <Badge variant={actionVariant(log.action) as any}>
                                     {log.action}
                                   </Badge>
                                 </td>
@@ -524,8 +509,8 @@ export default function AdminActivityLogsPage() {
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => openDeleteModal(log)}
-                                    className="text-red-500"
+                                    onClick={() => openDeleteDialog(log)}
+                                    className="text-red-500 hover:text-red-600"
                                   >
                                     <IconTrash className="h-4 w-4" />
                                   </Button>
@@ -542,9 +527,46 @@ export default function AdminActivityLogsPage() {
             </div>
           </div>
 
-          {isDeleteModalOpen && logToDelete && (
-            <DeleteConfirmationModal log={logToDelete} />
-          )}
+          {/* AlertDialog konfirmasi hapus */}
+          <AlertDialog
+            open={isDeleteDialogOpen}
+            onOpenChange={(open) => {
+              if (!open && !isDeleting) {
+                setIsDeleteDialogOpen(false)
+                setLogToDelete(null)
+              }
+            }}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Hapus activity log?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Log yang dihapus akan hilang secara permanen dan tidak dapat dikembalikan.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+
+              {logToDelete && (
+                <div className="mb-4 rounded-lg border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950 px-3 py-2 text-xs">
+                  <p><span className="font-semibold">ID:</span> {logToDelete.id}</p>
+                  <p><span className="font-semibold">Action:</span> {logToDelete.action}</p>
+                  <p><span className="font-semibold">User:</span> {logToDelete.user.fullName}</p>
+                </div>
+              )}
+
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={isDeleting}>
+                  Batal
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDeleteLog}
+                  disabled={isDeleting}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  {isDeleting ? "Menghapus..." : "Hapus"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </SidebarInset>
       </SidebarProvider>
     </div>

@@ -1,7 +1,7 @@
 
 import * as React from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import Swal from "sweetalert2";
+import { toast } from "sonner";
 import axios from "axios";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
@@ -16,7 +16,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { IconArrowLeft, IconEdit, IconTrash } from "@tabler/icons-react";
-
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 type Owner = {
   id: number;
   name: string;
@@ -38,36 +48,40 @@ export default function ViewProjectOwnerPage() {
     const [error, setError] = React.useState<string | null>(null);
     const [deleting, setDeleting] = React.useState(false);
 
-    React.useEffect(() => {
-        if (!id) return;
-        const fetch = async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const token = localStorage.getItem("token");
-            const res = await axios.get(`${API_BASE}/project-owners/${id}`, {
-            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-            });
-            const d: any = res.data?.data ?? res.data;
-            setOwner({
-            id: Number(d.id),
-            name: d.name ?? "",
-            company: d.company ?? null,
-            email: d.email ?? null,
-            phone: d.phone ?? null,
-            address: d.address ?? null,
-            createdAt: d.createdAt ?? d.created_at ?? null,
-            });
-        } catch (err: any) {
-            const msg = err?.response?.data?.message || "Gagal memuat data project owner.";
-            setError(msg);
-        } finally {
-            setLoading(false);
-        }
-        };
+        React.useEffect(() => {
+            if (!id) return
 
-        fetch();
-    }, [id]);
+            const fetchOwner = async () => {
+            setLoading(true)
+            setError(null)
+            try {
+                const token = localStorage.getItem("token")
+                const res = await axios.get(`${API_BASE}/project-owners/${id}`, {
+                headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+                })
+                const d: any = res.data?.data ?? res.data
+                setOwner({
+                id: Number(d.id),
+                name: d.name ?? "",
+                company: d.company ?? null,
+                email: d.email ?? null,
+                phone: d.phone ?? null,
+                address: d.address ?? null,
+                createdAt: d.createdAt ?? d.created_at ?? null,
+                })
+            } catch (err: any) {
+                const msg =
+                err?.response?.data?.message ||
+                "Gagal memuat data project owner."
+                setError(msg)
+                toast.error("Gagal memuat data owner", { description: msg })
+            } finally {
+                setLoading(false)
+            }
+            }
+
+            fetchOwner()
+        }, [id])
 
     const formatDate = (iso?: string) => {
         if (!iso) return "-";
@@ -78,40 +92,27 @@ export default function ViewProjectOwnerPage() {
         }
     };
 
-    const handleDelete = async () => {
-        if (!owner) return;
-        const confirm = await Swal.fire({
-        title: "Hapus project owner?",
-        text: `Yakin ingin menghapus "${owner.name}"? Tindakan ini tidak dapat dikembalikan.`,
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Ya, hapus",
-        cancelButtonText: "Batal",
-        reverseButtons: true,
-        });
-        if (!confirm.isConfirmed) return;
+        const handleConfirmDelete = async () => {
+            if (!owner) return
+            setDeleting(true)
+            try {
+            const token = localStorage.getItem("token")
+            await axios.delete(`${API_BASE}/project-owners/${owner.id}`, {
+                headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+            })
 
-        setDeleting(true);
-        try {
-        const token = localStorage.getItem("token");
-        await axios.delete(`${API_BASE}/project-owners/${owner.id}`, {
-            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        });
+            toast.success("Owner berhasil dihapus", {
+                description: `Project owner "${owner.name}" telah dihapus.`,
+            })
 
-        await Swal.fire({
-            title: "Terhapus",
-            text: "Owner berhasil dihapus.",
-            icon: "success",
-            timer: 1200,
-            showConfirmButton: false,
-        });
-        navigate("/admin/dashboard/project-owners");
-        } catch (err: any) {
-        const msg = err?.response?.data?.message || "Gagal menghapus owner.";
-        await Swal.fire({ title: "Gagal", text: msg, icon: "error" });
-        setDeleting(false);
-        }
-    };
+            navigate("/admin/dashboard/project-owners")
+            } catch (err: any) {
+            const msg =
+                err?.response?.data?.message || "Gagal menghapus owner."
+            toast.error("Gagal menghapus owner", { description: msg })
+            setDeleting(false)
+            }
+    }
 
     return (
         <div>
@@ -150,10 +151,43 @@ export default function ViewProjectOwnerPage() {
                             </Button>
                             </Link>
                         )}
-                        <Button size="sm" variant="destructive" onClick={handleDelete} className="flex items-center gap-2 cursor-pointer" disabled={deleting}>
-                            <IconTrash className="h-4 w-4" />
-                            {deleting ? "Menghapus..." : "Delete"}
-                        </Button>
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                            <Button
+                                size="sm"
+                                variant="destructive"
+                                className="flex items-center gap-2 cursor-pointer bg-red-600"
+                                disabled={deleting || !owner}
+                            >
+                                <IconTrash className="h-4 w-4" />
+                                {deleting ? "Menghapus..." : "Delete"}
+                            </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                Hapus project owner?
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                {owner
+                                    ? `Yakin ingin menghapus "${owner.name}"? Tindakan ini tidak dapat dibatalkan.`
+                                    : "Yakin ingin menghapus owner ini? Tindakan ini tidak dapat dibatalkan."}
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel disabled={deleting}>
+                                Batal
+                                </AlertDialogCancel>
+                                <AlertDialogAction
+                                onClick={handleConfirmDelete}
+                                disabled={deleting}
+                                className="bg-red-600 hover:bg-red-700"
+                                >
+                                {deleting ? "Menghapus..." : "Hapus"}
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
                         </div>
                     </div>
 

@@ -2,7 +2,7 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import Swal from "sweetalert2";
+import { toast } from "sonner";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -72,50 +72,54 @@ export default function CreateProjectOwnerPage() {
         if (errors[field]) validateField(field, value); // perbaiki error saat user mengetik
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+        const handleSubmit = async (e: React.FormEvent) => {
+            e.preventDefault()
 
-        // 1) Validasi Zod — tampilkan inline, tanpa Swal
-        const nextErrors = validateAll(form);
-        setErrors(nextErrors);
-        const hasError = Object.values(nextErrors).some(Boolean);
-        if (hasError) return;
 
-        // 2) Submit API
-        setSaving(true);
-        try {
-        const token = localStorage.getItem("token");
-        const payload = {
-            name: form.name.trim(),
-            company: form.company.trim(),
-            email: form.email.trim(),
-            phone: form.phone.trim(),
-            address: form.address.trim(),
-        };
+            const nextErrors = validateAll(form)
+            setErrors(nextErrors)
+            const hasError = Object.values(nextErrors).some(Boolean)
+            if (hasError) {
+            toast.warning("Form belum valid", {
+                description: "Periksa kembali data project owner yang belum sesuai.",
+            })
+            return
+            }
 
-        await axios.post(`${API_BASE}/project-owners`, payload, {
-            headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
-        });
+            setSaving(true)
+            try {
+            const token = localStorage.getItem("token")
+            const payload = {
+                name: form.name.trim(),
+                company: form.company.trim(),
+                email: form.email.trim(),
+                phone: form.phone.trim(),
+                address: form.address.trim(),
+            }
 
-        await Swal.fire({
-            title: "Berhasil",
-            text: "Project owner berhasil dibuat.",
-            icon: "success",
-            timer: 1300,
-            showConfirmButton: false,
-        });
-        navigate("/admin/dashboard/project-owners");
-        } catch (err: any) {
-        const msg =
-            err?.response?.data?.message || "Gagal membuat owner. Coba lagi.";
-        await Swal.fire({ title: "Gagal", text: msg, icon: "error" });
-        } finally {
-        setSaving(false);
+            await axios.post(`${API_BASE}/project-owners`, payload, {
+                headers: {
+                "Content-Type": "application/json",
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
+            })
+
+            toast.success("Project owner berhasil dibuat", {
+                description: `Owner "${payload.name}" berhasil ditambahkan.`,
+            })
+
+            navigate("/admin/dashboard/project-owners")
+            } catch (err: any) {
+            const msg =
+                err?.response?.data?.message || "Gagal membuat owner. Coba lagi."
+
+            toast.error("Gagal membuat project owner", {
+                description: msg,
+            })
+            } finally {
+            setSaving(false)
+            }
         }
-    };
 
     return (
         <div>

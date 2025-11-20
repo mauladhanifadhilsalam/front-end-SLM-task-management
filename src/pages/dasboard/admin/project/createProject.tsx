@@ -3,7 +3,8 @@
 import * as React from "react"
 import { useNavigate } from "react-router-dom"
 import axios from "axios"
-import Swal from "sweetalert2"
+import { toast } from "sonner"
+
 import { format } from "date-fns"
 import {
   CalendarIcon,
@@ -195,107 +196,97 @@ export default function CreateProjectPage() {
     e.preventDefault()
     setLoading(true)
 
-    if (!formData.name || !formData.ownerId) {
-      await Swal.fire({
-        title: "Gagal",
-        text: "Nama project dan pemilik wajib diisi.",
-        icon: "error",
-      })
-      setLoading(false)
-      return
-    }
+      if (!formData.name || !formData.ownerId) {
+        toast.warning("Form belum lengkap", {
+          description: "Nama project dan pemilik wajib diisi.",
+        })
+        setLoading(false)
+        return
+      }
 
     if (!formData.startDate || !formData.endDate) {
-      await Swal.fire({
-        title: "Gagal",
-        text: "Tanggal Mulai dan Tanggal Selesai wajib diisi.",
-        icon: "error",
+            toast.warning("Form belum lengkap", {
+        description: "Tanggal Mulai dan Tanggal Selesai wajib diisi.",
       })
       setLoading(false)
       return
     }
 
     if (formData.categories.length === 0 || formData.categories[0].trim() === "") {
-      await Swal.fire({
-        title: "Gagal",
-        text: "Project wajib memiliki minimal satu Kategori.",
-        icon: "error",
-      })
+        toast.warning("Kategori belum diisi", {
+          description: "Project wajib memiliki minimal satu kategori.",
+        })
+
       setLoading(false)
       return
     }
 
     if (isInvalidDateRange) {
-      await Swal.fire({
-        title: "Gagal",
-        text: "Tanggal selesai proyek tidak boleh sama atau sebelum tanggal mulai.",
-        icon: "error",
+            toast.warning("Rentang tanggal project tidak valid", {
+        description: "Tanggal selesai tidak boleh sama atau sebelum tanggal mulai project.",
       })
+
       setLoading(false)
       return
     }
 
     if (isAnyPhaseStartTooEarly) {
-      await Swal.fire({
-        title: "Gagal",
-        text: "Tanggal mulai fase tidak boleh sebelum tanggal mulai project utama.",
-        icon: "error",
-      })
+        toast.warning("Tanggal fase tidak valid", {
+      description: "Tanggal mulai fase tidak boleh sebelum tanggal mulai project utama.",
+    })
+
       setLoading(false)
       return
     }
 
     if (isAnyPhaseStartTooLate) {
-      await Swal.fire({
-        title: "Gagal",
-        text: "Tanggal mulai fase tidak boleh setelah tanggal selesai project utama.",
-        icon: "error",
-      })
+          toast.warning("Tanggal fase tidak valid", {
+      description: "Tanggal mulai fase tidak boleh setelah tanggal selesai project utama.",
+    })
+
       setLoading(false)
       return
     }
 
     if (isAnyPhaseEndTooLate) {
-      await Swal.fire({
-        title: "Gagal",
-        text: "Tanggal selesai fase tidak boleh setelah tanggal selesai project utama.",
-        icon: "error",
-      })
+     toast.warning("Tanggal fase tidak valid", {
+         description: "Tanggal selesai fase tidak boleh setelah tanggal selesai project utama.",
+})
+
       setLoading(false)
       return
     }
 
     if (invalidPhaseIndex !== -1) {
-      await Swal.fire({
-        title: "Gagal",
-        text: `Tanggal selesai fase ${invalidPhaseIndex + 1} tidak valid (tidak boleh sama atau sebelum tanggal mulai fase).`,
-        icon: "error",
+      toast.warning("Tanggal fase tidak valid", {
+        description: `Tanggal selesai fase ${
+          invalidPhaseIndex + 1
+        } tidak boleh sama atau sebelum tanggal mulai fase.`,
       })
+
       setLoading(false)
       return
     }
 
     if (hasIncompleteAssignment) {
-      await Swal.fire({
-        title: "Gagal",
-        text: "Semua assignment harus memiliki User dan Role yang valid.",
-        icon: "error",
-      })
+     toast.warning("Assignment tim belum lengkap", {
+      description: "Semua assignment harus memiliki User dan Role yang valid.",
+    })
+
       setLoading(false)
       return
     }
 
     const token = localStorage.getItem("token")
     if (!token) {
-      await Swal.fire({
-        title: "Otorisasi Gagal",
-        text: "Token tidak ditemukan. Silakan login kembali.",
-        icon: "warning",
+      toast.error("Otorisasi gagal", {
+        description: "Token tidak ditemukan. Silakan login kembali.",
       })
       setLoading(false)
       navigate("/login")
       return
     }
+
 
     try {
       const raw =
@@ -351,17 +342,12 @@ export default function CreateProjectPage() {
         },
       })
 
-      console.log("✅ Response:", response.data)
+            toast.success("Project berhasil dibuat", {
+          description: `Project "${formData.name}" berhasil dibuat.`,
+        })
 
-      await Swal.fire({
-        title: "Berhasil!",
-        text: `Project "${formData.name}" berhasil dibuat.`,
-        icon: "success",
-        timer: 1500,
-        showConfirmButton: false,
-      })
+        navigate("/admin/dashboard/projects")
 
-      navigate("/admin/dashboard/projects")
     } catch (err: any) {
       console.error("❌ FULL ERROR:", err)
 
@@ -390,11 +376,10 @@ export default function CreateProjectPage() {
         }
       }
 
-      await Swal.fire({
-        title: "Gagal",
-        text: errorText,
-        icon: "error",
-      })
+      toast.error("Gagal membuat project", {
+          description: errorText,
+        })
+
     } finally {
       setLoading(false)
     }

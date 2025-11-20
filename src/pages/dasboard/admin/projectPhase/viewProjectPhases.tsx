@@ -1,7 +1,19 @@
 import * as React from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import axios from "axios";
-import Swal from "sweetalert2";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -60,11 +72,16 @@ export default function ViewProjectPhases() {
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         });
         setPhase(res.data?.data ?? res.data);
-      } catch (err: any) {
-        setError(err?.response?.data?.message || "Failed to load phase details");
+       } catch (err: any) {
+        const msg = err?.response?.data?.message || "Failed to load phase details";
+        setError(msg);
+        toast.error("Failed to load phase details", {
+          description: msg,
+        });
       } finally {
         setLoading(false);
       }
+
     };
 
     fetchPhase();
@@ -83,39 +100,30 @@ export default function ViewProjectPhases() {
     }
   };
 
-  const handleDelete = async () => {
-    if (!phase) return;
-    const confirm = await Swal.fire({
-      title: "Delete project phase?",
-      text: `Are you sure you want to delete "${phase.name}"? This action cannot be undone.`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes, delete",
-      cancelButtonText: "Cancel",
-      reverseButtons: true,
-    });
-    if (!confirm.isConfirmed) return;
+      const handleConfirmDelete = async () => {
+      if (!phase) return;
 
-    setDeleting(true);
-    try {
-      const token = localStorage.getItem("token");
-      await axios.delete(`${API_BASE}/project-phases/${phase.id}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      });
-      await Swal.fire({
-        title: "Deleted",
-        text: "Phase has been deleted successfully.",
-        icon: "success",
-        timer: 1500,
-        showConfirmButton: false,
-      });
-      navigate("/admin/dashboard/project-phases");
-    } catch (err: any) {
-      const msg = err?.response?.data?.message || "Failed to delete phase";
-      await Swal.fire({ title: "Error", text: msg, icon: "error" });
-      setDeleting(false);
-    }
-  };
+      setDeleting(true);
+      try {
+        const token = localStorage.getItem("token");
+        await axios.delete(`${API_BASE}/project-phases/${phase.id}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        });
+
+        toast.success("Phase deleted", {
+          description: `Phase "${phase.name}" has been deleted successfully.`,
+        });
+
+        navigate("/admin/dashboard/project-phases");
+      } catch (err: any) {
+        const msg = err?.response?.data?.message || "Failed to delete phase";
+        toast.error("Failed to delete phase", {
+          description: msg,
+        });
+        setDeleting(false);
+      }
+    };
+
 
   return (
     <div>
@@ -153,18 +161,45 @@ export default function ViewProjectPhases() {
                             Edit
                           </Button>
                         </Link>
-                        <Button 
-                          size="sm" 
-                          variant="destructive" 
-                          onClick={handleDelete}
-                          disabled={deleting}
-                          className="flex items-center gap-2"
-                        >
-                          <IconTrash className="h-4 w-4" />
-                          {deleting ? "Deleting..." : "Delete"}
-                        </Button>
+
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              disabled={deleting}
+                              className="flex items-center gap-2"
+                            >
+                              <IconTrash className="h-4 w-4" />
+                              {deleting ? "Deleting..." : "Delete"}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete project phase?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                {phase
+                                  ? `Are you sure you want to delete "${phase.name}"? This action cannot be undone.`
+                                  : "Are you sure you want to delete this phase? This action cannot be undone."}
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel disabled={deleting}>
+                                Cancel
+                              </AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={handleConfirmDelete}
+                                disabled={deleting}
+                                className="bg-red-600 hover:bg-red-700"
+                              >
+                                {deleting ? "Deleting..." : "Yes, delete"}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     )}
+
                   </div>
 
                   <h1 className="text-2xl font-semibold">Project Phase Details</h1>

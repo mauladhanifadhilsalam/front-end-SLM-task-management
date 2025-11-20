@@ -1,7 +1,8 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import Swal from "sweetalert2";
+import { toast } from "sonner";
+
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
@@ -92,16 +93,22 @@ export default function CreateProjectPhases() {
 
     // Validasi pakai schema
     const parsed = createProjectPhaseSchema.safeParse(form);
-    if (!parsed.success) {
-      const fe: Partial<Record<CreateProjectPhaseField, string>> = {};
-      for (const issue of parsed.error.issues) {
-        const k = issue.path[0] as CreateProjectPhaseField;
-        if (!fe[k]) fe[k] = issue.message;
+      if (!parsed.success) {
+        const fe: Partial<Record<CreateProjectPhaseField, string>> = {};
+        for (const issue of parsed.error.issues) {
+          const k = issue.path[0] as CreateProjectPhaseField;
+          if (!fe[k]) fe[k] = issue.message;
+        }
+        setFieldErrors(fe);
+
+        toast.warning("Form belum valid", {
+          description: "Periksa kembali nama fase, tanggal, dan project yang dipilih.",
+        });
+
+        setSaving(false);
+        return;
       }
-      setFieldErrors(fe);
-      setSaving(false);
-      return;
-    }
+
 
     try {
       const token = localStorage.getItem("token");
@@ -115,21 +122,22 @@ export default function CreateProjectPhases() {
         },
       });
 
-      await Swal.fire({
-        title: "Success",
-        text: "Project phase created successfully",
-        icon: "success",
-        timer: 1500,
-        showConfirmButton: false,
+      toast.success("Project phase created", {
+        description: "Project phase created successfully.",
       });
+
       navigate("/admin/dashboard/project-phases");
-    } catch (err: any) {
+
+        } catch (err: any) {
       const msg = err?.response?.data?.message || "Failed to create project phase";
       setError(msg);
-      await Swal.fire({ title: "Error", text: msg, icon: "error" });
+      toast.error("Failed to create project phase", {
+        description: msg,
+      });
     } finally {
       setSaving(false);
     }
+
   };
 
   return (

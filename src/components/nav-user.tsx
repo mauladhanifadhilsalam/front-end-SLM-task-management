@@ -1,5 +1,8 @@
+//nav-user
 import React, { useEffect, useState } from "react"
 import axios from "axios"
+import { useNavigate } from "react-router-dom"
+import { toast } from "sonner"
 import {
   IconCreditCard,
   IconDotsVertical,
@@ -29,10 +32,24 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 const API_BASE = import.meta.env.VITE_API_BASE
+
 export function NavUser() {
   const { isMobile } = useSidebar()
+  const navigate = useNavigate()
+
   const [user, setUser] = useState<{ fullName: string; email: string }>({
     fullName: "",
     email: "",
@@ -41,7 +58,7 @@ export function NavUser() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const token = localStorage.getItem("token") 
+        const token = localStorage.getItem("token")
         const res = await axios.get(`${API_BASE}/auth/profile`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -59,10 +76,18 @@ export function NavUser() {
     fetchProfile()
   }, [])
 
-
   const handleLogout = () => {
+    // bersihin data auth
     localStorage.removeItem("token")
-    window.location.href = "/"
+    localStorage.removeItem("role")
+    localStorage.removeItem("email")
+
+    toast.success("Berhasil logout", {
+      description: "Anda telah keluar dari sesi.",
+    })
+
+    // redirect ke halaman login/home
+    navigate("/")
   }
 
   return (
@@ -112,7 +137,9 @@ export function NavUser() {
                 </div>
               </div>
             </DropdownMenuLabel>
+
             <DropdownMenuSeparator />
+
             <DropdownMenuGroup>
               <DropdownMenuItem>
                 <IconUserCircle />
@@ -127,14 +154,41 @@ export function NavUser() {
                 Notifications
               </DropdownMenuItem>
             </DropdownMenuGroup>
+
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onSelect={handleLogout}
-              className="cursor-pointer"
-            >
-              <IconLogout />
-              Log out
-            </DropdownMenuItem>
+
+            {/* 🔻 Logout dengan AlertDialog */}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <DropdownMenuItem
+                  className="cursor-pointer text-red-600 focus:text-red-600"
+                  // biar gak trigger default select behavior tambahan
+                  onSelect={(e) => e.preventDefault()}
+                >
+                  <IconLogout className="mr-2 h-4 w-4" />
+                  Log out
+                </DropdownMenuItem>
+              </AlertDialogTrigger>
+
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Logout dari akun?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Anda akan keluar dari sesi saat ini. 
+                    Anda bisa login kembali kapan saja menggunakan akun yang sama.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Batal</AlertDialogCancel>
+                  <AlertDialogAction
+                    className="bg-red-600 hover:bg-red-700"
+                    onClick={handleLogout}
+                  >
+                    Logout
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

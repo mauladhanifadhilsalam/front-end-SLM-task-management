@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import Swal from "sweetalert2";
+import { toast } from "sonner";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
@@ -112,55 +112,57 @@ export default function EditProjectOwnerPage() {
     };
   }, [id]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setError(null)
 
-    // 🔎 Validasi Zod (semua field wajib)
-    const nextErrors = validateAll(form);
-    setErrors(nextErrors);
-    const hasError = Object.values(nextErrors).some(Boolean);
-    if (hasError) return;
+        const nextErrors = validateAll(form)
+        setErrors(nextErrors)
+        const hasError = Object.values(nextErrors).some(Boolean)
+        if (hasError) {
+          toast.warning("Form belum valid", {
+            description: "Periksa kembali data yang masih salah.",
+          })
+          return
+        }
 
-    if (!id) {
-      setError("ID owner tidak tersedia.");
-      return;
-    }
+        if (!id) {
+          setError("ID owner tidak ditemukan.")
+          toast.error("ID tidak valid")
+          return
+        }
 
-    setSaving(true);
-    try {
-      const token = localStorage.getItem("token");
-      const payload = {
-        name: form.name.trim(),
-        company: form.company.trim(),
-        email: form.email.trim(),
-        phone: form.phone.trim(),
-        address: form.address.trim(),
-      };
+        setSaving(true)
+        try {
+          const token = localStorage.getItem("token")
+          const payload = {
+            name: form.name.trim(),
+            company: form.company.trim(),
+            email: form.email.trim(),
+            phone: form.phone.trim(),
+            address: form.address.trim(),
+          }
 
-      await axios.patch(`${API_BASE}/project-owners/${id}`, payload, {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      });
+          await axios.patch(`${API_BASE}/project-owners/${id}`, payload, {
+            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+          })
 
-      await Swal.fire({
-        title: "Berhasil",
-        text: "Perubahan owner berhasil disimpan.",
-        icon: "success",
-        timer: 1200,
-        showConfirmButton: false,
-      });
-      navigate("/admin/dashboard/project-owners");
-    } catch (err: any) {
-      const resp = err?.response?.data;
-      const msg =
-        resp?.message ||
-        (typeof resp === "object" ? JSON.stringify(resp) : "Gagal menyimpan perubahan.");
-      setError(msg);
-      await Swal.fire({ title: "Gagal", text: msg, icon: "error" });
-    } finally {
-      setSaving(false);
-    }
-  };
+          toast.success("Perubahan berhasil disimpan", {
+            description: `Owner "${payload.name}" telah diperbarui.`,
+          })
+
+          navigate("/admin/dashboard/project-owners")
+        } catch (err: any) {
+          const msg =
+            err?.response?.data?.message ||
+            "Gagal menyimpan perubahan. Coba lagi."
+
+          setError(msg)
+          toast.error("Gagal menyimpan perubahan", { description: msg })
+        } finally {
+          setSaving(false)
+        }
+      }
 
   return (
     <div>

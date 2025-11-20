@@ -5,7 +5,7 @@
 import * as React from "react"
 import { useNavigate, useParams, Link } from "react-router-dom"
 import axios from "axios"
-import Swal from "sweetalert2"
+import { toast } from "sonner"
 import {
   IconArrowLeft,
   IconBell,
@@ -49,6 +49,18 @@ type Recipient = {
   email: string
   role: Role
 }
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+
 
 type Notification = {
   id: number
@@ -73,6 +85,7 @@ export default function ViewNotification() {
   const [loading, setLoading] = React.useState<boolean>(true)
   const [error, setError] = React.useState<string | null>(null)
   const [deleting, setDeleting] = React.useState(false)
+  const [confirmOpen, setConfirmOpen] = React.useState(false)
 
   const id = React.useMemo(() => {
     const n = Number(params.id)
@@ -123,7 +136,10 @@ export default function ViewNotification() {
 
         setNotification(res.data ?? res.data)
       } catch (e: any) {
-        setError(e?.response?.data?.message || "Failed to load notification")
+          const msg =
+            e?.response?.data?.message || "Failed to load notification"
+          setError(msg)
+          toast.error(msg)
       } finally {
         setLoading(false)
       }
@@ -132,44 +148,29 @@ export default function ViewNotification() {
     fetchNotification()
   }, [id])
 
-  const handleDelete = async () => {
-    if (!notification) return
+const handleDelete = async () => {
+  if (!notification) return
 
-    const confirm = await Swal.fire({
-      title: "Delete notification?",
-      text: `Are you sure you want to delete notification #${notification.id}? This action cannot be undone.`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes, delete",
-      cancelButtonText: "Cancel",
-      reverseButtons: true,
+  setDeleting(true)
+
+  try {
+    const token = localStorage.getItem("token")
+
+    await axios.delete(`${API_BASE}/notifications/${notification.id}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     })
 
-    if (!confirm.isConfirmed) return
+    toast.success("Notification deleted successfully")
 
-    setDeleting(true)
-    try {
-      const token = localStorage.getItem("token")
-      await axios.delete(`${API_BASE}/notifications/${notification.id}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      })
-
-      await Swal.fire({
-        title: "Deleted",
-        text: "Notification has been deleted successfully.",
-        icon: "success",
-        timer: 1500,
-        showConfirmButton: false,
-      })
-
-      navigate("/admin/dashboard/notifications")
-    } catch (err: any) {
-      const msg =
-        err?.response?.data?.message || "Failed to delete notification"
-      await Swal.fire({ title: "Error", text: msg, icon: "error" })
-      setDeleting(false)
-    }
+    setConfirmOpen(false)
+    navigate("/admin-dashboard/notifications")
+  } catch (err: any) {
+    const msg = err?.response?.data?.message || "Failed to delete notification"
+    toast.error(msg)
+    setDeleting(false)
   }
+}
+
 
   return (
     <SidebarProvider
@@ -202,17 +203,45 @@ export default function ViewNotification() {
 
                   {notification && (
                     <div className="ml-auto flex items-center gap-2">
-
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        className="flex items-center gap-2"
-                        onClick={handleDelete}
-                        disabled={deleting}
+                      <AlertDialog
+                        open={confirmOpen}
+                        onOpenChange={setConfirmOpen}
                       >
-                        <IconTrash className="h-4 w-4" />
-                        {deleting ? "Deleting..." : "Delete"}
-                      </Button>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            className="flex items-center gap-2"
+                            disabled={deleting}
+                          >
+                            <IconTrash className="h-4 w-4" />
+                            {deleting ? "Deleting..." : "Delete"}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              Delete notification?
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete notification #
+                              {notification.id}? This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel disabled={deleting}>
+                              Cancel
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={handleDelete}
+                              disabled={deleting}
+                              className="bg-red-600 focus:ring-red-600 hover:bg-red-700"
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   )}
                 </div>
