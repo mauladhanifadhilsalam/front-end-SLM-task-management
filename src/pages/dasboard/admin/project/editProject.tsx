@@ -466,14 +466,63 @@ export default function EditProject() {
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <Label>Kategori</Label>
-                      <Input
-                        value={formData.categories[0] || ""}
-                        onChange={(e) => handleCategoryChange(e.target.value)}
-                        placeholder="Contoh: Web / Mobile / Commerce"
-                        disabled={saving}
-                      />
+                  <div className="space-y-2">
+                    <Label htmlFor="category">Kategori</Label>
+                        <div className="flex flex-wrap gap-2 p-3 border rounded-md min-h-[42px] bg-#00bcd4">
+                            {formData.categories.map((category, index) => (
+                                <div
+                                    key={index}
+                                    className="flex items-center gap-1 px-3 py-1 bg-primary text-primary-foreground rounded-md text-sm"
+                                >
+                                <span>{category}</span>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                    setFormData({
+                                    ...formData,
+                                    categories: formData.categories.filter((_, i) => i !== index),
+                                        })
+                                    }}
+                                    disabled={loading}
+                                    className="ml-1 hover:bg-primary/80 rounded-sm"
+                                    >
+                                      <svg
+                                        width="14"
+                                        height="14"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      >
+                                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                             </svg>
+                                           </button>
+                                         </div>
+                                       ))}
+                                       <Input
+                                         id="category"
+                                         type="text"
+                                         className="flex-1 border-0 shadow-none focus-visible:ring-0 min-w-[200px] p-0"
+                                         placeholder={formData.categories.length === 0 ? "Ketik kategori dan tekan Enter..." : "Tambah kategori..."}
+                                         disabled={loading}
+                                         onKeyDown={(e) => {
+                                           if (e.key === "Enter") {
+                                             e.preventDefault()
+                                             const value = e.currentTarget.value.trim()
+                                             if (value && !formData.categories.includes(value)) {
+                                               setFormData({
+                                                 ...formData,
+                                                 categories: [...formData.categories, value],
+                                               })
+                                               e.currentTarget.value = ""
+                                             }
+                                           }
+                                        }}
+                                />
+                          </div>
                     </div>
 
                     <div className="space-y-2">
