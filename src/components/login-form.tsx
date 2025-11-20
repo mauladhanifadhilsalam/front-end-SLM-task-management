@@ -118,7 +118,6 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"form">)
   }
 
   const handleVerifiedChange = (value: string | null) => {
-    console.log("Captcha value:", value);
     setVerified(true);
   };
 
