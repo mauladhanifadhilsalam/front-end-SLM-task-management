@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import Swal from "sweetalert2";
+import { toast } from "sonner";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
@@ -147,19 +147,17 @@ export default function CreateComments() {
             },
         });
 
-        await Swal.fire({
-            title: "Success",
-            text: "Comment created successfully",
-            icon: "success",
-            timer: 1400,
-            showConfirmButton: false,
-        });
+        toast.success("Comment created successfully", {
+            description: "Your comment has been saved.",
+            });
 
         navigate("/admin/dashboard/comments");
         } catch (err: any) {
         const msg = err?.response?.data?.message || "Failed to create comment";
         setError(msg);
-        await Swal.fire({ title: "Error", text: msg, icon: "error" });
+        toast.error("Failed to create comment", {
+                description: msg,
+            });
         } finally {
         setSaving(false);
         }

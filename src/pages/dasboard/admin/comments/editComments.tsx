@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import Swal from "sweetalert2";
+import { toast } from "sonner";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
@@ -57,7 +57,9 @@ export default function EditComments() {
       } catch (err: any) {
         const msg = err?.response?.data?.message || "Failed to load comment";
         setError(msg);
-        await Swal.fire({ title: "Error", text: msg, icon: "error" });
+        toast.error("Failed to load comment", {
+            description: msg,
+          });
       } finally {
         setLoading(false);
       }
@@ -102,18 +104,16 @@ export default function EditComments() {
       await axios.patch(`${API_BASE}/comments/${id}`, parsed.data, {
         headers: { "Content-Type": "application/json", ...(tokenHeader ?? {}) },
       });
-      await Swal.fire({
-        title: "Success",
-        text: "Comment updated successfully",
-        icon: "success",
-        timer: 1400,
-        showConfirmButton: false,
+      toast.success("Comment updated successfully", {
+        description: "Your changes have been saved.",
       });
       navigate("/admin/dashboard/comments");
     } catch (err: any) {
       const msg = err?.response?.data?.message || "Failed to update comment";
       setError(msg);
-      await Swal.fire({ title: "Error", text: msg, icon: "error" });
+       toast.error("Failed to update comment", {
+        description: msg,
+      });
     } finally {
       setSaving(false);
     }

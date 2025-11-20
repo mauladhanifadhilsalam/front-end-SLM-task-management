@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import Swal from "sweetalert2";
+import { toast } from "sonner";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
@@ -103,10 +103,11 @@ export default function EditTicketAssignee() {
 
         const token = localStorage.getItem("token");
         if (!token) {
-          setError("Sesi otentikasi tidak ditemukan. Harap login.");
-          setLoading(false);
+          setError("Token tidak ditemukan. Silakan login ulang.");
+          setSaving(false);
           return;
         }
+
 
         const [ticketRes, usersRes] = await Promise.all([
           axios.get(`${API_BASE}/tickets/${id}`, {
@@ -128,17 +129,20 @@ export default function EditTicketAssignee() {
           assigneeIds: ticketData.assignees.map((a: any) => a.user.id),
         });
       } catch (err: any) {
-        console.error(err);
-        if (err.response?.status === 404) {
-          setError("Tiket tidak ditemukan.");
-        } else if (err.response?.status === 401) {
-          setError("Akses ditolak. Silakan login kembali.");
-        } else {
-          setError("Gagal memuat data tiket.");
+          let msg = "Gagal memuat data tiket.";
+          if (err.response?.status === 404) {
+            msg = "Tiket tidak ditemukan.";
+          } else if (err.response?.status === 401) {
+            msg = "Akses ditolak. Silakan login kembali.";
+          }
+          setError(msg);
+          toast.error("Gagal memuat data", {
+            description: msg,
+          });
+        } finally {
+          setLoading(false);
         }
-      } finally {
-        setLoading(false);
-      }
+
     };
 
     fetchData();
@@ -225,27 +229,17 @@ export default function EditTicketAssignee() {
         );
       }
 
-      await Swal.fire({
-        title: "Berhasil",
-        text: `Tiket "${ticket.title}" berhasil diperbarui.`,
-        icon: "success",
-        showConfirmButton: false,   // hilangkan tombol OK
-        timer: 1500,                // auto close setelah 1.5 detik
-        timerProgressBar: true,     // opsional: tampilkan progress bar
+      toast.success("Tiket berhasil diperbarui", {
+        description: `Tiket "${ticket.title}" berhasil diperbarui.`,
       });
 
 
       navigate("/admin/dashboard/ticket-assignees");
     } catch (err: any) {
-      console.error(err);
       const message = err?.response?.data?.message || "Gagal menyimpan perubahan.";
       setError(message);
-      await Swal.fire({
-        title: "Gagal",
-        text: message,
-        icon: "error",
-        confirmButtonText: "OK",
-        confirmButtonColor: "#ef4444",
+        toast.error("Gagal menyimpan perubahan", {
+        description: message,
       });
     } finally {
       setSaving(false);

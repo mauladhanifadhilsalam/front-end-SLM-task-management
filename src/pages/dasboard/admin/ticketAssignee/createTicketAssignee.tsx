@@ -17,7 +17,7 @@ import { ArrowLeft, Check } from "lucide-react"
 import * as React from "react"
 import { useNavigate } from "react-router-dom"
 import axios from "axios"
-import Swal from "sweetalert2"
+import { toast } from "sonner"
 
 interface User {
   id: number;
@@ -73,10 +73,15 @@ export default function CreateTicketAssigneePage() {
 
         setTickets(ticketRes.data || [])
         setUsers(userRes.data || [])
-      } catch (err) {
-        console.error(err)
-        setErrorMsg("Gagal memuat data tiket atau user.")
-      }
+          } catch (err) {
+            console.error(err)
+            const msg = "Gagal memuat data tiket atau user."
+            setErrorMsg(msg)
+            toast.error("Gagal memuat data", {
+              description: msg,
+            })
+          }
+
     }
     fetchData()
   }, [])
@@ -118,67 +123,62 @@ export default function CreateTicketAssigneePage() {
     setLoading(true)
     setErrorMsg(null)
 
-    if (!formData.ticketId || formData.userIds.length === 0) {
-      setErrorMsg("Ticket dan minimal satu assignee wajib dipilih.")
-      setLoading(false)
-      return
-    }
-
-    try {
-      const token = localStorage.getItem("token")
-      if (!token) {
-        setErrorMsg("Token tidak ditemukan. Silakan login ulang.")
+      if (!formData.ticketId || formData.userIds.length === 0) {
+        const msg = "Ticket dan minimal satu assignee wajib dipilih."
+        setErrorMsg(msg)
+        toast.error("Form belum lengkap", {
+          description: msg,
+        })
         setLoading(false)
         return
       }
 
-      // Loop semua userIds → kirim POST satu-satu
-      for (const uid of formData.userIds) {
-        const payload = { ticketId: formData.ticketId, userId: uid }
 
-        console.log("Mengirim request:", payload)
 
-        await axios.post(
-          `${API_BASE}/ticket-assignees`,
-          payload,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
+    try {
+          const token = localStorage.getItem("token")
+          if (!token) {
+            const msg = "Token tidak ditemukan. Silakan login ulang."
+            setErrorMsg(msg)
+            toast.error("Token tidak valid", { description: msg })
+            setLoading(false)
+            return
           }
-        )
-      }
 
-      const ticket = tickets.find((t) => t.id === formData.ticketId)
-      const selectedUsers = users
-        .filter((u) => formData.userIds.includes(u.id))
-        .map((u) => u.fullName)
-        .join(", ")
+          for (const uid of formData.userIds) {
+            const payload = { ticketId: formData.ticketId, userId: uid }
 
-      await Swal.fire({
-        icon: "success",
-        title: "Berhasil!",
-        text: `Ticket "${ticket?.title}" berhasil di-assign ke: ${selectedUsers}`,
-        showConfirmButton: false,
-        timer: 1500,
-        timerProgressBar: true,
-      })
+            console.log("Mengirim request:", payload)
 
-      navigate("/admin/dashboard/ticket-assignees")
-    } catch (err: any) {
-      console.error(err)
-      const msg = err?.response?.data?.message || "Gagal assign ticket."
-      await Swal.fire({
-        icon: "error",
-        title: "Gagal!",
-        text: msg,
-        confirmButtonText: "OK",
-      })
-      setErrorMsg(msg)
-    } finally {
-      setLoading(false)
-    }
+            await axios.post(`${API_BASE}/ticket-assignees`, payload, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            })
+          }
+
+          const ticket = tickets.find((t) => t.id === formData.ticketId)
+          const selectedUsers = users
+            .filter((u) => formData.userIds.includes(u.id))
+            .map((u) => u.fullName)
+            .join(", ")
+
+          toast.success("Ticket berhasil di-assign", {
+            description: `Ticket "${ticket?.title}" di-assign ke: ${selectedUsers}`,
+          })
+
+          navigate("/admin/dashboard/ticket-assignees")
+        } catch (err: any) {
+          console.error(err)
+          const msg = err?.response?.data?.message || "Gagal assign ticket."
+          setErrorMsg(msg)
+          toast.error("Gagal assign ticket", {
+            description: msg,
+          })
+        } finally {
+          setLoading(false)
+        }
   }
 
   const toggleUser = (userId: number) => {

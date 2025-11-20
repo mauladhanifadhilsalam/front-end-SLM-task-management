@@ -15,8 +15,20 @@ import { Badge } from "@/components/ui/badge";
 import * as React from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import axios from "axios";
-import Swal from "sweetalert2";
 import { IconArrowLeft, IconEdit, IconTrash } from "@tabler/icons-react";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
 
 type TicketStatus = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED" | "PENDING";
 type TicketPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
@@ -57,6 +69,7 @@ export default function ViewTicketAssignee() {
     const [ticket, setTicket] = React.useState<Ticket | null>(null);
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState<string>("");
+    const [deleting, setDeleting] = React.useState(false);
 
     const API_BASE = import.meta.env.VITE_API_BASE;
 
@@ -86,17 +99,20 @@ export default function ViewTicketAssignee() {
 
             setTicket(res.data);
         } catch (e: any) {
-            console.error(e);
-            if (e.response?.status === 404) {
-                setError("Tiket tidak ditemukan.");
-            } else if (e.response?.status === 401) {
-                setError("Akses ditolak. Silakan login kembali.");
-            } else {
-                setError("Gagal memuat data tiket.");
-            }
-        } finally {
-            setLoading(false);
-        }
+                let msg = "Gagal memuat data tiket.";
+                if (e.response?.status === 404) {
+                    msg = "Tiket tidak ditemukan.";
+                } else if (e.response?.status === 401) {
+                    msg = "Akses ditolak. Silakan login kembali.";
+                }
+                setError(msg);
+                toast.error("Gagal memuat data tiket", {
+                    description: msg,
+                });
+                } finally {
+                setLoading(false);
+                }
+
     }, [id]);
 
     React.useEffect(() => {
@@ -104,45 +120,32 @@ export default function ViewTicketAssignee() {
     }, [fetchTicket]);
 
     // Handle Delete Ticket (Logika tidak diubah)
-    const handleDelete = async () => {
+   const handleConfirmDelete = async () => {
         if (!ticket) return;
-
-        const confirm = await Swal.fire({
-            title: "Hapus Tiket?",
-            text: `Yakin ingin menghapus tiket "${ticket.title}"?`,
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Ya, hapus",
-            cancelButtonText: "Batal",
-            reverseButtons: true,
-        });
-
-        if (!confirm.isConfirmed) return;
+        setDeleting(true);
 
         try {
             await axios.delete(`${API_BASE}/tickets/${ticket.id}`, {
-                headers: getAuthHeaders(),
+            headers: getAuthHeaders(),
             });
 
-            await Swal.fire({
-                title: "Berhasil",
-                text: `Tiket "${ticket.title}" berhasil dihapus.`,
-                icon: "success",
-                timer: 1500,
-                showConfirmButton: false,
+            toast.success("Tiket dihapus", {
+            description: `Tiket "${ticket.title}" berhasil dihapus.`,
             });
 
-            navigate("/admin/dashboard/ticket-assignee");
+            navigate("/admin/dashboard/ticket-assignees");
         } catch (e: any) {
             console.error(e);
             const message = e?.response?.data?.message || "Gagal menghapus tiket.";
-            await Swal.fire({
-                title: "Gagal",
-                text: message,
-                icon: "error",
+            setError(message);
+            toast.error("Gagal menghapus tiket", {
+            description: message,
             });
+        } finally {
+            setDeleting(false);
         }
-    };
+        };
+
 
     // Format tanggal (Tidak diubah)
     const formatDate = (iso?: string | null) => {
@@ -251,15 +254,40 @@ export default function ViewTicketAssignee() {
                                     </Button>
                                 </Link>
                             )}
-                            <Button
+                           <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button
                                 size="sm"
                                 variant="destructive"
-                                onClick={handleDelete}
                                 className="flex items-center gap-2"
-                            >
+                                disabled={!ticket || deleting}
+                                >
                                 <IconTrash className="h-4 w-4" />
-                                Delete
-                            </Button>
+                                {deleting ? "Deleting..." : "Delete"}
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                <AlertDialogTitle>Hapus tiket?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    {ticket
+                                    ? `Yakin ingin menghapus tiket "${ticket.title}"? Tindakan ini tidak dapat dibatalkan.`
+                                    : "Yakin ingin menghapus tiket ini? Tindakan ini tidak dapat dibatalkan."}
+                                </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                <AlertDialogCancel disabled={deleting}>Batal</AlertDialogCancel>
+                                <AlertDialogAction
+                                    onClick={handleConfirmDelete}
+                                    disabled={deleting}
+                                    className="bg-red-600 hover:bg-red-700"
+                                >
+                                    {deleting ? "Menghapus..." : "Ya, hapus"}
+                                </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                            </AlertDialog>
+
                         </div>
                     </div>
 
