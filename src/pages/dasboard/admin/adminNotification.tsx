@@ -6,7 +6,6 @@ import { useNavigate, Link } from "react-router-dom"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import * as React from "react"
 import axios from "axios"
-import Swal from "sweetalert2"
 import {
   IconLayoutGrid,
   IconChevronDown,
@@ -33,6 +32,17 @@ import {
   SelectItem,
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { toast } from "sonner"
 
 type Role = "ADMIN" | "PROJECT_MANAGER" | "DEVELOPER" | "USER" | string
 type NotificationState = "READ" | "UNREAD" | string
@@ -90,6 +100,11 @@ export default function AdminNotification() {
     actions: true,
   })
 
+  // state untuk AlertDialog delete
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
+  const [deletingId, setDeletingId] = React.useState<number | null>(null)
+  const [deleting, setDeleting] = React.useState(false)
+
   const API_BASE = import.meta.env.VITE_API_BASE
   const navigate = useNavigate()
 
@@ -108,7 +123,9 @@ export default function AdminNotification() {
         : ((res.data as any)?.data as Notification[]) || []
       setNotifications(data)
     } catch (e: any) {
-      setError(e?.response?.data?.message || "Gagal memuat data notifikasi")
+      const msg = e?.response?.data?.message || "Gagal memuat data notifikasi"
+      setError(msg)
+      toast.error("Gagal memuat notifikasi", { description: msg })
     } finally {
       setLoading(false)
     }
@@ -181,39 +198,39 @@ export default function AdminNotification() {
   const targetLabel = (type: NotificationTargetType, id: number) =>
     `${type} #${id}`
 
-  const handleDelete = async (id: number) => {
-    const confirm = await Swal.fire({
-      title: "Hapus notifikasi?",
-      text: `Notifikasi #${id} akan dihapus secara permanen.`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Ya, hapus",
-      cancelButtonText: "Batal",
-      reverseButtons: true,
-    })
+  // buka dialog delete
+  const handleDelete = (id: number) => {
+    setDeletingId(id)
+    setDeleteDialogOpen(true)
+  }
 
-    if (!confirm.isConfirmed) return
+  // eksekusi delete setelah konfirmasi
+  const confirmDelete = async () => {
+    if (!deletingId) return
 
     const prev = notifications
-    setNotifications((current) => current.filter((n) => n.id !== id))
+    const target = notifications.find((n) => n.id === deletingId)
+
+    setDeleting(true)
+    setNotifications((current) => current.filter((n) => n.id !== deletingId))
 
     try {
       const token = localStorage.getItem("token")
-      await axios.delete(`${API_BASE}/notifications/${id}`, {
+      await axios.delete(`${API_BASE}/notifications/${deletingId}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       })
 
-      await Swal.fire({
-        title: "Terhapus",
-        text: `Notifikasi #${id} berhasil dihapus.`,
-        icon: "success",
-        timer: 1500,
-        showConfirmButton: false,
+      toast.success(`Notifikasi #${deletingId} berhasil dihapus`, {
+        description: target?.subject || target?.message?.slice(0, 80),
       })
     } catch (e: any) {
       setNotifications(prev)
       const msg = e?.response?.data?.message || "Gagal menghapus notifikasi"
-      await Swal.fire({ title: "Error", text: msg, icon: "error" })
+      toast.error("Gagal menghapus notifikasi", { description: msg })
+    } finally {
+      setDeleting(false)
+      setDeletingId(null)
+      setDeleteDialogOpen(false)
     }
   }
 
@@ -235,299 +252,315 @@ export default function AdminNotification() {
         current.map((n) => (n.id === updated.id ? { ...n, ...updated } : n)),
       )
 
-      await Swal.fire({
-        title: "Berhasil",
-        text: "Email notifikasi berhasil dikirim ulang.",
-        icon: "success",
-        timer: 1500,
-        showConfirmButton: false,
+      toast.success("Email notifikasi berhasil dikirim ulang", {
+        description: updated.subject || updated.message?.slice(0, 80),
       })
     } catch (e: any) {
       const msg =
         e?.response?.data?.message || "Gagal mengirim ulang email notifikasi"
-      await Swal.fire({ title: "Error", text: msg, icon: "error" })
+      toast.error("Gagal mengirim ulang notifikasi", { description: msg })
     }
   }
 
   return (
-    <SidebarProvider
-      style={
-        {
-          "--sidebar-width": "calc(var(--spacing) * 72)",
-          "--header-height": "calc(var(--spacing) * 12)",
-        } as React.CSSProperties
-      }
-    >
-      <AppSidebar variant="inset" />
-      <SidebarInset>
-        <SiteHeader />
+    <>
+      <SidebarProvider
+        style={
+          {
+            "--sidebar-width": "calc(var(--spacing) * 72)",
+            "--header-height": "calc(var(--spacing) * 12)",
+          } as React.CSSProperties
+        }
+      >
+        <AppSidebar variant="inset" />
+        <SidebarInset>
+          <SiteHeader />
 
-        <main className="flex flex-col flex-1 p-4 md:p-6 space-y-4 md:space-y-6">
-          {/* Header */}
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div className="space-y-1">
-              <h1 className="text-xl md:text-2xl font-semibold flex items-center gap-2">
-                Daftar Notifikasi
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Lihat semua notifikasi sistem untuk pengguna.
-              </p>
-            </div>
-          </div>
-
-          {/* Filter & Controls */}
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div className="flex flex-col w-full gap-2 sm:flex-row sm:items-center sm:gap-3">
-              <Input
-                placeholder="Cari pesan, subject, email, target, atau penerima..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full sm:w-80"
-              />
-              <Select value={stateFilter} onValueChange={setStateFilter}>
-                <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="Filter status baca" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">ALL</SelectItem>
-                  <SelectItem value="UNREAD">UNREAD</SelectItem>
-                  <SelectItem value="READ">READ</SelectItem>
-                </SelectContent>
-              </Select>
+          <main className="flex flex-col flex-1 p-4 md:p-6 space-y-4 md:space-y-6">
+            {/* Header */}
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div className="space-y-1">
+                <h1 className="text-xl md:text-2xl font-semibold flex items-center gap-2">
+                  Daftar Notifikasi
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  Lihat semua notifikasi sistem untuk pengguna.
+                </p>
+              </div>
             </div>
 
-            <div className="self-start md:self-auto">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center gap-2"
-                  >
-                    <IconLayoutGrid className="h-4 w-4" />
-                    Kolom
-                    <IconChevronDown className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {Object.keys(cols).map((key) => (
-                    <DropdownMenuCheckboxItem
-                      key={key}
-                      checked={(cols as any)[key]}
-                      onCheckedChange={(v) =>
-                        setCols((c) => ({ ...c, [key]: !!v }))
-                      }
+            {/* Filter & Controls */}
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div className="flex flex-col w-full gap-2 sm:flex-row sm:items-center sm:gap-3">
+                <Input
+                  placeholder="Cari pesan, subject, email, target, atau penerima..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full sm:w-80"
+                />
+                <Select value={stateFilter} onValueChange={setStateFilter}>
+                  <SelectTrigger className="w-full sm:w-48">
+                    <SelectValue placeholder="Filter status baca" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">ALL</SelectItem>
+                    <SelectItem value="UNREAD">UNREAD</SelectItem>
+                    <SelectItem value="READ">READ</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="self-start md:self-auto">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-2"
                     >
-                      {key}
-                    </DropdownMenuCheckboxItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+                      <IconLayoutGrid className="h-4 w-4" />
+                      Kolom
+                      <IconChevronDown className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {Object.keys(cols).map((key) => (
+                      <DropdownMenuCheckboxItem
+                        key={key}
+                        checked={(cols as any)[key]}
+                        onCheckedChange={(v) =>
+                          setCols((c) => ({ ...c, [key]: !!v }))
+                        }
+                      >
+                        {key}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
-          </div>
 
-          {/* Error / empty state */}
-          {error && !loading && (
-            <div className="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
-              {error}
-            </div>
-          )}
+            {/* Error / empty state */}
+            {error && !loading && (
+              <div className="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+                {error}
+              </div>
+            )}
 
-          {!loading && !error && filteredNotifications.length === 0 && (
-            <div className="rounded-md border px-4 py-6 text-sm text-muted-foreground text-center">
-              Tidak ada data notifikasi.
-            </div>
-          )}
+            {!loading && !error && filteredNotifications.length === 0 && (
+              <div className="rounded-md border px-4 py-6 text-sm text-muted-foreground text-center">
+                Tidak ada data notifikasi.
+              </div>
+            )}
 
-          {/* Table */}
-          {!loading && !error && filteredNotifications.length > 0 && (
-            <div className="rounded-md border overflow-x-auto">
-              <table className="w-full min-w-[700px] md:min-w-[1100px] text-sm">
-                <thead className="bg-muted/50 text-center">
-                  <tr>
-                    {cols.id && (
-                      <th className="px-4 py-3 font-medium hidden md:table-cell">
-                        ID
-                      </th>
-                    )}
-                    {cols.subject && (
-                      <th className="px-4 py-3 font-medium">Subject</th>
-                    )}
-                    {cols.message && (
-                      <th className="px-4 py-3 font-medium">Pesan</th>
-                    )}
-                    {cols.target && (
-                      <th className="px-4 py-3 font-medium hidden lg:table-cell">
-                        Target
-                      </th>
-                    )}
-                    {cols.recipient && (
-                      <th className="px-4 py-3 font-medium">Penerima</th>
-                    )}
-                    {cols.state && (
-                      <th className="px-4 py-3 font-medium hidden sm:table-cell">
-                        Status Baca
-                      </th>
-                    )}
-                    {cols.emailStatus && (
-                      <th className="px-4 py-3 font-medium hidden sm:table-cell">
-                        Status Pengiriman
-                      </th>
-                    )}  
-                    {cols.createdAt && (
-                      <th className="px-4 py-3 font-medium hidden lg:table-cell">
-                        Dikirim
-                      </th>
-                    )}
-                    {cols.readAt && (
-                      <th className="px-4 py-3 font-medium hidden lg:table-cell">
-                        Dibaca
-                      </th>
-                    )}
-                    {cols.actions && (
-                      <th className="px-4 py-3 font-medium">Aksi</th>
-                    )}
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredNotifications.map((n) => (
-                    <tr
-                      key={n.id}
-                      className="border-t text-center align-top"
-                    >
+            {/* Table */}
+            {!loading && !error && filteredNotifications.length > 0 && (
+              <div className="rounded-md border overflow-x-auto">
+                <table className="w-full min-w-[700px] md:min-w-[1100px] text-sm">
+                  <thead className="bg-muted/50 text-center">
+                    <tr>
                       {cols.id && (
-                        <td className="px-4 py-3 hidden md:table-cell">
-                          {n.id}
-                        </td>
+                        <th className="px-4 py-3 font-medium hidden md:table-cell">
+                          ID
+                        </th>
                       )}
-
                       {cols.subject && (
-                        <td className="px-4 py-3 text-left align-top max-w-[160px] md:max-w-xs">
-                          <div className="font-medium text-sm md:text-base line-clamp-2 break-words">
-                            {n.subject || "(no subject)"}
-                          </div>
-                        </td>
+                        <th className="px-4 py-3 font-medium">Subject</th>
                       )}
-
                       {cols.message && (
-                        <td className="px-4 py-3 text-left align-top max-w-[200px] md:max-w-md">
-                          <div className="text-xs md:text-sm line-clamp-3 break-words">
-                            {n.message}
-                          </div>
-                          {n.emailError && (
-                            <div className="text-xs text-red-600 mt-1 break-words">
-                              Error email: {n.emailError}
-                            </div>
-                          )}
-                        </td>
+                        <th className="px-4 py-3 font-medium">Pesan</th>
                       )}
-
                       {cols.target && (
-                        <td className="px-4 py-3 hidden lg:table-cell">
-                          {targetLabel(n.targetType, n.targetId)}
-                        </td>
+                        <th className="px-4 py-3 font-medium hidden lg:table-cell">
+                          Target
+                        </th>
                       )}
-
                       {cols.recipient && (
-                        <td className="px-4 py-3 text-left align-top">
-                          {n.recipient ? (
-                            <>
-                              <div className="font-medium line-clamp-1 break-words">
-                                {n.recipient.fullName}
-                              </div>
-                              <div className="text-xs text-muted-foreground line-clamp-1 break-words">
-                                {n.recipient.email}
-                              </div>
-                              <div className="mt-1">
-                                <Badge
-                                  variant="outline"
-                                  className="uppercase"
-                                >
-                                  {n.recipient.role}
-                                </Badge>
-                              </div>
-                            </>
-                          ) : (
-                            "-"
-                          )}
-                        </td>
+                        <th className="px-4 py-3 font-medium">Penerima</th>
                       )}
-
                       {cols.state && (
-                        <td className="px-4 py-3 hidden sm:table-cell align-top">
-                          <Badge variant={stateBadgeVariant(n.state)}>
-                            {stateLabel(n.state)}
-                          </Badge>
-                        </td>
+                        <th className="px-4 py-3 font-medium hidden sm:table-cell">
+                          Status Baca
+                        </th>
                       )}
-
-
-
                       {cols.emailStatus && (
-                        <td className="px-4 py-3 hidden sm:table-cell align-center">
-                          <Badge variant={notifyStatusVariant(n.status)}>
-                            {notifyStatusLabel(n.status)}
-                          </Badge>
-                        
-                        </td>
+                        <th className="px-4 py-3 font-medium hidden sm:table-cell">
+                          Status Pengiriman
+                        </th>
                       )}
+                      {cols.createdAt && (
+                        <th className="px-4 py-3 font-medium hidden lg:table-cell">
+                          Dikirim
+                        </th>
+                      )}
+                      {cols.readAt && (
+                        <th className="px-4 py-3 font-medium hidden lg:table-cell">
+                          Dibaca
+                        </th>
+                      )}
+                      {cols.actions && (
+                        <th className="px-4 py-3 font-medium">Aksi</th>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredNotifications.map((n) => (
+                      <tr
+                        key={n.id}
+                        className="border-t text-center align-top"
+                      >
+                        {cols.id && (
+                          <td className="px-4 py-3 hidden md:table-cell">
+                            {n.id}
+                          </td>
+                        )}
 
-                      {
-                        cols.createdAt && (
+                        {cols.subject && (
+                          <td className="px-4 py-3 text-left align-top max-w-[160px] md:max-w-xs">
+                            <div className="font-medium text-sm md:text-base line-clamp-2 break-words">
+                              {n.subject || "(no subject)"}
+                            </div>
+                          </td>
+                        )}
+
+                        {cols.message && (
+                          <td className="px-4 py-3 text-left align-top max-w-[200px] md:max-w-md">
+                            <div className="text-xs md:text-sm line-clamp-3 break-words">
+                              {n.message}
+                            </div>
+                            {n.emailError && (
+                              <div className="text-xs text-red-600 mt-1 break-words">
+                                Error email: {n.emailError}
+                              </div>
+                            )}
+                          </td>
+                        )}
+
+                        {cols.target && (
+                          <td className="px-4 py-3 hidden lg:table-cell">
+                            {targetLabel(n.targetType, n.targetId)}
+                          </td>
+                        )}
+
+                        {cols.recipient && (
+                          <td className="px-4 py-3 text-left align-top">
+                            {n.recipient ? (
+                              <>
+                                <div className="font-medium line-clamp-1 break-words">
+                                  {n.recipient.fullName}
+                                </div>
+                                <div className="text-xs text-muted-foreground line-clamp-1 break-words">
+                                  {n.recipient.email}
+                                </div>
+                                <div className="mt-1">
+                                  <Badge
+                                    variant="outline"
+                                    className="uppercase"
+                                  >
+                                    {n.recipient.role}
+                                  </Badge>
+                                </div>
+                              </>
+                            ) : (
+                              "-"
+                            )}
+                          </td>
+                        )}
+
+                        {cols.state && (
+                          <td className="px-4 py-3 hidden sm:table-cell align-top">
+                            <Badge variant={stateBadgeVariant(n.state)}>
+                              {stateLabel(n.state)}
+                            </Badge>
+                          </td>
+                        )}
+
+                        {cols.emailStatus && (
+                          <td className="px-4 py-3 hidden sm:table-cell align-center">
+                            <Badge variant={notifyStatusVariant(n.status)}>
+                              {notifyStatusLabel(n.status)}
+                            </Badge>
+                          </td>
+                        )}
+
+                        {cols.createdAt && (
                           <td className="px-4 py-3 hidden sm:table-cell align-top">
                             {formatDate(n.createdAt)}
                           </td>
-                        )
-                      }
+                        )}
 
+                        {cols.readAt && (
+                          <td className="px-4 py-3 hidden lg:table-cell align-top">
+                            {formatDate(n.readAt)}
+                          </td>
+                        )}
 
-                      {cols.readAt && (
-                        <td className="px-4 py-3 hidden lg:table-cell align-top">
-                          {formatDate(n.readAt)}
-                        </td>
-                      )}
-
-                      {cols.actions && (
-                        <td className="px-4 py-3 align-top">
-                          <div className="flex justify-center md:justify-start items-center flex-w gap-2">
-                            <Link
-                              to={`/admin-dashboard/notifications/view/${n.id}`}
-                            >
-                              <IconEye className="h-4 w-4" />
-                            </Link>
-                            <button
-                              onClick={() => handleDelete(n.id)}
-                              className="text-red-600 cursor-pointer"
-                            >
-                              <IconTrash className="h-4 w-4" />
-                            </button>
-
-                            {n.status === "FAILED" && (
-                              <button
-                                onClick={() => handleResend(n)}
-                                className="text-blue-600 cursor-pointer flex items-center gap-1"
+                        {cols.actions && (
+                          <td className="px-4 py-3 align-top">
+                            <div className="flex justify-center md:justify-start items-center flex-w gap-2">
+                              <Link
+                                to={`/admin-dashboard/notifications/view/${n.id}`}
                               >
-                                <IconReload className="h-4 w-4" />
-                                <span className="text-xs">Resend</span>
+                                <IconEye className="h-4 w-4" />
+                              </Link>
+                              <button
+                                onClick={() => handleDelete(n.id)}
+                                className="text-red-600 hover:text-red-700 cursor-pointer"
+                              >
+                                <IconTrash className="h-4 w-4" />
                               </button>
-                            )}
-                          </div>
-                        </td>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
 
-          {loading && (
-            <div className="rounded-md border px-4 py-6 text-sm text-muted-foreground">
-              Memuat data...
-            </div>
-          )}
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+                              {n.status === "FAILED" && (
+                                <button
+                                  onClick={() => handleResend(n)}
+                                  className="text-blue-600 hover:text-blue-700 cursor-pointer flex items-center gap-1"
+                                >
+                                  <IconReload className="h-4 w-4" />
+                                  <span className="text-xs">Resend</span>
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {loading && (
+              <div className="rounded-md border px-4 py-6 text-sm text-muted-foreground">
+                Memuat data...
+              </div>
+            )}
+          </main>
+        </SidebarInset>
+      </SidebarProvider>
+
+      {/* AlertDialog konfirmasi hapus */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus notifikasi?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Notifikasi yang dihapus akan hilang secara permanen dan tidak dapat dikembalikan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>
+              Batal
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              disabled={deleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {deleting ? "Menghapus..." : "Hapus"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }

@@ -42,6 +42,8 @@ import AdminNotification from './pages/dasboard/admin/adminNotification'
 import ViewNotification from './pages/dasboard/admin/notification/viewNotification'
 import NotificationPage from './pages/notification/notification'
 import NotificationMeRedirect from './pages/notification/notificationRedirect/notificationMeRedirect'
+import AdminProjectAssignment from './pages/dasboard/admin/adminProjectAssignment'
+import CreateProjectAssignment from './pages/dasboard/admin/projectAssignment/createProjectAssignment'
 import { Toaster } from './components/ui/sonner'
 import { NotFoundError } from './pages/errors/not-found-error'
 
@@ -107,6 +109,22 @@ createRoot(rootElement).render(
             element={
               <ProtectedRoute allowedRoles={["admin"]}>
                 <AdminProjectOwnersCreate />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin-dashboard/project-assignments"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminProjectAssignment />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/dashboard/project-assignments/create"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <CreateProjectAssignment />
               </ProtectedRoute>
             }
           />

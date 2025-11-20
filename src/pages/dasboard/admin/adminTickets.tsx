@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Swal from "sweetalert2";
 import axios from "axios";
+import { toast } from "sonner";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
@@ -27,8 +27,19 @@ import {
   IconEye,
 } from "@tabler/icons-react";
 
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 
-const API_BASE =  import.meta.env.VITE_API_BASE
+const API_BASE = import.meta.env.VITE_API_BASE;
 
 type TicketType = "TASK" | "ISSUE" | string;
 type TicketPriority = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL" | string;
@@ -188,19 +199,12 @@ export default function AdminTickets() {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  // 🔥 fungsi delete yang dipanggil dari AlertDialogAction
+  const deleteTicket = async (id: number) => {
     const t = tickets.find((x) => x.id === id);
-    const confirm = await Swal.fire({
-      title: "Hapus ticket?",
-      text: `Yakin ingin menghapus tiket “${t?.title ?? id}”? Tindakan ini tidak dapat dikembalikan.`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Ya, hapus",
-      cancelButtonText: "Batal",
-    });
-    if (!confirm.isConfirmed) return;
-
     const prev = tickets;
+
+    // optimistic update
     setTickets((p) => p.filter((x) => x.id !== id));
 
     try {
@@ -209,17 +213,16 @@ export default function AdminTickets() {
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
 
-      await Swal.fire({
-        title: "Terhapus",
-        text: "Ticket berhasil dihapus.",
-        icon: "success",
-        timer: 1000,
-        showConfirmButton: false,
+      toast.success("Ticket terhapus", {
+        description: `Ticket “${t?.title ?? `#${id}`}” berhasil dihapus.`,
       });
     } catch (err: any) {
       setTickets(prev);
       const msg = err?.response?.data?.message || "Gagal menghapus ticket.";
-      await Swal.fire({ title: "Gagal", text: msg, icon: "error" });
+      setError(msg);
+      toast.error("Gagal menghapus ticket", {
+        description: msg,
+      });
     }
   };
 
@@ -458,12 +461,38 @@ export default function AdminTickets() {
                                     >
                                       <IconEdit className="h-4 w-4" />
                                     </Link>
-                                    <button
-                                      onClick={() => handleDelete(t.id)}
-                                      className="px-2 py-1 rounded text-red-600 cursor-pointer"
-                                    >
-                                      <IconTrash className="h-4 w-4" />
-                                    </button>
+
+                                    {/* 🔻 Delete pakai AlertDialog + toast */}
+                                    <AlertDialog>
+                                      <AlertDialogTrigger asChild>
+                                        <button
+                                          className="px-2 py-1 rounded text-red-600 hover:text-red-700 cursor-pointer"
+                                          onClick={(e) => e.stopPropagation()}
+                                        >
+                                          <IconTrash className="h-4 w-4" />
+                                        </button>
+                                      </AlertDialogTrigger>
+                                      <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                          <AlertDialogTitle>
+                                            Hapus ticket “{t.title}”?
+                                          </AlertDialogTitle>
+                                          <AlertDialogDescription>
+                                            Tindakan ini tidak dapat dibatalkan. Ticket akan
+                                            dihapus secara permanen dari sistem.
+                                          </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                          <AlertDialogCancel>Batal</AlertDialogCancel>
+                                          <AlertDialogAction
+                                            className="bg-red-600 hover:bg-red-700"
+                                            onClick={() => deleteTicket(t.id)}
+                                          >
+                                            Hapus
+                                          </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                      </AlertDialogContent>
+                                    </AlertDialog>
                                   </div>
                                 </td>
                               )}
@@ -473,6 +502,7 @@ export default function AdminTickets() {
                       </tbody>
                     </table>
 
+                    {/* Empty & search states tetap sama seperti punyamu */}
                     {!loading && filtered.length === 0 && (
                       q.trim() !== "" ? (
                         <Card className="bg-background border-t">
@@ -534,7 +564,9 @@ export default function AdminTickets() {
                             </div>
                             <div>
                               <h3 className="text-sm font-medium">Data Tickets</h3>
-                              <p className="text-sm text-muted-foreground">Belum ada data yang ditampilkan.</p>
+                              <p className="text-sm text-muted-foreground">
+                                Belum ada data yang ditampilkan.
+                              </p>
                             </div>
                           </div>
                           <div className="p-6">

@@ -176,7 +176,7 @@ export default function CreateProjectAssignment() {
             showConfirmButton: false,
         })
 
-        navigate("/admin/dashboard/project-assignments")
+        navigate("/admin-dashboard/project-assignments")
         } catch (err: any) {
         const msg =
             err?.response?.data?.message || "Gagal membuat project assignment. Coba lagi."
@@ -208,7 +208,7 @@ export default function CreateProjectAssignment() {
                         variant="ghost"
                         size="sm"
                         onClick={() =>
-                            navigate("/admin/dashboard/project-assignments")
+                            navigate("/admin-dashboard/project-assignments")
                         }
                         className="flex cursor-pointer items-center gap-2"
                         >
@@ -356,7 +356,7 @@ export default function CreateProjectAssignment() {
                                 disabled={saving}
                                 onClick={() =>
                                 navigate(
-                                    "/admin/dashboard/project-assignments",
+                                    "/admin-dashboard/project-assignments",
                                 )
                                 }
                             >

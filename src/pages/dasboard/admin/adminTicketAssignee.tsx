@@ -6,7 +6,6 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import * as React from "react"
 import { Link, useNavigate } from "react-router-dom"
 import axios from "axios"
-import Swal from "sweetalert2"
 import {
   IconPlus,
   IconTrash,
@@ -31,6 +30,19 @@ import {
   SelectItem,
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
+import { toast } from "sonner"
+
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog"
 
 // --- TIPE DATA ---
 export type TicketAssignee = {
@@ -75,12 +87,13 @@ export default function AdminTicketAssignees() {
   const navigate = useNavigate()
   const API_BASE = import.meta.env.VITE_API_BASE
 
+  // 🔒 Helper untuk ambil header Authorization
   const getAuthHeaders = () => {
     const token = localStorage.getItem("token")
     return token ? { Authorization: `Bearer ${token}` } : {}
   }
 
-  // 🔄 FETCH LANGSUNG DARI /ticket-assignees
+  // 🔄 FETCH DATA DARI API
   const fetchTicketAssignees = async () => {
     try {
       setLoading(true)
@@ -93,43 +106,36 @@ export default function AdminTicketAssignees() {
         return
       }
 
-      const res = await axios.get(`${API_BASE}/ticket-assignees`, {
+      // Ambil semua tickets untuk mendapatkan assignees
+      const res = await axios.get(`${API_BASE}/tickets`, {
         headers: getAuthHeaders(),
       })
 
-      const raw: any[] = Array.isArray(res.data) ? res.data : res.data?.data ?? []
-
-      const normalized: TicketAssignee[] = raw.map((item) => {
-        const ticket = item.ticket ?? {}
-        const user = item.user ?? {}
-
-        return {
-          id: Number(item.id),
-          ticketId: Number(item.ticketId ?? item.ticket_id ?? ticket.id),
-          userId: Number(item.userId ?? item.user_id ?? user.id),
-          ticket: {
-            id: Number(ticket.id ?? item.ticketId ?? item.ticket_id),
-            title: ticket.title ?? "",
-            description: ticket.description ?? null,
-            status: ticket.status ?? "",
-            priority: ticket.priority ?? "",
-            type: ticket.type ?? "",
-          },
-          user: {
-            id: Number(user.id ?? item.userId ?? item.user_id),
-            name: user.name ?? user.fullName ?? "",
-            email: user.email ?? "",
-          },
-          createdAt:
-            item.createdAt ??
-            item.created_at ??
-            ticket.createdAt ??
-            ticket.created_at ??
-            new Date().toISOString(),
+      // Transform data dari tickets menjadi list assignees
+      const allAssignees: TicketAssignee[] = []
+      res.data.forEach((ticket: any) => {
+        if (ticket.assignees && ticket.assignees.length > 0) {
+          ticket.assignees.forEach((assignee: any) => {
+            allAssignees.push({
+              id: assignee.id,
+              ticketId: ticket.id,
+              userId: assignee.user.id,
+              ticket: {
+                id: ticket.id,
+                title: ticket.title,
+                description: ticket.description,
+                status: ticket.status,
+                priority: ticket.priority,
+                type: ticket.type,
+              },
+              user: assignee.user,
+              createdAt: assignee.createdAt || ticket.createdAt,
+            })
+          })
         }
       })
 
-      setAssignees(normalized)
+      setAssignees(allAssignees)
     } catch (e: any) {
       console.error(e)
       if (e.response?.status === 401) {
@@ -142,48 +148,38 @@ export default function AdminTicketAssignees() {
     }
   }
 
-  const handleDelete = async (id: number) => {
-    const confirm = await Swal.fire({
-      title: "Hapus Assignment?",
-      text: "Assignee akan dihapus dari ticket.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Ya, hapus",
-      cancelButtonText: "Batal",
-      reverseButtons: true,
-    })
+  React.useEffect(() => {
+    fetchTicketAssignees()
+  }, [])
 
-    if (!confirm.isConfirmed) return
+  // 🗑️ FUNGSI DELETE (dipanggil dari AlertDialogAction)
+  const deleteAssignee = async (id: number) => {
+    const target = assignees.find((a) => a.id === id)
+    const prev = assignees
+    // optimistic update
+    setAssignees((p) => p.filter((a) => a.id !== id))
 
     try {
       await axios.delete(`${API_BASE}/ticket-assignees/${id}`, {
         headers: getAuthHeaders(),
       })
 
-      setAssignees((prev) => prev.filter((a) => a.id !== id))
-
-      await Swal.fire({
-        title: "Terhapus",
-        text: `Assignment #${id} berhasil dihapus.`,
-        icon: "success",
-        timer: 1500,
-        showConfirmButton: false,
+      toast.success("Assignment terhapus", {
+        description: `Assignment #${id} (${target?.user.name ?? "Unknown"}) berhasil dihapus.`,
       })
     } catch (e: any) {
       console.error(e)
-      setError("Gagal menghapus assignment dari server.")
-      await Swal.fire({
-        title: "Gagal",
-        text: e.response?.data?.message || "Gagal menghapus assignment.",
-        icon: "error",
+      setAssignees(prev)
+      const msg =
+        e.response?.data?.message || "Gagal menghapus assignment dari server."
+      setError(msg)
+      toast.error("Gagal menghapus assignment", {
+        description: msg,
       })
     }
   }
 
-  React.useEffect(() => {
-    fetchTicketAssignees()
-  }, [])
-
+  // 🔹 Filter data
   const filteredAssignees = React.useMemo(() => {
     const ql = search.trim().toLowerCase()
     return assignees
@@ -199,6 +195,7 @@ export default function AdminTicketAssignees() {
       .sort((a, b) => b.id - a.id)
   }, [assignees, search, statusFilter])
 
+  // 🔖 Badge helpers
   const statusVariant = (status?: string) => {
     switch (status) {
       case "NEW":
@@ -272,7 +269,8 @@ export default function AdminTicketAssignees() {
       <AppSidebar variant="inset" />
       <SidebarInset>
         <SiteHeader />
-        <main className="flex flex-1 flex-col space-y-6 p-6">
+        <main className="flex flex-col flex-1 p-6 space-y-6">
+          {/* Header */}
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-semibold">Ticket Assignments</h1>
@@ -286,7 +284,8 @@ export default function AdminTicketAssignees() {
             </Button>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          {/* Filter */}
+          <div className="flex flex-wrap gap-3 items-center justify-between">
             <div className="flex gap-3">
               <Input
                 placeholder="Cari ticket atau assignee..."
@@ -309,6 +308,7 @@ export default function AdminTicketAssignees() {
               </Select>
             </div>
 
+            {/* Kolom toggle */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="flex items-center gap-2">
@@ -322,12 +322,7 @@ export default function AdminTicketAssignees() {
                   <DropdownMenuCheckboxItem
                     key={key}
                     checked={(cols as any)[key]}
-                    onCheckedChange={(v) =>
-                      setCols((c) => ({
-                        ...c,
-                        [key]: !!v,
-                      }))
-                    }
+                    onCheckedChange={(v) => setCols((c) => ({ ...c, [key]: !!v }))}
                   >
                     {key.toUpperCase()}
                   </DropdownMenuCheckboxItem>
@@ -336,7 +331,8 @@ export default function AdminTicketAssignees() {
             </DropdownMenu>
           </div>
 
-          <div className="overflow-x-auto rounded-md border">
+          {/* Table */}
+          <div className="rounded-md border overflow-x-auto">
             {loading ? (
               <div className="p-6">Memuat data dari server...</div>
             ) : error ? (
@@ -361,7 +357,7 @@ export default function AdminTicketAssignees() {
                   {filteredAssignees.map((a) => (
                     <tr
                       key={a.id}
-                      className="border-t text-center transition-colors hover:bg-muted/50"
+                      className="border-t text-center hover:bg-muted/50 transition-colors"
                     >
                       {cols.id && <td className="px-4 py-3">{a.id}</td>}
                       {cols.ticket && (
@@ -416,12 +412,45 @@ export default function AdminTicketAssignees() {
                             >
                               <IconEdit className="h-4 w-4" />
                             </Link>
-                            <button
-                              onClick={() => handleDelete(a.id)}
-                              className="text-red-600 hover:text-red-700"
-                            >
-                              <IconTrash className="h-4 w-4" />
-                            </button>
+
+                            {/* 🔻 Delete pakai AlertDialog + toast */}
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <button
+                                  className="text-red-600 hover:text-red-700"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <IconTrash className="h-4 w-4" />
+                                </button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>
+                                    Hapus assignment #{a.id}?
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Assignee{" "}
+                                    <span className="font-semibold">
+                                      {a.user.name}
+                                    </span>{" "}
+                                    akan dihapus dari ticket{" "}
+                                    <span className="font-semibold">
+                                      “{a.ticket.title}”
+                                    </span>
+                                    . Tindakan ini tidak dapat dibatalkan.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Batal</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    className="bg-red-600 hover:bg-red-700"
+                                    onClick={() => deleteAssignee(a.id)}
+                                  >
+                                    Hapus
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </div>
                         </td>
                       )}
