@@ -59,7 +59,7 @@ export type TicketAssignee = {
   }
   user: {
     id: number
-    name: string
+    fullName: string
     email: string
   }
   createdAt: string
@@ -165,7 +165,7 @@ export default function AdminTicketAssignees() {
       })
 
       toast.success("Assignment terhapus", {
-        description: `Assignment #${id} (${target?.user.name ?? "Unknown"}) berhasil dihapus.`,
+        description: `Assignment #${id} (${target?.user.fullName ?? "Unknown"}) berhasil dihapus.`,
       })
     } catch (e: any) {
       console.error(e)
@@ -188,7 +188,7 @@ export default function AdminTicketAssignees() {
         if (!ql) return true
         return (
           a.ticket.title.toLowerCase().includes(ql) ||
-          a.user.name.toLowerCase().includes(ql) ||
+          a.user.fullName.toLowerCase().includes(ql) ||
           a.user.email.toLowerCase().includes(ql)
         )
       })
@@ -370,7 +370,7 @@ export default function AdminTicketAssignees() {
                       )}
                       {cols.assignee && (
                         <td className="px-4 py-3 text-left">
-                          <div className="font-medium">{a.user.name}</div>
+                          <div className="font-medium">{a.user.fullName}</div>
                           <div className="text-xs text-muted-foreground">
                             {a.user.email}
                           </div>
@@ -431,7 +431,7 @@ export default function AdminTicketAssignees() {
                                   <AlertDialogDescription>
                                     Assignee{" "}
                                     <span className="font-semibold">
-                                      {a.user.name}
+                                      {a.user.fullName}
                                     </span>{" "}
                                     akan dihapus dari ticket{" "}
                                     <span className="font-semibold">
