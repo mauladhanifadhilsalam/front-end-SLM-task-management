@@ -1,19 +1,29 @@
-
+// src/pages/tickets/EditTickets.tsx
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { toast } from "sonner";
 
-
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { IconArrowLeft, IconCheck } from "@tabler/icons-react";
 
 import {
@@ -22,8 +32,9 @@ import {
   type EditTicketField,
   toEditTicketPayload,
 } from "@/schemas/tickets.schema";
+import { MarkdownEditor } from "@/components/markdown-editor";
 
-const API_BASE = import.meta.env.VITE_API_BASE
+const API_BASE = import.meta.env.VITE_API_BASE;
 const OPTIONS_TTL_MS = 5 * 60 * 1000; // 5 menit
 
 type Ticket = {
@@ -57,9 +68,9 @@ function toLocalInput(iso?: string | null) {
   const d = new Date(iso);
   if (isNaN(d.getTime())) return "";
   const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(
-    d.getMinutes()
-  )}`;
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(
+    d.getDate(),
+  )}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 function mapProjects(raw: any[]): Opt[] {
@@ -78,7 +89,6 @@ function mapUsers(raw: any[]): Opt[] {
 
 /**
  * UI form type (boleh "" sebelum dipilih).
- * Ini menghindari error TS: Type 'string' is not assignable to union literal.
  */
 type UiEditTicketForm = {
   projectId: string;
@@ -104,12 +114,10 @@ export default function EditTickets() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
-  // Options
   const [projects, setProjects] = React.useState<Opt[]>([]);
   const [requesters, setRequesters] = React.useState<Opt[]>([]);
   const [loadingOptions, setLoadingOptions] = React.useState(true);
 
-  // Form state
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -126,7 +134,9 @@ export default function EditTickets() {
     dueDate: "",
   });
 
-  const [fieldErrors, setFieldErrors] = React.useState<Partial<Record<EditTicketField, string>>>({});
+  const [fieldErrors, setFieldErrors] = React.useState<
+    Partial<Record<EditTicketField, string>>
+  >({});
 
   const tokenHeader = React.useMemo(() => {
     const token = localStorage.getItem("token");
@@ -155,19 +165,32 @@ export default function EditTickets() {
       try {
         setLoadingOptions((prev) => prev && true);
         const [projRes, userRes] = await Promise.all([
-          axios.get(`${API_BASE}/projects`, { headers: tokenHeader, signal: controller.signal }),
-          axios.get(`${API_BASE}/users`, { headers: tokenHeader, signal: controller.signal }),
+          axios.get(`${API_BASE}/projects`, {
+            headers: tokenHeader,
+            signal: controller.signal,
+          }),
+          axios.get(`${API_BASE}/users`, {
+            headers: tokenHeader,
+            signal: controller.signal,
+          }),
         ]);
 
-        const projRaw = Array.isArray(projRes.data) ? projRes.data : projRes.data?.data ?? [];
-        const userRaw = Array.isArray(userRes.data) ? userRes.data : userRes.data?.data ?? [];
+        const projRaw = Array.isArray(projRes.data)
+          ? projRes.data
+          : projRes.data?.data ?? [];
+        const userRaw = Array.isArray(userRes.data)
+          ? userRes.data
+          : userRes.data?.data ?? [];
 
         const p = mapProjects(projRaw);
         const u = mapUsers(userRaw);
 
         setProjects(p);
         setRequesters(u);
-        localStorage.setItem("options_cache", JSON.stringify({ projects: p, requesters: u, ts: Date.now() }));
+        localStorage.setItem(
+          "options_cache",
+          JSON.stringify({ projects: p, requesters: u, ts: Date.now() }),
+        );
       } catch (e: any) {
         if (axios.isCancel?.(e)) return;
       } finally {
@@ -183,7 +206,10 @@ export default function EditTickets() {
     setError(null);
     const controller = new AbortController();
     try {
-      const res = await axios.get(`${API_BASE}/tickets/${id}`, { headers: tokenHeader, signal: controller.signal });
+      const res = await axios.get(`${API_BASE}/tickets/${id}`, {
+        headers: tokenHeader,
+        signal: controller.signal,
+      });
       const t: Ticket = (res.data?.data ?? res.data) as Ticket;
 
       setForm({
@@ -198,7 +224,11 @@ export default function EditTickets() {
         dueDate: toLocalInput(t.dueDate ?? null),
       });
     } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || "Gagal memuat ticket.");
+      setError(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Gagal memuat ticket.",
+      );
     } finally {
       setLoading(false);
     }
@@ -212,19 +242,21 @@ export default function EditTickets() {
   const handleChange = (field: keyof UiEditTicketForm, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
 
-    // re-validate field jika sebelumnya error
     if (fieldErrors[field as EditTicketField]) {
       const single = (editTicketSchema as any).pick({ [field]: true });
       const forCheck =
-        field === "projectId" || field === "requesterId" ? Number(value) : value;
+        field === "projectId" || field === "requesterId"
+          ? Number(value)
+          : value;
       const res = single.safeParse({ [field]: forCheck });
       setFieldErrors((fe) => ({
         ...fe,
-        [field as EditTicketField]: res.success ? undefined : res.error.issues[0]?.message,
+        [field as EditTicketField]: res.success
+          ? undefined
+          : res.error.issues[0]?.message,
       }));
     }
 
-    // UX: jika startDate berubah dan dueDate < startDate, kosongkan dueDate
     if (field === "startDate" && form.dueDate) {
       const s = new Date(value).getTime();
       const d = new Date(form.dueDate).getTime();
@@ -241,7 +273,6 @@ export default function EditTickets() {
     setSaving(true);
     setFieldErrors({});
 
-    // parse & validasi Zod
     const parsed = editTicketSchema.safeParse({
       projectId: form.projectId,
       requesterId: form.requesterId,
@@ -270,17 +301,19 @@ export default function EditTickets() {
       return;
     }
 
-
     const payload = toEditTicketPayload(parsed.data);
 
     try {
-      await axios.patch(`${API_BASE}/tickets/${id}`, payload, { headers: tokenHeader });
+      await axios.patch(`${API_BASE}/tickets/${id}`, payload, {
+        headers: tokenHeader,
+      });
       toast.success("Perubahan ticket disimpan", {
         description: "Update ticket berhasil tersimpan.",
       });
       navigate(`/admin/dashboard/tickets`);
     } catch (err: any) {
-      const msg2 = err?.response?.data?.message || "Gagal menyimpan perubahan.";
+      const msg2 =
+        err?.response?.data?.message || "Gagal menyimpan perubahan.";
       setError(msg2);
       toast.error("Gagal menyimpan ticket", {
         description: msg2,
@@ -288,7 +321,6 @@ export default function EditTickets() {
     } finally {
       setSaving(false);
     }
-
   };
 
   return (
@@ -318,15 +350,21 @@ export default function EditTickets() {
                     Back
                   </Button>
                 </div>
-                <h1 className="text-2xl font-semibold">{loading ? "Loading..." : "Edit Ticket"}</h1>
-                <p className="text-muted-foreground">Ubah detail ticket lalu simpan.</p>
+                <h1 className="text-2xl font-semibold">
+                  {loading ? "Loading..." : "Edit Ticket"}
+                </h1>
+                <p className="text-muted-foreground">
+                  Ubah detail ticket lalu simpan.
+                </p>
               </div>
 
               <div className="px-4 lg:px-6">
                 <Card>
                   <CardHeader>
                     <CardTitle>Ticket Information</CardTitle>
-                    <CardDescription>Edit fields you need to update</CardDescription>
+                    <CardDescription>
+                      Edit fields you need to update
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     {error && (
@@ -349,14 +387,18 @@ export default function EditTickets() {
                               <SelectValue
                                 placeholder={
                                   loadingOptions
-                                    ? (form.projectId ? `#${form.projectId}` : "Loading projects…")
+                                    ? form.projectId
+                                      ? `#${form.projectId}`
+                                      : "Loading projects…"
                                     : "Select a project"
                                 }
                               />
                             </SelectTrigger>
                             <SelectContent>
                               {loadingOptions ? (
-                                <div className="p-2 text-xs text-muted-foreground">Loading projects…</div>
+                                <div className="p-2 text-xs text-muted-foreground">
+                                  Loading projects…
+                                </div>
                               ) : (
                                 projects.map((p) => (
                                   <SelectItem key={p.id} value={String(p.id)}>
@@ -367,7 +409,9 @@ export default function EditTickets() {
                             </SelectContent>
                           </Select>
                           {fieldErrors.projectId && (
-                            <p className="text-xs text-red-600 mt-1">{fieldErrors.projectId}</p>
+                            <p className="text-xs text-red-600 mt-1">
+                              {fieldErrors.projectId}
+                            </p>
                           )}
                         </div>
 
@@ -382,14 +426,18 @@ export default function EditTickets() {
                               <SelectValue
                                 placeholder={
                                   loadingOptions
-                                    ? (form.requesterId ? `#${form.requesterId}` : "Loading requesters…")
+                                    ? form.requesterId
+                                      ? `#${form.requesterId}`
+                                      : "Loading requesters…"
                                     : "Select a requester"
                                 }
                               />
                             </SelectTrigger>
                             <SelectContent>
                               {loadingOptions ? (
-                                <div className="p-2 text-xs text-muted-foreground">Loading requesters…</div>
+                                <div className="p-2 text-xs text-muted-foreground">
+                                  Loading requesters…
+                                </div>
                               ) : (
                                 requesters.map((r) => (
                                   <SelectItem key={r.id} value={String(r.id)}>
@@ -400,7 +448,9 @@ export default function EditTickets() {
                             </SelectContent>
                           </Select>
                           {fieldErrors.requesterId && (
-                            <p className="text-xs text-red-600 mt-1">{fieldErrors.requesterId}</p>
+                            <p className="text-xs text-red-600 mt-1">
+                              {fieldErrors.requesterId}
+                            </p>
                           )}
                         </div>
                       </div>
@@ -426,7 +476,9 @@ export default function EditTickets() {
                             </SelectContent>
                           </Select>
                           {fieldErrors.type && (
-                            <p className="text-xs text-red-600 mt-1">{fieldErrors.type}</p>
+                            <p className="text-xs text-red-600 mt-1">
+                              {fieldErrors.type}
+                            </p>
                           )}
                         </div>
 
@@ -441,7 +493,9 @@ export default function EditTickets() {
                               <SelectValue placeholder="Select priority" />
                             </SelectTrigger>
                             <SelectContent>
-                              {(["LOW", "MEDIUM", "HIGH", "CRITICAL"] as const).map((p) => (
+                              {(
+                                ["LOW", "MEDIUM", "HIGH", "CRITICAL"] as const
+                              ).map((p) => (
                                 <SelectItem key={p} value={p}>
                                   {p}
                                 </SelectItem>
@@ -449,12 +503,14 @@ export default function EditTickets() {
                             </SelectContent>
                           </Select>
                           {fieldErrors.priority && (
-                            <p className="text-xs text-red-600 mt-1">{fieldErrors.priority}</p>
+                            <p className="text-xs text-red-600 mt-1">
+                              {fieldErrors.priority}
+                            </p>
                           )}
                         </div>
 
                         <div className="space-y-2">
-                          <Label>Status *</Label>
+                          <Label> Status *</Label>
                           <Select
                             value={form.status}
                             onValueChange={(v) => handleChange("status", v)}
@@ -464,17 +520,27 @@ export default function EditTickets() {
                               <SelectValue placeholder="Select status" />
                             </SelectTrigger>
                             <SelectContent>
-                              {(["NEW", "TO_DO", "IN_PROGRESS", "IN_REVIEW", "DONE", "RESOLVED", "CLOSED"] as const).map(
-                                (s) => (
-                                  <SelectItem key={s} value={s}>
-                                    {s}
-                                  </SelectItem>
-                                )
-                              )}
+                              {(
+                                [
+                                  "NEW",
+                                  "TO_DO",
+                                  "IN_PROGRESS",
+                                  "IN_REVIEW",
+                                  "DONE",
+                                  "RESOLVED",
+                                  "CLOSED",
+                                ] as const
+                              ).map((s) => (
+                                <SelectItem key={s} value={s}>
+                                  {s}
+                                </SelectItem>
+                              ))}
                             </SelectContent>
                           </Select>
                           {fieldErrors.status && (
-                            <p className="text-xs text-red-600 mt-1">{fieldErrors.status}</p>
+                            <p className="text-xs text-red-600 mt-1">
+                              {fieldErrors.status}
+                            </p>
                           )}
                         </div>
                       </div>
@@ -486,35 +552,41 @@ export default function EditTickets() {
                           id="title"
                           placeholder="Contoh: Fix login redirect issue"
                           value={form.title}
-                          onChange={(e) => handleChange("title", e.target.value)}
+                          onChange={(e) =>
+                            handleChange("title", e.target.value)
+                          }
                           disabled={saving || loading}
                           aria-invalid={!!fieldErrors.title}
                           required
                         />
                         {fieldErrors.title && (
-                          <p className="text-xs text-red-600 mt-1">{fieldErrors.title}</p>
+                          <p className="text-xs text-red-600 mt-1">
+                            {fieldErrors.title}
+                          </p>
                         )}
                       </div>
 
-                      {/* Description (WAJIB, min 10) */}
-                      <div className="space-y-2">
-                        <Label htmlFor="description">Description *</Label>
-                        <Textarea
-                          id="description"
-                          rows={5}
-                          placeholder="Jelaskan isu/permintaan… (min 10 karakter)"
-                          value={form.description}
-                          onChange={(e) => handleChange("description", e.target.value)}
-                          disabled={saving || loading}
-                          aria-invalid={!!fieldErrors.description}
-                          required
-                        />
-                        {fieldErrors.description && (
-                          <p className="text-xs text-red-600 mt-1">{fieldErrors.description}</p>
-                        )}
-                      </div>
+                      {/* Description - Markdown editor */}
+                      <MarkdownEditor
+                        label="Description *"
+                        value={form.description}
+                        onChange={(v) => handleChange("description", v)}
+                        helperText="Supports GitHub-style Markdown: **bold**, _italic_, ## heading, - list, `code`, dll."
+                        error={fieldErrors.description}
+                        disabled={saving || loading}
+                        placeholder={`## 1. Title
 
-                      {/* Dates (WAJIB) */}
+> Context
+- Jelaskan masalah yang terjadi
+
+## Expected
+- Jelaskan perilaku yang diharapkan
+
+## Notes
+- Info tambahan lain di sini`}
+                      />
+
+                      {/* Dates */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                           <Label htmlFor="startDate">Start Date *</Label>
@@ -522,13 +594,17 @@ export default function EditTickets() {
                             id="startDate"
                             type="datetime-local"
                             value={form.startDate}
-                            onChange={(e) => handleChange("startDate", e.target.value)}
+                            onChange={(e) =>
+                              handleChange("startDate", e.target.value)
+                            }
                             disabled={saving || loading}
                             aria-invalid={!!fieldErrors.startDate}
                             required
                           />
                           {fieldErrors.startDate && (
-                            <p className="text-xs text-red-600 mt-1">{fieldErrors.startDate}</p>
+                            <p className="text-xs text-red-600 mt-1">
+                              {fieldErrors.startDate}
+                            </p>
                           )}
                         </div>
                         <div className="space-y-2">
@@ -537,14 +613,18 @@ export default function EditTickets() {
                             id="dueDate"
                             type="datetime-local"
                             value={form.dueDate}
-                            onChange={(e) => handleChange("dueDate", e.target.value)}
+                            onChange={(e) =>
+                              handleChange("dueDate", e.target.value)
+                            }
                             disabled={saving || loading}
                             aria-invalid={!!fieldErrors.dueDate}
-                            min={form.startDate || undefined} // cegah pilih due < start via UI
+                            min={form.startDate || undefined}
                             required
                           />
                           {fieldErrors.dueDate && (
-                            <p className="text-xs text-red-600 mt-1">{fieldErrors.dueDate}</p>
+                            <p className="text-xs text-red-600 mt-1">
+                              {fieldErrors.dueDate}
+                            </p>
                           )}
                         </div>
                       </div>
@@ -553,7 +633,9 @@ export default function EditTickets() {
                         <Button
                           type="button"
                           variant="outline"
-                          onClick={() => navigate(`/admin/dashboard/tickets`)}
+                          onClick={() =>
+                            navigate(`/admin/dashboard/tickets`)
+                          }
                           disabled={saving}
                         >
                           Cancel

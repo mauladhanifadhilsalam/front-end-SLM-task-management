@@ -30,6 +30,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { IconArrowLeft, IconEdit, IconTrash } from "@tabler/icons-react";
 
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 import TicketComments from "./components/viewTicketsComment";
 import TicketAttachments from "./components/viewTicketsAttacment";
@@ -166,7 +168,7 @@ export default function ViewTickets() {
       };
 
       setTicket(normalized);
-   } catch (err: any) {
+    } catch (err: any) {
       const msg =
         err?.response?.data?.message ||
         err?.message ||
@@ -179,35 +181,33 @@ export default function ViewTickets() {
     } finally {
       setLoading(false);
     }
-
   }, [id, tokenHeader]);
 
   React.useEffect(() => {
     fetchTicket();
   }, [fetchTicket]);
 
-    const handleConfirmDelete = async () => {
-      if (!ticket) return;
-      setDeleting(true);
-      try {
-        await axios.delete(`${API_BASE}/tickets/${ticket.id}`, {
-          headers: tokenHeader,
-        });
+  const handleConfirmDelete = async () => {
+    if (!ticket) return;
+    setDeleting(true);
+    try {
+      await axios.delete(`${API_BASE}/tickets/${ticket.id}`, {
+        headers: tokenHeader,
+      });
 
-        toast.success("Ticket dihapus", {
-          description: `Ticket "${ticket.title}" berhasil dihapus.`,
-        });
+      toast.success("Ticket dihapus", {
+        description: `Ticket "${ticket.title}" berhasil dihapus.`,
+      });
 
-        navigate("/admin/dashboard/tickets");
-      } catch (err: any) {
-        const msg = err?.response?.data?.message || "Gagal menghapus ticket.";
-        toast.error("Gagal menghapus ticket", {
-          description: msg,
-        });
-        setDeleting(false);
-      }
-    };
-
+      navigate("/admin/dashboard/tickets");
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || "Gagal menghapus ticket.";
+      toast.error("Gagal menghapus ticket", {
+        description: msg,
+      });
+      setDeleting(false);
+    }
+  };
 
   return (
     <div>
@@ -246,48 +246,47 @@ export default function ViewTickets() {
                         asChild
                         className="cursor-pointer"
                       >
-                        <Link
-                          to={`/admin/dashboard/tickets/edit/${ticket.id}`}
-                        >
+                        <Link to={`/admin/dashboard/tickets/edit/${ticket.id}`}>
                           <IconEdit className="h-4 w-4 mr-1" />
                           Edit
                         </Link>
                       </Button>
 
-                     <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          className="flex items-center gap-2 cursor-pointer"
-                          disabled={deleting}
-                        >
-                          <IconTrash className="h-4 w-4 mr-1" />
-                          {deleting ? "Deleting..." : "Delete"}
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Hapus ticket?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            {ticket
-                              ? `Yakin ingin menghapus tiket “${ticket.title}”? Tindakan ini tidak dapat dikembalikan.`
-                              : "Yakin ingin menghapus tiket ini? Tindakan ini tidak dapat dikembalikan."}
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel disabled={deleting}>Batal</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={handleConfirmDelete}
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="flex items-center gap-2 cursor-pointer"
                             disabled={deleting}
-                            className="bg-red-600 hover:bg-red-700"
                           >
-                            {deleting ? "Menghapus..." : "Ya, hapus"}
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-
+                            <IconTrash className="h-4 w-4 mr-1" />
+                            {deleting ? "Deleting..." : "Delete"}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Hapus ticket?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              {ticket
+                                ? `Yakin ingin menghapus tiket “${ticket.title}”? Tindakan ini tidak dapat dikembalikan.`
+                                : "Yakin ingin menghapus tiket ini? Tindakan ini tidak dapat dikembalikan."}
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel disabled={deleting}>
+                              Batal
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={handleConfirmDelete}
+                              disabled={deleting}
+                              className="bg-red-600 hover:bg-red-700"
+                            >
+                              {deleting ? "Menghapus..." : "Ya, hapus"}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   )}
                 </div>
@@ -304,11 +303,6 @@ export default function ViewTickets() {
                     <CardTitle>
                       {loading ? "Loading…" : ticket?.title ?? "-"}
                     </CardTitle>
-                    <CardDescription>
-                      {loading
-                        ? "Mengambil data ticket…"
-                        : ticket?.description || "Tidak ada deskripsi."}
-                    </CardDescription>
                   </CardHeader>
 
                   <CardContent>
@@ -413,7 +407,6 @@ export default function ViewTickets() {
                           </div>
                         </div>
 
-                        {/* Assignees (opsional) */}
                         {Array.isArray(ticket.assignees) &&
                           ticket.assignees.length > 0 && (
                             <div className="md:col-span-2">
@@ -428,32 +421,33 @@ export default function ViewTickets() {
                                     a?.user?.name ||
                                     a?.user?.email ||
                                     `User#${a?.user?.id ?? idx + 1}`;
-                                  return (
-                                    <Badge key={idx}>{name}</Badge>
-                                  );
+                                  return <Badge key={idx}>{name}</Badge>;
                                 })}
                               </div>
                             </div>
                           )}
 
+                        {/* Description section with GitHub-style Markdown */}
                         <div className="md:col-span-2">
                           <Separator className="my-2" />
                           <div className="text-xs text-muted-foreground mb-1">
                             Description
                           </div>
-                          <div className="leading-relaxed">
-                            {ticket.description || (
-                              <span className="text-muted-foreground">—</span>
-                            )}
-                          </div>
+                          {ticket.description ? (
+                            <div className="markdown-body !bg-transparent !text-[14px] leading-relaxed">
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                {ticket.description}
+                              </ReactMarkdown>
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
                         </div>
-
 
                         <div className="md:col-span-2">
                           <Separator className="my-4" />
                           <TicketAttachments ticketId={ticket.id} />
                         </div>
-
 
                         <div className="md:col-span-2">
                           <Separator className="my-4" />
