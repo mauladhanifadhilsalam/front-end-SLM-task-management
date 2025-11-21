@@ -1,3 +1,4 @@
+// src/components/markdown-editor.tsx
 "use client"
 
 import * as React from "react"
@@ -6,6 +7,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
+import rehypeRaw from "rehype-raw"
+import rehypeHighlight from "rehype-highlight"
+import "highlight.js/styles/github-dark.css" 
+
 import {
   IconBold,
   IconItalic,
@@ -98,11 +103,8 @@ export function MarkdownEditor({
         break
     }
 
-    // pakai native API biar masuk ke undo stack (Ctrl+Z jalan)
     textarea.setRangeText(insert, start, end, "end")
-
-    const newValue = textarea.value
-    onChange(newValue)
+    onChange(textarea.value)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -111,32 +113,23 @@ export function MarkdownEditor({
     const textarea = e.currentTarget
     const start = textarea.selectionStart ?? 0
     const end = textarea.selectionEnd ?? 0
-
-    // kalau lagi select banyak text, biarin native behavior
     if (start !== end) return
 
-    const valueNow = textarea.value
-    const before = valueNow.slice(0, start)
-    const after = valueNow.slice(end)
+    const before = textarea.value.slice(0, start)
 
     const lastBreak = before.lastIndexOf("\n")
     const lineStart = lastBreak === -1 ? 0 : lastBreak + 1
     const currentLine = before.slice(lineStart)
 
-    // bullet list: "- " / "* " / "+ "
     const bulletMatch = currentLine.match(/^(\s*[-*+] )(.+)?$/)
-    // ordered list: "1. " / "2. " etc
     const numberMatch = currentLine.match(/^(\s*)(\d+)\. (.*)?$/)
 
-    // kalau line cuma marker doang (misal: "- " lalu Enter) → keluar dari list
     if (
       bulletMatch &&
       (!bulletMatch[2] || bulletMatch[2].trim().length === 0)
     ) {
       e.preventDefault()
-      // hapus marker, ganti jadi baris kosong
-      const replace = "\n"
-      textarea.setRangeText(replace, lineStart, start, "end")
+      textarea.setRangeText("\n", lineStart, start, "end")
       onChange(textarea.value)
       return
     }
@@ -146,17 +139,15 @@ export function MarkdownEditor({
       (!numberMatch[3] || numberMatch[3].trim().length === 0)
     ) {
       e.preventDefault()
-      const replace = "\n"
-      textarea.setRangeText(replace, lineStart, start, "end")
+      textarea.setRangeText("\n", lineStart, start, "end")
       onChange(textarea.value)
       return
     }
 
     if (bulletMatch) {
       e.preventDefault()
-      const prefix = bulletMatch[1] // termasuk "- "
-      const insert = `\n${prefix}`
-      textarea.setRangeText(insert, start, end, "end")
+      const prefix = bulletMatch[1]
+      textarea.setRangeText(`\n${prefix}`, start, end, "end")
       onChange(textarea.value)
       return
     }
@@ -166,13 +157,10 @@ export function MarkdownEditor({
       const indent = numberMatch[1] || ""
       const currentNum = parseInt(numberMatch[2], 10)
       const nextNum = isNaN(currentNum) ? 1 : currentNum + 1
-      const insert = `\n${indent}${nextNum}. `
-      textarea.setRangeText(insert, start, end, "end")
+      textarea.setRangeText(`\n${indent}${nextNum}. `, start, end, "end")
       onChange(textarea.value)
       return
     }
-
-    // kalau bukan list → biarin default
   }
 
   return (
@@ -214,7 +202,6 @@ export function MarkdownEditor({
 
       {mode === "write" ? (
         <div className="rounded-md border bg-background">
-          {/* toolbar */}
           <div className="flex flex-wrap items-center gap-1 border-b px-2 py-1">
             <Button
               type="button"
@@ -326,7 +313,10 @@ export function MarkdownEditor({
         <div className="min-h-[150px] rounded-md border bg-muted/40 px-3 py-2 text-sm">
           {value.trim() ? (
             <div className="markdown-body !bg-transparent !text-[14px]">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                rehypePlugins={[rehypeRaw, rehypeHighlight]}
+              >
                 {value}
               </ReactMarkdown>
             </div>
