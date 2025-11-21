@@ -1,6 +1,8 @@
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 import "./index.css"
+import "github-markdown-css/github-markdown.css"       
+import "github-markdown-css/github-markdown-dark.css"
 import "./App.css"
 import { BrowserRouter } from "react-router-dom"
 import { ThemeProvider } from "./components/theme-provider"

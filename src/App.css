@@ -168,3 +168,44 @@ input[type="password"] {
   appearance: none;
   -webkit-appearance: none;
 }
+
+.markdown-body {
+  background-color: transparent !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+
+.markdown-body a {
+  color: hsl(var(--primary)) !important;
+  text-decoration: underline;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+  padding-left: 1.5rem;
+}
+
+
+.dark .markdown-body {
+  background-color: transparent !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+.markdown-body ul {
+  list-style: disc;
+  padding-left: 1.5rem;
+}
+
+.markdown-body ol {
+  list-style: decimal;
+  padding-left: 1.5rem;
+}
+
+.markdown-body ul ul,
+.markdown-body ul ol,
+.markdown-body ol ul,
+.markdown-body ol ol {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+

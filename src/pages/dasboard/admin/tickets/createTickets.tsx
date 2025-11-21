@@ -2,7 +2,7 @@ import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "sonner";
-
+import { MarkdownEditor } from "@/components/markdown-editor";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -363,17 +363,17 @@ export default function CreateTickets() {
 
                         {/* Description (WAJIB) */}
                         <div className="space-y-2">
-                          <Label htmlFor="description">Description *</Label>
-                          <Textarea
-                            id="description"
-                            rows={5}
-                            placeholder="Deskripsikan isu/permintaan secara jelas… (min 10 karakter)"
-                            value={form.description}
-                            onChange={(e) => handleChange("description", e.target.value)}
-                            disabled={saving}
-                            aria-invalid={!!fieldErrors.description}
-                            required
-                          />
+
+                                <MarkdownEditor
+                                  label="Description *"
+                                  value={form.description}
+                                  onChange={(v) => handleChange("description", v)}
+                                  helperText="Use Markdown: **bold**, _italic_, ## heading, - list, `code`, dll."
+                                  error={fieldErrors.description}
+                                  disabled={saving}
+                                  placeholder='Use Markdown'
+                                />
+
                           {fieldErrors.description && (
                             <p className="text-xs text-red-600 mt-1">{fieldErrors.description}</p>
                           )}
