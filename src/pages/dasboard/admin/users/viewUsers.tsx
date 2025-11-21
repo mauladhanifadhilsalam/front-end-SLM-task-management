@@ -1,118 +1,30 @@
+"use client"
+
+import * as React from "react"
+import { useNavigate, useParams, Link } from "react-router-dom"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import * as React from "react"
-import { useNavigate, useParams, Link } from "react-router-dom"
-import axios from "axios"
 import { IconArrowLeft, IconEdit, IconTrash } from "@tabler/icons-react"
-import { toast } from "sonner"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-    AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+import { Card, CardContent } from "@/components/ui/card"
+import { UserDeleteDialog } from "./components/users-delete-dialog" 
+import { UserDetailCard } from "./components/users-detail-card"
+import { useViewUser } from "./hooks/use-view-user"
 
-type Role = "admin" | "project_manager" | "developer"
-
-type User = {
-  id: number
-  fullName: string
-  email: string
-  role: Role
-  createdAt: string
-}
-
-const API_BASE = import.meta.env.VITE_API_BASE
-
-export default function ViewUser() {
-  const { id } = useParams<{ id: string }>()
+export default function ViewUserPage() {
   const navigate = useNavigate()
-  const [user, setUser] = React.useState<User | null>(null)
-  const [loading, setLoading] = React.useState(true)
-  const [error, setError] = React.useState<string>("")
-  const [deleting, setDeleting] = React.useState(false)
-
-  const fetchUser = React.useCallback(async () => {
-    if (!id) return
-    setLoading(true)
-    setError("")
-    try {
-      const token = localStorage.getItem("token")
-      const res = await axios.get(`${API_BASE}/users/${id}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      })
-      const d: any = res.data?.data ?? res.data
-      const normalized: User = {
-        id: Number(d.id),
-        fullName: d.fullName ?? d.name ?? d.full_name ?? "",
-        email: d.email ?? "",
-        role: (d.role as Role) ?? (d.user_role as Role) ?? "developer",
-        createdAt: d.createdAt ?? d.created_at ?? new Date().toISOString(),
-      }
-      setUser(normalized)
-    } catch (e: any) {
-      const msg = e?.response?.data?.message || "Gagal memuat data user"
-      setError(msg)
-      toast.error("Gagal memuat user", {
-        description: msg,
-      })
-    } finally {
-      setLoading(false)
-    }
-  }, [id])
-
-  React.useEffect(() => {
-    fetchUser()
-  }, [fetchUser])
-
-  const handleConfirmDelete = async () => {
-    if (!user) return
-    setDeleting(true)
-    try {
-      const token = localStorage.getItem("token")
-      await axios.delete(`${API_BASE}/users/${user.id}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      })
-
-      toast.success("User dihapus", {
-        description: `User "${user.fullName}" berhasil dihapus.`,
-      })
-
-      navigate("/admin/dashboard/users")
-    } catch (e: any) {
-      const msg = e?.response?.data?.message || "Gagal menghapus user"
-      setError(msg)
-      toast.error("Gagal menghapus user", {
-        description: msg,
-      })
-    } finally {
-      setDeleting(false)
-    }
-  }
-
-  const formatDate = (iso?: string) => {
-    if (!iso) return "-"
-    try {
-      return new Date(iso).toLocaleString("id-ID")
-    } catch {
-      return iso
-    }
-  }
+  const { id } = useParams<{ id: string }>()
+  const {
+    user,
+    loading,
+    deleting,
+    error,
+    handleDelete,
+  } = useViewUser({
+    userId: id,
+    onDeleted: () => navigate("/admin/dashboard/users"),
+  })
 
   return (
     <div>
@@ -135,66 +47,50 @@ export default function ViewUser() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => navigate("/admin/dashboard/users")}
+                      onClick={() =>
+                        navigate("/admin/dashboard/users")
+                      }
                       className="flex items-center gap-2"
                     >
                       <IconArrowLeft className="h-4 w-4" />
                       Kembali
                     </Button>
-                    <div className="ml-auto flex items-center gap-2">
-                      {user && (
-                        <Link to={`/admin/dashboard/users/edit/${user.id}`}>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="flex items-center gap-2"
-                          >
-                            <IconEdit className="h-4 w-4" />
-                            Edit
-                          </Button>
-                        </Link>
-                      )}
 
-                      {/* AlertDialog untuk konfirmasi delete */}
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            className="flex items-center gap-2"
-                            disabled={!user || deleting}
-                          >
-                            <IconTrash className="h-4 w-4" />
-                            {deleting ? "Menghapus..." : "Delete"}
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Hapus user?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              {user
-                                ? `Yakin ingin menghapus user "${user.fullName}"? Tindakan ini tidak dapat dikembalikan.`
-                                : "Yakin ingin menghapus user ini? Tindakan ini tidak dapat dikembalikan."}
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel disabled={deleting}>
-                              Batal
-                            </AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={handleConfirmDelete}
+                    <div className="ml-auto flex items-center gap-2">
+
+                      <div className="ml-auto flex items-center gap-2">
+                          {user && (
+                            <Link to={`/admin/dashboard/users/edit/${user.id}`}>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="flex items-center gap-2"
+                              >
+                                <IconEdit className="h-4 w-4" />
+                                Edit
+                              </Button>
+                            </Link>
+                          )}
+
+                          {user && (
+                            <UserDeleteDialog
+                              userId={user.id}
+                              userName={user.fullName}
+                              triggerVariant="button"
+                              triggerLabel="Delete"
+                              loading={deleting}
                               disabled={deleting}
-                              className="bg-red-600 hover:bg-red-700"
-                            >
-                              {deleting ? "Menghapus..." : "Ya, hapus"}
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                              onConfirm={handleDelete}
+                            />
+                          )}
+                        </div>
+
                     </div>
                   </div>
 
-                  <h1 className="text-2xl font-semibold">Detail User</h1>
+                  <h1 className="text-2xl font-semibold">
+                    Detail User
+                  </h1>
                   <p className="text-muted-foreground">
                     Lihat informasi lengkap user.
                   </p>
@@ -220,50 +116,7 @@ export default function ViewUser() {
                       User tidak ditemukan.
                     </div>
                   ) : (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>{user.fullName || "-"}</CardTitle>
-                        <CardDescription>
-                          Informasi akun dan meta
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <div className="text-sm text-muted-foreground">
-                              ID
-                            </div>
-                            <div className="font-medium">{user.id}</div>
-                          </div>
-                          <div>
-                            <div className="text-sm text-muted-foreground">
-                              Role
-                            </div>
-                            <div className="mt-1">
-                              <Badge className="capitalize">
-                                {user.role.replace("_", " ")}
-                              </Badge>
-                            </div>
-                          </div>
-
-                          <div>
-                            <div className="text-sm text-muted-foreground">
-                              Email
-                            </div>
-                            <div className="font-medium">{user.email}</div>
-                          </div>
-
-                          <div>
-                            <div className="text-sm text-muted-foreground">
-                              Dibuat
-                            </div>
-                            <div className="font-medium">
-                              {formatDate(user.createdAt)}
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <UserDetailCard user={user} />
                   )}
                 </div>
               </div>
