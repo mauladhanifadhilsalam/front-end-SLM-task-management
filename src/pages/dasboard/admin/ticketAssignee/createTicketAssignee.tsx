@@ -446,25 +446,31 @@ export default function CreateTicketAssigneePage() {
                         return rest;
                       });
                     }}
-                    disabled={!formData.projectId || loading}
+                    disabled={!formData.projectId || loading || tickets.length === 0}
                   >
                     <SelectTrigger className="w-[500px] rounded-lg">
                       <SelectValue
                         placeholder={
-                          formData.projectId
-                            ? tickets.length > 0
-                              ? "Pilih Ticket"
-                              : "Tidak ada ticket dalam project ini"
-                            : "Pilih project terlebih dahulu"
+                          !formData.projectId
+                            ? "Pilih project terlebih dahulu"
+                            : tickets.length === 0
+                            ? "Tidak ada ticket di project ini"
+                            : "Pilih Ticket"
                         }
                       />
                     </SelectTrigger>
                     <SelectContent>
-                      {tickets.map((t) => (
-                        <SelectItem key={t.id} value={t.id.toString()}>
-                          {t.title}
-                        </SelectItem>
-                      ))}
+                      {tickets.length === 0 ? (
+                        <div className="px-2 py-6 text-center text-sm text-muted-foreground">
+                          Tidak ada ticket di project ini
+                        </div>
+                      ) : (
+                        tickets.map((t) => (
+                          <SelectItem key={t.id} value={t.id.toString()}>
+                            {t.title}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                   {validationErrors.ticketId && (
