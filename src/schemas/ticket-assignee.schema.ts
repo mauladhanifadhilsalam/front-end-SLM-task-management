@@ -1,91 +1,88 @@
 import { z } from "zod";
 
-// --- ENUMS ---
-
-// Definisi Role User untuk Assignee
-export const AssigneeRoleEnum = z.enum(["ENGINEER", "DEVELOPER", "SUPPORT", "ADMIN"] as const);
-
-
-// --- UTILITY REFINEMENT FUNCTION ---
-// Fungsi utilitas untuk memvalidasi ID: harus angka, terhingga, dan lebih besar dari 0.
-// Disarankan juga memastikan ID adalah bilangan bulat (integer)
-const numericIdRefinement = (v: number) => Number.isFinite(v) && Number.isInteger(v) && v > 0;
-const numericIdMessage = "ID wajib berupa bilangan bulat positif.";
-
-
-// --- CREATE TICKET ASSIGNEE SCHEMA ---
-
-/**
- * @description Skema validasi untuk membuat penugasan tiket baru.
- * Memastikan ID Ticket dan ID User valid (bilangan bulat positif).
- */
+// Schema untuk validasi form Create Ticket Assignee
 export const createTicketAssigneeSchema = z.object({
-  // Ticket ID harus berupa angka positif
-  ticketId: z
-    .union([z.string(), z.number()])
-    .transform((v) => Number(v))
-    .refine(numericIdRefinement, { message: "Ticket wajib dipilih dan berupa ID valid." }),
+  projectId: z
+    .union([z.number(), z.undefined()])
+    .refine((val) => val !== undefined, {
+      message: "Project wajib dipilih",
+    })
+    .transform((val) => val as number)
+    .pipe(
+      z
+        .number()
+        .int({ message: "Project ID harus berupa bilangan bulat" })
+        .positive({ message: "Project ID harus bernilai positif" })
+    ),
 
-  // User ID (Assignee) harus berupa angka positif
-  userId: z
-    .union([z.string(), z.number()])
-    .transform((v) => Number(v))
-    .refine(numericIdRefinement, { message: "Assignee wajib dipilih dan berupa ID valid." }),
-    
-  // Role opsional, jika Anda ingin menentukan peran assignee
-  role: AssigneeRoleEnum.optional(),
+  ticketId: z
+    .union([z.number(), z.undefined()])
+    .refine((val) => val !== undefined, {
+      message: "Ticket wajib dipilih",
+    })
+    .transform((val) => val as number)
+    .pipe(
+      z
+        .number()
+        .int({ message: "Ticket ID harus berupa bilangan bulat" })
+        .positive({ message: "Ticket ID harus bernilai positif" })
+    ),
+
+  userIds: z
+    .array(
+      z
+        .number()
+        .int({ message: "User ID harus berupa bilangan bulat" })
+        .positive({ message: "User ID harus bernilai positif" })
+    )
+    .min(1, { message: "Minimal satu assignee harus dipilih" }),
 });
 
-export type CreateTicketAssigneeValues = z.infer<typeof createTicketAssigneeSchema>;
-export type CreateTicketAssigneeField = keyof CreateTicketAssigneeValues;
+// Type inference untuk TypeScript
+export type CreateTicketAssigneeInput = z.infer<typeof createTicketAssigneeSchema>;
 
-/** Convert nilai dari schema (valid) ke payload API untuk CREATE */
-export function toCreateTicketAssigneePayload(v: CreateTicketAssigneeValues) {
-  return {
-    ticketId: v.ticketId,
-    userId: v.userId,
-    role: v.role, // Akan menjadi undefined/null jika opsional dan tidak diisi
-  };
-}
-
-// --- EDIT TICKET ASSIGNEE SCHEMA ---
-
-/**
- * @description Skema validasi untuk mengedit penugasan tiket yang sudah ada.
- * (Biasanya hanya mengedit role, atau mengganti user)
- */
-export const editTicketAssigneeSchema = z.object({
-  // ID Penugasan (jika Anda memiliki ID untuk relasi many-to-many)
-  id: z
-    .union([z.string(), z.number()])
-    .transform((v) => Number(v))
-    .refine(numericIdRefinement, { message: "ID Penugasan tidak valid." }),
-    
-  // Ticket ID (Dipertahankan)
+// Schema untuk validasi individual assignment (saat post ke API)
+export const ticketAssignmentSchema = z.object({
   ticketId: z
-    .union([z.string(), z.number()])
-    .transform((v) => Number(v))
-    .refine(numericIdRefinement, { message: "Ticket wajib dipilih dan berupa ID valid." }),
+    .number()
+    .int({ message: "Ticket ID harus berupa bilangan bulat" })
+    .positive({ message: "Ticket ID harus bernilai positif" }),
 
-  // User ID baru (Assignee baru)
   userId: z
-    .union([z.string(), z.number()])
-    .transform((v) => Number(v))
-    .refine(numericIdRefinement, { message: "Assignee wajib dipilih dan berupa ID valid." }),
-    
-  // Role baru opsional
-  role: AssigneeRoleEnum.optional(),
+    .number()
+    .int({ message: "User ID harus berupa bilangan bulat" })
+    .positive({ message: "User ID harus bernilai positif" }),
 });
 
-export type EditTicketAssigneeValues = z.infer<typeof editTicketAssigneeSchema>;
-export type EditTicketAssigneeField = keyof EditTicketAssigneeValues;
+export type TicketAssignmentInput = z.infer<typeof ticketAssignmentSchema>;
 
-/** Convert nilai dari schema (valid) ke payload API untuk EDIT */
-export function toEditTicketAssigneePayload(v: EditTicketAssigneeValues) {
-  return {
-    id: v.id,
-    ticketId: v.ticketId,
-    userId: v.userId,
-    role: v.role,
-  };
-}
+// Schema untuk response data
+export const userSchema = z.object({
+  id: z.number().int().positive(),
+  fullName: z.string().min(1, { message: "Nama lengkap tidak boleh kosong" }),
+  email: z.string().email({ message: "Format email tidak valid" }),
+});
+
+export const projectSchema = z.object({
+  id: z.number().int().positive(),
+  name: z.string().min(1, { message: "Nama project tidak boleh kosong" }),
+  description: z.string().optional(),
+});
+
+export const ticketAssigneeSchema = z.object({
+  id: z.number().int().positive(),
+  user: userSchema,
+});
+
+export const ticketSchema = z.object({
+  id: z.number().int().positive(),
+  title: z.string().min(1, { message: "Judul ticket tidak boleh kosong" }),
+  projectId: z.number().int().positive(),
+  assignees: z.array(ticketAssigneeSchema).default([]),
+});
+
+// Type exports
+export type User = z.infer<typeof userSchema>;
+export type Project = z.infer<typeof projectSchema>;
+export type Ticket = z.infer<typeof ticketSchema>;
+export type TicketAssignee = z.infer<typeof ticketAssigneeSchema>;
