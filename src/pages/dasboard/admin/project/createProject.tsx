@@ -37,6 +37,15 @@ import {
 import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
 
+// 👉 Tambahkan import schema project di sini
+import {
+  createProjectSchema,
+  updateProjectSchema,
+  type CreateProjectValues,
+  type UpdateProjectValues,
+} from "@/schemas/project.schema"
+
+
 const API_BASE = import.meta.env.VITE_API_BASE
 
 interface ProjectOwner {
@@ -193,197 +202,174 @@ export default function CreateProjectPage() {
     )
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+  e.preventDefault()
+  setLoading(true)
 
-      if (!formData.name || !formData.ownerId) {
-        toast.warning("Form belum lengkap", {
-          description: "Nama project dan pemilik wajib diisi.",
-        })
-        setLoading(false)
-        return
-      }
-
-    if (!formData.startDate || !formData.endDate) {
-            toast.warning("Form belum lengkap", {
-        description: "Tanggal Mulai dan Tanggal Selesai wajib diisi.",
-      })
-      setLoading(false)
-      return
-    }
-
-    if (formData.categories.length === 0 || formData.categories[0].trim() === "") {
-        toast.warning("Kategori belum diisi", {
-          description: "Project wajib memiliki minimal satu kategori.",
-        })
-
-      setLoading(false)
-      return
-    }
-
-    if (isInvalidDateRange) {
-            toast.warning("Rentang tanggal project tidak valid", {
-        description: "Tanggal selesai tidak boleh sama atau sebelum tanggal mulai project.",
-      })
-
-      setLoading(false)
-      return
-    }
-
-    if (isAnyPhaseStartTooEarly) {
-        toast.warning("Tanggal fase tidak valid", {
-      description: "Tanggal mulai fase tidak boleh sebelum tanggal mulai project utama.",
+  // --- Validasi dasar ---
+  if (!formData.name || !formData.ownerId) {
+    toast.warning("Form belum lengkap", {
+      description: "Nama project dan pemilik wajib diisi.",
     })
+    setLoading(false)
+    return
+  }
 
-      setLoading(false)
-      return
-    }
-
-    if (isAnyPhaseStartTooLate) {
-          toast.warning("Tanggal fase tidak valid", {
-      description: "Tanggal mulai fase tidak boleh setelah tanggal selesai project utama.",
+  if (!formData.startDate || !formData.endDate) {
+    toast.warning("Form belum lengkap", {
+      description: "Tanggal Mulai dan Tanggal Selesai wajib diisi.",
     })
+    setLoading(false)
+    return
+  }
 
-      setLoading(false)
-      return
-    }
+  if (formData.categories.length === 0 || formData.categories[0].trim() === "") {
+    toast.warning("Kategori belum diisi", {
+      description: "Project wajib memiliki minimal satu kategori.",
+    })
+    setLoading(false)
+    return
+  }
 
-    if (isAnyPhaseEndTooLate) {
-     toast.warning("Tanggal fase tidak valid", {
-         description: "Tanggal selesai fase tidak boleh setelah tanggal selesai project utama.",
-})
+  if (isInvalidDateRange) {
+    toast.warning("Rentang tanggal project tidak valid", {
+      description: "Tanggal selesai tidak boleh sama atau sebelum tanggal mulai project.",
+    })
+    setLoading(false)
+    return
+  }
 
-      setLoading(false)
-      return
-    }
-
-    if (invalidPhaseIndex !== -1) {
-      toast.warning("Tanggal fase tidak valid", {
-        description: `Tanggal selesai fase ${
-          invalidPhaseIndex + 1
-        } tidak boleh sama atau sebelum tanggal mulai fase.`,
-      })
-
-      setLoading(false)
-      return
-    }
-
-    if (hasIncompleteAssignment) {
-     toast.warning("Assignment tim belum lengkap", {
+  if (hasIncompleteAssignment) {
+    toast.warning("Assignment tim belum lengkap", {
       description: "Semua assignment harus memiliki User dan Role yang valid.",
     })
-
-      setLoading(false)
-      return
-    }
-
-    const token = localStorage.getItem("token")
-    if (!token) {
-      toast.error("Otorisasi gagal", {
-        description: "Token tidak ditemukan. Silakan login kembali.",
-      })
-      setLoading(false)
-      navigate("/login")
-      return
-    }
-
-
-    try {
-      const raw =
-        typeof formData.completion === "string"
-          ? formData.completion.trim()
-          : String(formData.completion)
-      const parsed = raw ? parseFloat(raw.replace(",", ".")) : NaN
-      const completionValue = Number.isFinite(parsed)
-        ? Math.max(0, Math.min(100, parsed))
-        : 0
-
-      const phases = formData.phases
-        .filter((p) => p.name.trim() !== "")
-        .map((p) => ({
-          name: p.name.trim(),
-          startDate: p.startDate ? p.startDate.toISOString() : null,
-          endDate: p.endDate ? p.endDate.toISOString() : null,
-        }))
-
-      const assignments = formData.assignments
-        .filter((a) => a.userId > 0 && a.roleInProject.trim() !== "")
-        .map((a) => ({
-          userId: a.userId,
-          roleInProject: a.roleInProject.trim(),
-        }))
-
-      const payload: any = {
-        name: formData.name.trim(),
-        categories: formData.categories.filter((c) => c.trim() !== ""),
-        ownerId: formData.ownerId,
-        startDate: formData.startDate!.toISOString(),
-        endDate: formData.endDate!.toISOString(),
-        status: formData.status,
-        completion: completionValue,
-        notes: formData.notes.trim() || null,
-      }
-
-      if (phases.length > 0) {
-        payload.phases = phases
-      }
-
-      if (assignments.length > 0) {
-        payload.assignments = assignments
-      }
-
-      console.log("📦 FINAL PAYLOAD:")
-      console.log(JSON.stringify(payload, null, 2))
-
-      const response = await axios.post(`${API_BASE}/projects`, payload, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      })
-
-            toast.success("Project berhasil dibuat", {
-          description: `Project "${formData.name}" berhasil dibuat.`,
-        })
-
-        navigate("/admin/dashboard/projects")
-
-    } catch (err: any) {
-      console.error("❌ FULL ERROR:", err)
-
-      let errorText =
-        "Gagal membuat project. Terjadi kesalahan jaringan atau server tidak merespons."
-
-      if (err.response) {
-        const status = err.response.status
-        const data = err.response.data
-
-        if (status === 401) {
-          errorText = "Otorisasi Gagal. Token tidak valid. Silakan login ulang."
-          navigate("/login")
-        } else if (status === 400) {
-          const zodIssues = data?.issues
-            ? data.issues.map((i: any) => i.message).join(", ")
-            : null
-          errorText =
-            zodIssues ||
-            data?.message ||
-            "Data tidak valid (Bad Request). Periksa format ID, tanggal, dan struktur assignment/phase."
-        } else if (status === 404) {
-          errorText = data?.message || "Resource tidak ditemukan."
-        } else {
-          errorText = data?.message || `Server Error: ${status}.`
-        }
-      }
-
-      toast.error("Gagal membuat project", {
-          description: errorText,
-        })
-
-    } finally {
-      setLoading(false)
-    }
+    setLoading(false)
+    return
   }
+
+  // 🚨 Validasi tambahan untuk notes
+  if (!formData.notes || formData.notes.trim() === "") {
+    toast.warning("Catatan belum diisi", {
+      description: "Project wajib memiliki catatan (notes).",
+    })
+    setLoading(false)
+    return
+  }
+
+  // 🚨 Validasi tambahan untuk phases
+  if (!formData.phases || formData.phases.length === 0) {
+    toast.warning("Fase belum diisi", {
+      description: "Project wajib memiliki minimal satu fase.",
+    })
+    setLoading(false)
+    return
+  }
+
+  const token = localStorage.getItem("token")
+  if (!token) {
+    toast.error("Otorisasi gagal", {
+      description: "Token tidak ditemukan. Silakan login kembali.",
+    })
+    setLoading(false)
+    navigate("/login")
+    return
+  }
+
+  try {
+    // --- Normalisasi completion ---
+    const raw =
+      typeof formData.completion === "string"
+        ? formData.completion.trim()
+        : String(formData.completion)
+    const parsed = raw ? parseFloat(raw.replace(",", ".")) : NaN
+    const completionValue = Number.isFinite(parsed)
+      ? Math.max(0, Math.min(100, parsed))
+      : 0
+
+    // --- Normalisasi phases (array sederhana) ---
+    const phases = formData.phases
+      .filter((p) => p.name.trim() !== "")
+      .map((p) => ({
+        name: p.name.trim(),
+        startDate: p.startDate ? p.startDate.toISOString() : undefined,
+        endDate: p.endDate ? p.endDate.toISOString() : undefined,
+      }))
+
+    // --- Normalisasi assignments (array sederhana) ---
+    const assignments = formData.assignments
+      .filter((a) => a.userId > 0 && a.roleInProject.trim() !== "")
+      .map((a) => ({
+        userId: a.userId,
+        roleInProject: a.roleInProject.trim(),
+      }))
+
+    // --- Payload utama ---
+    const payload: any = {
+      name: formData.name.trim(),
+      categories: formData.categories.filter((c) => c.trim() !== ""),
+      ownerId: formData.ownerId,
+      startDate: formData.startDate!.toISOString(),
+      endDate: formData.endDate!.toISOString(),
+      status: formData.status,
+      completion: completionValue,
+      notes: formData.notes.trim(), // notes wajib
+      phases,                       // phases wajib
+    }
+
+    if (assignments.length > 0) {
+      payload.assignments = assignments
+    }
+
+    console.log("📦 FINAL PAYLOAD:")
+    console.log(JSON.stringify(payload, null, 2))
+
+    await axios.post(`${API_BASE}/projects`, payload, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
+    toast.success("Project berhasil dibuat", {
+      description: `Project "${formData.name}" berhasil dibuat.`,
+    })
+
+    navigate("/admin/dashboard/projects")
+  } catch (err: any) {
+    console.error("❌ FULL ERROR:", err)
+
+    let errorText =
+      "Gagal membuat project. Terjadi kesalahan jaringan atau server tidak merespons."
+
+    if (err.response) {
+      const status = err.response.status
+      const data = err.response.data
+
+      if (status === 401) {
+        errorText = "Otorisasi Gagal. Token tidak valid. Silakan login ulang."
+        navigate("/login")
+      } else if (status === 400) {
+        const zodIssues = data?.issues
+          ? data.issues.map((i: any) => i.message).join(", ")
+          : null
+        errorText =
+          zodIssues ||
+          data?.message ||
+          "Data tidak valid (Bad Request). Periksa format ID, tanggal, dan struktur assignment/phase."
+      } else if (status === 404) {
+        errorText = data?.message || "Resource tidak ditemukan."
+      } else {
+        errorText = data?.message || `Server Error: ${status}.`
+      }
+    }
+
+    toast.error("Gagal membuat project", {
+      description: errorText,
+    })
+  } finally {
+    setLoading(false)
+  }
+}
+
 
   return (
     <SidebarProvider
@@ -433,8 +419,7 @@ export default function CreateProjectPage() {
                       onChange={(e) =>
                         setFormData({ ...formData, name: e.target.value })
                       }
-                      placeholder="Masukkan nama project"
-                      required
+                      placeholder="Masukkan nama project"                  
                       disabled={loading}
                     />
                   </div>
@@ -945,9 +930,11 @@ export default function CreateProjectPage() {
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectGroup>
-                                            <SelectItem value="PROJECT_MANAGER">Project Manager</SelectItem>
+                                            <SelectItem value="TECH_LEAD">Tech Lead</SelectItem>
                                             <SelectItem value="BACK_END">Backend Developer</SelectItem>
                                             <SelectItem value="FRONT_END">Frontend Developer</SelectItem>
+                                            <SelectItem value="DEVOPS">DevOps</SelectItem>
+                                            <SelectItem value="CLOUD_ENGINEER">Cloud Engineer</SelectItem> 
                                         </SelectGroup>
                                     </SelectContent>
                                  </Select>
