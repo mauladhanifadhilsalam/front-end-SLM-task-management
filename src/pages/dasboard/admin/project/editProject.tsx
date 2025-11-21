@@ -469,7 +469,6 @@ export default function EditProject() {
                       <Input
                         value={formData.name}
                         onChange={(e) => handleChange("name", e.target.value)}
-                        required
                         disabled={saving}
                       />
                     </div>
@@ -559,20 +558,8 @@ export default function EditProject() {
                             <SelectItem value="DONE">DONE</SelectItem>
                         </SelectContent>
                       </Select>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="completion">Progress</Label>
-                      <Input 
-                          id="completion" 
-                          type="text"
-                          value={formData.completion}
-                          onChange={(e) => handleChange("completion", e.target.value)}
-                          placeholder="Contoh: 45.5 atau 67.25"
-                          disabled={saving}
-                      />
-                    </div>
-
+                    </div>                    
+                     <br />                     
                     <div className="space-y-2">
                       <Label>Start Date *</Label>
                       <Popover>
@@ -647,7 +634,7 @@ export default function EditProject() {
                       id="notes"
                       value={formData.notes}
                       onChange={(e) => handleChange("notes", e.target.value)}
-                      placeholder="Catatan tambahan (opsional)"
+                      placeholder="Catatan tambahan"
                       disabled={saving}
                     />
                   </div>
