@@ -5,9 +5,9 @@ import { useNavigate } from "react-router-dom"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
-import { useAdminUsers } from "./users/hooks/use-admin-user"
-import { UsersToolbar } from "./users/components/users-toolbar"
-import { UsersTable } from "./users/components/users-table"
+import { useAdminUsers } from "@/features/users/hooks/use-admin-user"
+import { UsersToolbar } from "@/features/users/components/users-toolbar"
+import { UsersTable } from "@/features/users/components/users-table"
 
 export default function AdminUsers() {
   const navigate = useNavigate()

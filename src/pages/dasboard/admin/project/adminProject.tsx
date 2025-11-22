@@ -5,10 +5,10 @@ import { useNavigate } from "react-router-dom"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
-import { useAdminProjects } from "./project/hooks/use-admin-projects"
-import { ProjectsToolbar } from "./project/components/projects-toolbar"
-import { ProjectsTable } from "./project/components/projects-table"
-import { ProjectsEmptyState, ProjectsSearchEmptyState } from "./project/components/projecs-empty-state"
+import { useAdminProjects } from "@/features/projects/hooks/use-admin-projects"
+import { ProjectsToolbar } from "@/features/projects/components/projects-toolbar"
+import { ProjectsTable } from "@/features/projects/components/projects-table"
+import { ProjectsEmptyState, ProjectsSearchEmptyState } from "../../../../features/projects/components/projecs-empty-state"
 export default function AdminProjects() {
   const navigate = useNavigate()
 

@@ -7,7 +7,7 @@ import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { IconArrowLeft } from "@tabler/icons-react"
-import { EditUserForm } from "./components/edit-user-form"
+import { EditUserForm } from "@/features/users/components/edit-user-form"
 
 export default function EditUser() {
   const navigate = useNavigate()

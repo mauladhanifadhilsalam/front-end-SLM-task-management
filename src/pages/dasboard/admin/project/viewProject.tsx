@@ -7,9 +7,9 @@ import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { IconArrowLeft, IconEdit } from "@tabler/icons-react"
-import { useProjectDetail } from "./hooks/use-project-detail"
-import { ProjectDetailCard } from "./components/project-detail-card"
-import { ProjectDeleteDialog } from "./components/project-delete-dialog"
+import { useProjectDetail } from "@/features/projects/hooks/use-project-detail"
+import { ProjectDetailCard } from "@/features/projects/components/project-detail-card"
+import { ProjectDeleteDialog } from "@/features/projects/components/project-delete-dialog"
 
 export default function ViewProject() {
   const { id } = useParams<{ id: string }>()

@@ -14,12 +14,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { useCreateProjectForm } from "./hooks/use-create-project-form"
-import { ProjectBasicSection } from "./components/project-basic-section"
-import { ProjectClientSection } from "./components/project-client-section"
-import { ProjectDatesSection } from "./components/project-dates-section"
-import { ProjectPhasesSection } from "./components/project-phases-section"
-import { ProjectAssignmentsSection } from "./components/project-assignments-section"
+import { useCreateProjectForm } from "@/features/projects/hooks/use-create-project-form"
+import { ProjectBasicSection } from "@/features/projects/components/project-basic-section"
+import { ProjectClientSection } from "@/features/projects/components/project-client-section"
+import { ProjectDatesSection } from "@/features/projects/components/project-dates-section"
+import { ProjectPhasesSection } from "@/features/projects/components/project-phases-section"
+import { ProjectAssignmentsSection } from "@/features/projects/components/project-assignments-section"
 
 export default function CreateProjectPage() {
   const navigate = useNavigate()

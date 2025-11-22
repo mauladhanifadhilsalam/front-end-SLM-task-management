@@ -5,13 +5,12 @@ import { useNavigate } from "react-router-dom"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
-import { useAdminProjectOwners } from "./projectOwners/hooks/use-admin-project-owners"
-import { ProjectOwnersToolbar } from "./projectOwners/components/project-owners-toolbar"
-import { ProjectOwnersTable } from "./projectOwners/components/project-owners-table"
-import {
-  ProjectOwnersEmptyState,
+import { useAdminProjectOwners } from "@/features/project-owners/hooks/use-admin-project-owners"
+import { ProjectOwnersToolbar } from "@/features/project-owners/components/project-owners-toolbar"
+import { ProjectOwnersTable } from "@/features/project-owners/components/project-owners-table"
+import { 
   ProjectOwnersSearchEmptyState,
-} from "./projectOwners/components/project-owners-empty-state"
+  ProjectOwnersEmptyState } from "@/features/project-owners/components/project-owners-empty-state"
 
 export default function AdminProjectOwners() {
   const navigate = useNavigate()

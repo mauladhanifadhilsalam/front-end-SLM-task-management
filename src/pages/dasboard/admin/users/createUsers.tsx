@@ -7,7 +7,7 @@ import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { IconArrowLeft } from "@tabler/icons-react"
-import { CreateUserForm } from "./components/create-user-form"
+import { CreateUserForm } from "../../../../features/users/components/create-user-form"
 
 export default function CreateUser() {
   const navigate = useNavigate()

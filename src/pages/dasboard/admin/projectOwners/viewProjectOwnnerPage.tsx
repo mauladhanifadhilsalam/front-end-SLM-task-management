@@ -8,9 +8,9 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { IconArrowLeft, IconEdit } from "@tabler/icons-react"
-import { useViewProjectOwner } from "./hooks/use-view-project-owner"
-import { ProjectOwnerDetailCard } from "./components/project-owner-deatil-card"
-import { ProjectOwnerDeleteDialog } from "./components/project-owner-delete-dialog"
+import { useViewProjectOwner } from "@/features/project-owners/hooks/use-view-project-owner"
+import { ProjectOwnerDetailCard } from "@/features/project-owners/components/project-owner-deatil-card"
+import { ProjectOwnerDeleteDialog } from "@/features/project-owners/components/project-owner-delete-dialog"
 
 export default function ViewProjectOwnerPage() {
   const navigate = useNavigate()

@@ -8,7 +8,7 @@ import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { IconArrowLeft } from "@tabler/icons-react"
-import { EditProjectForm } from "./components/edit-project-form"
+import { EditProjectForm } from "@/features/projects/components/edit-project-form"
 
 export default function EditProject() {
   const navigate = useNavigate()

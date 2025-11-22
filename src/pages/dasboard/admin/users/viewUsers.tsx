@@ -8,9 +8,9 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { IconArrowLeft, IconEdit, IconTrash } from "@tabler/icons-react"
 import { Card, CardContent } from "@/components/ui/card"
-import { UserDeleteDialog } from "./components/users-delete-dialog" 
-import { UserDetailCard } from "./components/users-detail-card"
-import { useViewUser } from "./hooks/use-view-user"
+import { UserDeleteDialog } from "@/features/users/components/users-delete-dialog"
+import { UserDetailCard } from "@/features/users/components/users-detail-card"
+import { useViewUser } from "@/features/users/hooks/use-view-user"
 
 export default function ViewUserPage() {
   const navigate = useNavigate()

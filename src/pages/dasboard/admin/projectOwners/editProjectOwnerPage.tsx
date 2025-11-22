@@ -7,7 +7,7 @@ import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { IconArrowLeft } from "@tabler/icons-react"
-import { EditProjectOwnerForm } from "./components/edit-project-owner-form"
+import { EditProjectOwnerForm } from "@/features/project-owners/components/edit-project-owner-form"
 
 export default function EditProjectOwnerPage() {
   const navigate = useNavigate()
