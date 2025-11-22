@@ -44,7 +44,7 @@ import CreateFileAttachment from "../pages/dashboard/admin/fileAttachment/create
 import ActivityLogPage from "../pages/dashboard/admin/adminActivityLogs"
 import AdminNotification from "../pages/dashboard/admin/adminNotification"
 import ViewNotification from "../pages/dashboard/admin/notification/viewNotification"
-import AdminProjectAssignment from "../pages/dashboard/admin/adminProjectAssignment"
+import AdminProjectAssignment from "../pages/dashboard/admin/projectAssignment/adminProjectAssignment"
 import CreateProjectAssignment from "../pages/dashboard/admin/projectAssignment/createProjectAssignment"
 
 export const adminRoutes = (
