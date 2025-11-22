@@ -38,7 +38,7 @@ import CreateTicketAssigneePage from "../pages/dashboard/admin/ticketAssignee/cr
 import ViewTicketAssignee from "../pages/dashboard/admin/ticketAssignee/viewTicketAssignee"
 import EditTicketAssignee from "../pages/dashboard/admin/ticketAssignee/editTicketAssignee"
 
-import AdminFileAttachments from "../pages/dashboard/admin/adminFileAttachment"
+import AdminFileAttachments from "../pages/dashboard/admin/fileAttachment/adminFileAttachment"
 import CreateFileAttachment from "../pages/dashboard/admin/fileAttachment/createFileAttachment"
 
 import ActivityLogPage from "../pages/dashboard/admin/adminActivityLogs"
