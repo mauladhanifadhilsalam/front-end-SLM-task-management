@@ -42,7 +42,7 @@ import AdminFileAttachments from "../pages/dashboard/admin/fileAttachment/adminF
 import CreateFileAttachment from "../pages/dashboard/admin/fileAttachment/createFileAttachment"
 
 import ActivityLogPage from "../pages/dashboard/admin/adminActivityLogs"
-import AdminNotification from "../pages/dashboard/admin/adminNotification"
+import AdminNotification from "../pages/dashboard/admin/notification/adminNotification"
 import ViewNotification from "../pages/dashboard/admin/notification/viewNotification"
 import AdminProjectAssignment from "../pages/dashboard/admin/projectAssignment/adminProjectAssignment"
 import CreateProjectAssignment from "../pages/dashboard/admin/projectAssignment/createProjectAssignment"
