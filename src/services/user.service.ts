@@ -1,5 +1,5 @@
 import axios from "axios"
-import { Role, User, CreateUserPayload } from "@/types/user.types"
+import { Role, User, CreateUserPayload, UserLite } from "@/types/user.types"
 
 const API_BASE = import.meta.env.VITE_API_BASE
 
@@ -56,4 +56,25 @@ export const updateUser = async (
     await axios.patch(`${API_BASE}/users/${id}`, payload, {
         headers: getAuthHeaders(),
     })
+}
+
+export const fetchAssignableUsers = async (): Promise<UserLite[]> => {
+  const res = await axios.get(`${API_BASE}/users`, {
+    headers: getAuthHeaders(),
+  })
+
+  const raw: any[] = Array.isArray(res.data) ? res.data : res.data?.data ?? []
+
+  return raw
+    .map((u) => ({
+      id: Number(u.id),
+      fullName: String(u.fullName ?? u.name ?? ""),
+      email: String(u.email ?? ""),
+      role: String(u.role ?? ""),
+    }))
+    .filter(
+      (u) =>
+        u.role === "PROJECT_MANAGER" ||
+        u.role === "DEVELOPER",
+    )
 }

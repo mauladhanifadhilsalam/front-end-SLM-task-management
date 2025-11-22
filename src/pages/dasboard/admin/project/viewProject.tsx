@@ -1,162 +1,31 @@
-"use client";
+"use client"
 
-import { AppSidebar } from "@/components/app-sidebar";
-import { SiteHeader } from "@/components/site-header";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import * as React from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
-import axios from "axios";
-import { toast } from "sonner";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-
-import { IconArrowLeft, IconEdit, IconTrash } from "@tabler/icons-react";
-
-type Owner = {
-  id: number;
-  name: string;
-  company: string;
-  email: string;
-};
-
-type Phase = {
-  id: number;
-  name: string;
-  startDate: string;
-  endDate: string;
-};
-
-type ProjectStatus = "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
-
-type Project = {
-  id: number;
-  name: string;
-  categories: string[];
-  ownerId: number;
-  owner?: Owner;
-  startDate: string;
-  endDate: string;
-  status: ProjectStatus;
-  completion: string;
-  notes: string;
-  createdAt: string;
-  updatedAt: string;
-  phases: Phase[];
-};
+import * as React from "react"
+import { Link, useNavigate, useParams } from "react-router-dom"
+import { AppSidebar } from "@/components/app-sidebar"
+import { SiteHeader } from "@/components/site-header"
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import { Button } from "@/components/ui/button"
+import { IconArrowLeft, IconEdit } from "@tabler/icons-react"
+import { useProjectDetail } from "./hooks/use-project-detail"
+import { ProjectDetailCard } from "./components/project-detail-card"
+import { ProjectDeleteDialog } from "./components/project-delete-dialog"
 
 export default function ViewProject() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const [project, setProject] = React.useState<Project | null>(null);
-  const [loading, setLoading] = React.useState(true);
-  const [deleting, setDeleting] = React.useState(false)
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
 
-  const [error, setError] = React.useState<string>("");
-
-  const API_BASE = import.meta.env.VITE_API_BASE;
-
-  const fetchProject = React.useCallback(async () => {
-    if (!id) return;
-    setLoading(true);
-    setError("");
-    try {
-      const token = localStorage.getItem("token");
-      const res = await axios.get(`${API_BASE}/projects/${id}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      });
-
-      const d: any = res.data?.data ?? res.data;
-      setProject(d);
-    } catch (e: any) {
-      setError(e?.response?.data?.message || "Gagal memuat data project");
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
-
-  React.useEffect(() => {
-    fetchProject();
-  }, [fetchProject]);
-
-    const handleConfirmDelete = async () => {
-      if (!project) return
-      setDeleting(true)
-
-      try {
-        const token = localStorage.getItem("token")
-        await axios.delete(`${API_BASE}/projects/${project.id}`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        })
-
-        toast.success("Project dihapus", {
-          description: `Project "${project.name}" berhasil dihapus.`,
-        })
-
-        navigate("/admin/dashboard/projects")
-      } catch (e: any) {
-        const msg = e?.response?.data?.message || "Gagal menghapus project"
-        setError(msg)
-        toast.error("Gagal menghapus project", {
-          description: msg,
-        })
-      } finally {
-        setDeleting(false)
-      }
-    }
-
-
-  const formatDate = (iso?: string) => {
-    if (!iso) return "-";
-    try {
-      return new Date(iso).toLocaleDateString("id-ID", {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-      });
-    } catch {
-      return iso;
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "NOT_STARTED":
-        return <Badge variant="outline">Belum Dimulai</Badge>;
-      case "IN_PROGRESS":
-        return <Badge variant="secondary">Sedang Berjalan</Badge>;
-      case "COMPLETED":
-        return <Badge variant="success">Selesai</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
+  const { project, loading, deleting, error, handleDelete } =
+    useProjectDetail(id)
 
   return (
     <SidebarProvider
-     style={
-              {
-                "--sidebar-width": "calc(var(--spacing) * 72)",
-                "--header-height": "calc(var(--spacing) * 12)",
-              } as React.CSSProperties
-            }
+      style={
+        {
+          "--sidebar-width": "calc(var(--spacing) * 72)",
+          "--header-height": "calc(var(--spacing) * 12)",
+        } as React.CSSProperties
+      }
     >
       <AppSidebar variant="inset" />
       <SidebarInset>
@@ -176,48 +45,26 @@ export default function ViewProject() {
             <div className="ml-auto flex items-center gap-2">
               {project && (
                 <Link to={`/admin/dashboard/projects/edit/${project.id}`}>
-                  <Button size="sm" variant="outline" className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
                     <IconEdit className="h-4 w-4" />
                     Edit
                   </Button>
                 </Link>
               )}
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    className="flex items-center gap-2"
-                    disabled={!project || deleting}
-                  >
-                    <IconTrash className="h-4 w-4" />
-                    {deleting ? "Menghapus..." : "Hapus"}
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Hapus project?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      {project
-                        ? `Yakin ingin menghapus project "${project.name}"? Tindakan ini tidak dapat dikembalikan.`
-                        : "Yakin ingin menghapus project ini? Tindakan ini tidak dapat dikembalikan."}
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel disabled={deleting}>
-                      Batal
-                    </AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={handleConfirmDelete}
-                      disabled={deleting}
-                      className="bg-red-600 hover:bg-red-700"
-                    >
-                      {deleting ? "Menghapus..." : "Ya, hapus"}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
 
+              {project && (
+                <ProjectDeleteDialog
+                  projectId={project.id}
+                  projectName={project.name}
+                  onConfirm={handleDelete}
+                  disabled={deleting}
+                  variant="button"
+                />
+              )}
             </div>
           </div>
 
@@ -226,102 +73,18 @@ export default function ViewProject() {
             Lihat informasi lengkap project yang sedang dikelola.
           </p>
 
-          {loading ? (
-            <div className="p-6">Memuat data...</div>
-          ) : error ? (
+          {loading && <div className="p-6">Memuat data...</div>}
+          {!loading && error && (
             <div className="p-6 text-red-600">{error}</div>
-          ) : !project ? (
+          )}
+          {!loading && !error && !project && (
             <div className="p-6">Project tidak ditemukan.</div>
-          ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle>{project.name}</CardTitle>
-                <CardDescription>
-                  Dimiliki oleh {project.owner?.name ?? "-"} (
-                  {project.owner?.company ?? "Tidak diketahui"})
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <div className="text-sm text-muted-foreground">ID</div>
-                    <div className="font-medium">{project.id}</div>
-                  </div>
-
-                  <div>
-                    <div className="text-sm text-muted-foreground">Status</div>
-                    {getStatusBadge(project.status)}
-                  </div>
-
-                  <div>
-                    <div className="text-sm text-muted-foreground">Progress</div>
-                    <div className="font-medium">{project.completion}%</div>
-                  </div>
-
-                  <div>
-                    <div className="text-sm text-muted-foreground">Kategori</div>
-                    <div className="font-medium">
-                      {project.categories?.join(", ") || "-"}
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="text-sm text-muted-foreground">Tanggal Mulai</div>
-                    <div className="font-medium">{formatDate(project.startDate)}</div>
-                  </div>
-
-                  <div>
-                    <div className="text-sm text-muted-foreground">Tanggal Selesai</div>
-                    <div className="font-medium">{formatDate(project.endDate)}</div>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-sm text-muted-foreground mb-1">Catatan</div>
-                  <div className="font-medium">{project.notes || "-"}</div>
-                </div>
-
-                {/* Owner Info */}
-                <div>
-                  <div className="text-sm text-muted-foreground mb-1">Informasi Pemilik</div>
-                  <div className="font-medium">
-                    {project.owner?.name} - {project.owner?.company}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {project.owner?.email}
-                  </div>
-                </div>
-
-                {/* Phases */}
-                <div>
-                  <div className="text-sm text-muted-foreground mb-2">
-                    Fase Proyek
-                  </div>
-                  <div className="space-y-2">
-                    {project.phases?.length ? (
-                      project.phases.map((ph) => (
-                        <div
-                          key={ph.id}
-                          className="border rounded-md p-3 flex justify-between items-center"
-                        >
-                          <div>
-                            <div className="font-medium">{ph.name}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {formatDate(ph.startDate)} — {formatDate(ph.endDate)}
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-sm text-muted-foreground">Belum ada fase.</div>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          )}
+          {!loading && !error && project && (
+            <ProjectDetailCard project={project} />
           )}
         </div>
       </SidebarInset>
     </SidebarProvider>
-  );
+  )
 }

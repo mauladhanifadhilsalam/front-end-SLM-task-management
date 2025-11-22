@@ -18,3 +18,9 @@ export type CreateUserPayload = {
 export type UserWithMeta = User & {
     createdAt: string
 }
+export type UserLite = {
+    id: number
+    fullName: string
+    email: string
+    role: string
+}
