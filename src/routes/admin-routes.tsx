@@ -28,7 +28,7 @@ import CreateTickets from "../pages/dashboard/admin/tickets/createTickets"
 import ViewTickets from "../pages/dashboard/admin/tickets/viewTickets"
 import EditTickets from "../pages/dashboard/admin/tickets/editTickets"
 
-import AdminComments from "../pages/dashboard/admin/adminComments"
+import AdminComments from "../pages/dashboard/admin/comments/adminComments"
 import CreateComments from "../pages/dashboard/admin/comments/createComments"
 import EditComments from "../pages/dashboard/admin/comments/editComments"
 import ViewComments from "../pages/dashboard/admin/comments/viewComments"
