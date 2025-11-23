@@ -41,7 +41,7 @@ import EditTicketAssignee from "../pages/dashboard/admin/ticketAssignee/editTick
 import AdminFileAttachments from "../pages/dashboard/admin/fileAttachment/adminFileAttachment"
 import CreateFileAttachment from "../pages/dashboard/admin/fileAttachment/createFileAttachment"
 
-import ActivityLogPage from "../pages/dashboard/admin/adminActivityLogs"
+import ActivityLogPage from "../pages/dashboard/admin/activity-log/adminActivityLogs"
 import AdminNotification from "../pages/dashboard/admin/notification/adminNotification"
 import ViewNotification from "../pages/dashboard/admin/notification/viewNotification"
 import AdminProjectAssignment from "../pages/dashboard/admin/projectAssignment/adminProjectAssignment"
