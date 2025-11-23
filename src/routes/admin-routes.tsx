@@ -33,7 +33,7 @@ import CreateComments from "../pages/dashboard/admin/comments/createComments"
 import EditComments from "../pages/dashboard/admin/comments/editComments"
 import ViewComments from "../pages/dashboard/admin/comments/viewComments"
 
-import TicketAssignee from "../pages/dashboard/admin/adminTicketAssignee"
+import TicketAssignee from "../pages/dashboard/admin/ticketAssignee/adminTicketAssignee"
 import CreateTicketAssigneePage from "../pages/dashboard/admin/ticketAssignee/createTicketAssignee"
 import ViewTicketAssignee from "../pages/dashboard/admin/ticketAssignee/viewTicketAssignee"
 import EditTicketAssignee from "../pages/dashboard/admin/ticketAssignee/editTicketAssignee"

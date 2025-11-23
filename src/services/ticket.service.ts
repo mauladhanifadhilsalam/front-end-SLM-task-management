@@ -1,6 +1,7 @@
 import axios from "axios"
 import type { TicketLite } from "@/types/ticket-type"
 import { getAuthHeaders } from "@/utils/auth-header.util"
+import type { EditTicketAssigneeTicket } from "@/types/ticket-assignee.type"
 const API_BASE = import.meta.env.VITE_API_BASE as string
 
 
@@ -36,4 +37,32 @@ export const fetchTicketsLite = async (): Promise<TicketLite[]> => {
 
   list.sort((a, b) => b.id - a.id)
   return list
+}
+
+export async function fetchTicketById(
+  id: number | string,
+): Promise<EditTicketAssigneeTicket> {
+  const res = await axios.get(`${API_BASE}/tickets/${id}`, {
+    headers: getAuthHeaders(),
+  })
+
+  return res.data
+}
+
+export async function updateTicketStatusAndPriority(
+  id: number | string,
+  payload: { status: string; priority: string },
+): Promise<void> {
+  await axios.patch(`${API_BASE}/tickets/${id}`, payload, {
+    headers: {
+      ...getAuthHeaders(),
+      "Content-Type": "application/json",
+    },
+  })
+}
+
+export async function deleteTicket(id: number | string): Promise<void> {
+  await axios.delete(`${API_BASE}/tickets/${id}`, {
+    headers: getAuthHeaders(),
+  })
 }

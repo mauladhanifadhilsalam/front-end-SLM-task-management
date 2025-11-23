@@ -1,5 +1,6 @@
 import axios from "axios"
 import { Role, User, CreateUserPayload, UserLite } from "@/types/user.types"
+import type { EditTicketAssigneeUser } from "@/types/ticket-assignee.type"
 
 const API_BASE = import.meta.env.VITE_API_BASE
 
@@ -77,4 +78,12 @@ export const fetchAssignableUsers = async (): Promise<UserLite[]> => {
         u.role === "PROJECT_MANAGER" ||
         u.role === "DEVELOPER",
     )
+}
+
+export async function fetchUsersTicketAssignees(): Promise<EditTicketAssigneeUser[]> {
+  const res = await axios.get(`${API_BASE}/users`, {
+    headers: getAuthHeaders(),
+  })
+
+  return res.data ?? []
 }
