@@ -18,7 +18,7 @@ import CreateProjectPage from "../pages/dashboard/admin/project/createProject"
 import ViewProject from "../pages/dashboard/admin/project/viewProject"
 import EditProject from "../pages/dashboard/admin/project/editProject"
 
-import AdminProjectPhases from "../pages/dashboard/admin/adminProjectPhases"
+import AdminProjectPhases from "../pages/dashboard/admin/projectPhase/adminProjectPhases"
 import EditProjectPhases from "../pages/dashboard/admin/projectPhase/editProjectPhases"
 import ViewProjectPhases from "../pages/dashboard/admin/projectPhase/viewProjectPhases"
 import CreateProjectPhases from "../pages/dashboard/admin/projectPhase/createProjectPhases"

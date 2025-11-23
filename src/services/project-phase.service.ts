@@ -1,13 +1,9 @@
 import axios from "axios"
 import { ProjectPhaseForm } from "@/types/project.type"
-
+import { Phase, CreateProjectPhasePayload, EditProjectPhasePayload} from "@/types/project-phases.type"
+import { getAuthHeaders } from "@/utils/auth-header.util";
 const API_BASE = import.meta.env.VITE_API_BASE
 
-const getAuthHeaders = () => {
-  const token = localStorage.getItem("token")
-  if (!token) return undefined
-  return { Authorization: `Bearer ${token}` }
-}
 
 export type EditProjectPhaseForm = ProjectPhaseForm & {
   id?: number
@@ -84,3 +80,44 @@ export const syncProjectPhases = async (
     }
   }
 }
+
+export const fetchProjectPhases = async (): Promise<Phase[]> => {
+  const res = await axios.get(`${API_BASE}/project-phases`, {
+    headers: getAuthHeaders(),
+  });
+
+  const data = Array.isArray(res.data) ? res.data : res.data?.data ?? [];
+  return data;
+};
+
+export const createProjectPhase = async (
+  payload: CreateProjectPhasePayload,
+): Promise<void> => {
+  await axios.post(`${API_BASE}/project-phases`, payload, {
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders(),
+    },
+  });
+};
+
+export const updateProjectPhase = async (
+  id: number,
+  payload: EditProjectPhasePayload,
+): Promise<void> => {
+  await axios.patch(`${API_BASE}/project-phases/${id}`, payload, {
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders(),
+    },
+  });
+};
+
+export const fetchProjectPhaseById = async (id: number): Promise<Phase> => {
+  const res = await axios.get(`${API_BASE}/project-phases/${id}`, {
+    headers: getAuthHeaders(),
+  });
+
+  const data = res.data?.data ?? res.data;
+  return data as Phase;
+};
