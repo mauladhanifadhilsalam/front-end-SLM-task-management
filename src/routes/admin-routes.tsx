@@ -23,7 +23,7 @@ import EditProjectPhases from "../pages/dashboard/admin/projectPhase/editProject
 import ViewProjectPhases from "../pages/dashboard/admin/projectPhase/viewProjectPhases"
 import CreateProjectPhases from "../pages/dashboard/admin/projectPhase/createProjectPhases"
 
-import AdminTickets from "../pages/dashboard/admin/adminTickets"
+import AdminTickets from "../pages/dashboard/admin/tickets/adminTickets"
 import CreateTickets from "../pages/dashboard/admin/tickets/createTickets"
 import ViewTickets from "../pages/dashboard/admin/tickets/viewTickets"
 import EditTickets from "../pages/dashboard/admin/tickets/editTickets"

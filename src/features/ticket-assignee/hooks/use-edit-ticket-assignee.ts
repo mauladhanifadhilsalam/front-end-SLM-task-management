@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom"
 import { toast } from "sonner"
 
 import {
-  fetchTicketById,
+  fetchTicketByIdAssignee,
   updateTicketStatusAndPriority,
 } from "@/services/ticket.service"
 import { fetchUsers } from "@/services/user.service"
@@ -47,7 +47,7 @@ export function useEditTicketAssignee() {
         }
 
         const [ticketData, usersData] = await Promise.all([
-          fetchTicketById(id),
+          fetchTicketByIdAssignee(id),
           fetchUsers(),
         ])
 

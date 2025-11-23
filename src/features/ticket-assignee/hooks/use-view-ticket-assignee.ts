@@ -5,7 +5,7 @@ import { useNavigate, useParams } from "react-router-dom"
 import { toast } from "sonner"
 
 import type { TicketAssigneeTicketDetail } from "@/types/ticket-assignee.type"
-import { fetchTicketById, deleteTicket } from "@/services/ticket.service"
+import { fetchTicketByIdAssignee, deleteTicket } from "@/services/ticket.service"
 
 export function useViewTicketAssignee() {
   const { id } = useParams<{ id: string }>()
@@ -30,7 +30,7 @@ export function useViewTicketAssignee() {
         return
       }
 
-      const data = await fetchTicketById(id)
+      const data = await fetchTicketByIdAssignee(id)
       setTicket(data)
     } catch (e: any) {
       let msg = "Gagal memuat data tiket."
