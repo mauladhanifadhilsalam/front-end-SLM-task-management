@@ -25,6 +25,13 @@ export const ProjectsTable: React.FC<Props> = ({
   colSpan,
   onDelete,
 }) => {
+
+  const role = (localStorage.getItem("role") || "").toUpperCase()
+  const basePath =
+    role === "PROJECT_MANAGER"
+      ? "/project-manager/dashboard"
+      : "/admin/dashboard"
+
   return (
     <div className="rounded-md border overflow-x-auto">
       {loading ? (
@@ -138,13 +145,13 @@ export const ProjectsTable: React.FC<Props> = ({
                   <td className="px-4 py-3">
                     <div className="flex justify-center items-center gap-5">
                       <Link
-                        to={`/admin/dashboard/projects/view/${p.id}`}
+                        to={`${basePath}/projects/view/${p.id}`}
                       >
                         <IconEye className="h-4 w-4 text-muted-foreground hover:text-foreground" />
                       </Link>
 
                       <Link
-                        to={`/admin/dashboard/projects/edit/${p.id}`}
+                        to={`${basePath}/projects/edit/${p.id}`}
                       >
                         <IconEdit className="h-4 w-4 text-muted-foreground hover:text-foreground" />
                       </Link>

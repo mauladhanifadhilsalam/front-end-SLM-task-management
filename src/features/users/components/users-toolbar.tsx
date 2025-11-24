@@ -34,6 +34,16 @@ type Props = {
     onAddUser: () => void
 }
 
+const role = localStorage.getItem("role");
+
+const roleLabel = function(){
+    if (role === "project_manager"){
+        return "Developer"
+    } else {
+        return "User"
+    }
+}
+
 export const UsersToolbar: React.FC<Props> = ({
     search,
     onSearchChange,
@@ -121,7 +131,7 @@ export const UsersToolbar: React.FC<Props> = ({
             onClick={onAddUser}
             >
             <IconPlus className="mr-2 h-4 w-4" />
-            Add User
+                Add {roleLabel()}
             </Button>
         </div>
         </div>

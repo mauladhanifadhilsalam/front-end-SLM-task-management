@@ -1,9 +1,10 @@
+
 "use client"
 
 import * as React from "react"
 import { useNavigate } from "react-router-dom"
 import { ArrowLeft, Loader2 } from "lucide-react"
-import { AppSidebar } from "@/components/app-sidebar"
+import { AppSidebarPm } from "../components/sidebar-pm"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
@@ -45,7 +46,7 @@ export default function CreateProjectPage() {
     updateAssignment,
     handleSubmit,
   } = useCreateProjectForm({
-    onSuccess: () => navigate("/admin/dashboard/projects"),
+    onSuccess: () => navigate("/project-manager/dashboard/projects"),
     onUnauthorized: () => navigate("/login"),
   })
 
@@ -58,7 +59,7 @@ export default function CreateProjectPage() {
         } as React.CSSProperties
       }
     >
-      <AppSidebar variant="inset" />
+      <AppSidebarPm variant="inset" />
       <SidebarInset>
         <SiteHeader />
         <div className="flex flex-1 flex-col px-4 lg:px-6 py-6">
@@ -67,7 +68,7 @@ export default function CreateProjectPage() {
               variant="ghost"
               size="sm"
               onClick={() =>
-                navigate("/admin/dashboard/projects")
+                navigate("/project-manager/dashboard/projects")
               }
               className="flex items-center gap-2"
             >
