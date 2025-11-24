@@ -117,12 +117,6 @@ export function AdminTicketsTable({
             Daftar tiket (bug/feature/task) di semua proyek.
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Button size="sm" onClick={onCreate} className="cursor-pointer">
-            <IconPlus className="mr-2 h-4 w-4" />
-            Add Ticket
-          </Button>
-        </div>
       </div>
 
       <div className="flex items-center gap-3 mb-4">
@@ -204,6 +198,12 @@ export function AdminTicketsTable({
               </DropdownMenuCheckboxItem>
             </DropdownMenuContent>
           </DropdownMenu>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button size="sm" onClick={onCreate} className="cursor-pointer">
+            <IconPlus className="mr-2 h-4 w-4" />
+            Add Ticket
+          </Button>
         </div>
       </div>
 
