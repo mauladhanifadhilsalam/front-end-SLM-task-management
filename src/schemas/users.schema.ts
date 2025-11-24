@@ -23,6 +23,7 @@ export const createUserSchema = z.object({
   password: z
     .string()
     .min(8, { message: "Password minimal 8 karakter." })
+    .regex(/[0-9]/, { message: "Harus mengandung angka (0–9)." })
     .regex(/[a-z]/, { message: "Harus mengandung huruf kecil (a–z)." })
     .regex(/[A-Z]/, { message: "Harus mengandung huruf besar (A–Z)." })
     .regex(
@@ -54,6 +55,7 @@ export const editUserSchema = z.object({
     z
       .string()
       .min(8, { message: "Password minimal 8 karakter." })
+      .regex(/[0-9]/, { message: "Harus mengandung angka (0–9)." })
       .regex(/[a-z]/, { message: "Harus mengandung huruf kecil (a–z)." })
       .regex(/[A-Z]/, { message: "Harus mengandung huruf besar (A–Z)." })
       .regex(

@@ -1,7 +1,7 @@
 import { Fragment } from "react"
 import { Route } from "react-router-dom"
 import { ProtectedRoute } from "../components/ProtectedRoute"
-import DevDashboard from "../pages/dasboard/dev/dasboard"
+import DevDashboard from "../pages/dashboard/dev/dasboard"
 import NotificationPage from "../pages/notification/notification"
 
 export const devRoutes = (
