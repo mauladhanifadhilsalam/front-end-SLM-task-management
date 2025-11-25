@@ -14,6 +14,8 @@ import CreateProjectPage from "@/pages/dashboard/pm/project/create-project-page"
 import ViewProjectPage from "@/pages/dashboard/pm/project/view-project-page"
 import EditProjectPage from "@/pages/dashboard/pm/project/edit-project-page"
 
+import TicketsPage from "@/pages/dashboard/pm/ticket/ticket-page"
+
 import NotificationPage from "../pages/notification/notification"
 
 export const pmRoutes = (
@@ -87,6 +89,14 @@ export const pmRoutes = (
         element={
           <ProtectedRoute allowedRoles={["project_manager"]}>
             < EditProjectPage/>
+          </ProtectedRoute>
+        }
+      />
+    <Route
+        path="/project-manager/dashboard/ticket-issue"
+        element={
+          <ProtectedRoute allowedRoles={["project_manager"]}>
+            < TicketsPage/>
           </ProtectedRoute>
         }
       />

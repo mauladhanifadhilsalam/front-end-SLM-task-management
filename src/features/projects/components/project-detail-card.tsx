@@ -85,28 +85,7 @@ export const ProjectDetailCard: React.FC<ProjectDetailCardProps> = ({
             </div>
 
             <div>
-            <div className="text-sm text-muted-foreground mb-2">Fase Proyek</div>
-            <div className="space-y-2">
-                {project.phases?.length ? (
-                project.phases.map((ph) => (
-                    <div
-                    key={ph.id}
-                    className="border rounded-md p-3 flex justify-between items-center"
-                    >
-                    <div>
-                        <div className="font-medium">{ph.name}</div>
-                        <div className="text-xs text-muted-foreground">
-                        {formatDateTime(ph.startDate)} — {formatDateTime(ph.endDate)}
-                        </div>
-                    </div>
-                    </div>
-                ))
-                ) : (
-                <div className="text-sm text-muted-foreground">
-                    Belum ada fase.
-                </div>
-                )}
-            </div>
+
             </div>
         </CardContent>
         </Card>

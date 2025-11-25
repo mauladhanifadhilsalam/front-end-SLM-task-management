@@ -10,12 +10,13 @@ import { IconArrowLeft, IconEdit } from "@tabler/icons-react"
 import { useProjectDetail } from "@/features/projects/hooks/use-project-detail"
 import { ProjectDetailCard } from "@/features/projects/components/project-detail-card"
 import { ProjectDeleteDialog } from "@/features/projects/components/project-delete-dialog"
-
-export default function ViewProject() {
+import { ProjectPhasesOverview } from "@/features/projects/components/project-phases-overview"
+import { ProjectAssignmentsOverview } from "@/features/projects/components/project-assignments-overview"
+export default function ViewProjectPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
 
-  const { project, loading, deleting, error, handleDelete } =
+  const { project, loading, deleting, error, handleDelete, refetch } =
     useProjectDetail(id)
 
   return (
@@ -44,7 +45,9 @@ export default function ViewProject() {
 
             <div className="ml-auto flex items-center gap-2">
               {project && (
-                <Link to={`/project-manager/dashboard/projects/edit/${project.id}`}>
+                <Link
+                  to={`/project-manager/dashboard/projects/edit/${project.id}`}
+                >
                   <Button
                     size="sm"
                     variant="outline"
@@ -80,8 +83,17 @@ export default function ViewProject() {
           {!loading && !error && !project && (
             <div className="p-6">Project tidak ditemukan.</div>
           )}
+
           {!loading && !error && project && (
-            <ProjectDetailCard project={project} />
+            <>
+              <ProjectDetailCard project={project} />
+              <div className="mt-6 grid gap-6 lg:grid-cols-2">
+                <ProjectPhasesOverview phases={project.phases ?? []} />
+                <ProjectAssignmentsOverview
+                  assignments={project.assignments ?? []}
+                />
+              </div>
+            </>
           )}
         </div>
       </SidebarInset>

@@ -52,24 +52,9 @@ const data = {
       icon: IconFolder,
     },
     {
-      title: "Project Phases",
-      url: "/project-manager/project-phases",
-      icon: IconTimeline,
-    },
-    {
-      title: "Project Assignments",
-      url: "/project-manager/project-assignments",
-      icon: IconUsersGroup,
-    },
-    {
-      title: "Tickets",
-      url: "/project-manager/tickets",
+      title: "Ticket Issue",
+      url: "/project-manager/dashboard/ticket-issue",
       icon: IconTicket,
-    },
-    {
-      title: "Ticket Assignees",
-      url: "/project-manager/ticket-assignees",
-      icon: IconUserCheck,
     },
   ],
   navSecondary: [

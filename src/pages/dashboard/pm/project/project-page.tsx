@@ -7,7 +7,7 @@ import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { useAdminProjects } from "@/features/projects/hooks/use-admin-projects"
 import { ProjectsToolbar } from "@/features/projects/components/projects-toolbar"
-import { ProjectsTable } from "@/features/projects/components/projects-table"
+import { ProjectsCardsList } from "@/features/projects/components/projects-cards-list"
 import { ProjectsEmptyState, ProjectsSearchEmptyState } from "../../../../features/projects/components/projecs-empty-state"
 export default function AdminProjects() {
   const navigate = useNavigate()
@@ -68,14 +68,12 @@ export default function AdminProjects() {
               onCreateProject={handleCreateProject}
             />
 
-            <ProjectsTable
-              projects={filteredProjects}
-              loading={loading}
-              error={error}
-              columns={columns}
-              colSpan={colSpan}
-              onDelete={deleteProject}
-            />
+            <ProjectsCardsList
+                projects={filteredProjects}
+                loading={loading}
+                error={error}
+                onDelete={deleteProject}
+                />
 
             {!loading && !error && !hasData && (
               search.trim() !== "" ? (
