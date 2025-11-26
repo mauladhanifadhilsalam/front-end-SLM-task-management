@@ -118,7 +118,11 @@ export default function TicketsPage() {
                 error={error}
                 hasFilter={hasFilter}
                 formatDate={formatDate}
-                onView={(id) => navigate(`/project-manager/dashboard/ticket-issue/view/${id}`)}
+                onView={(id) =>
+                  navigate(`/project-manager/dashboard/ticket-issue/view/${id}`, {
+                    state: { canEdit: false, canDelete: false },
+                  })
+                }
                 onDelete={() => {}} 
                 canDelete={false}
                 onEdit={() => {}}
@@ -136,7 +140,11 @@ export default function TicketsPage() {
                 formatDate={formatDate}
                 hasFilter={hasFilter}
                 onEdit={(id) => navigate(`/project-manager/dashboard/ticket-issue/edit/${id}`)}
-                onView={(id) => navigate(`/project-manager/dashboard/ticket-issue/view/${id}`)}
+                onView={(id) =>
+                navigate(`/project-manager/dashboard/ticket-issue/view/${id}`, {
+                  state: { canEdit: true, canDelete: true }, 
+                })
+              }
               />
             </div>
           </div>

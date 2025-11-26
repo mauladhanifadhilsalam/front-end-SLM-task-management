@@ -44,6 +44,8 @@ type Props = {
   formatDate: (iso?: string | null) => string
   onBack: () => void
   onDelete: () => void
+  canEdit?: boolean
+  canDelete?: boolean
 }
 
 const statusVariant = (
@@ -107,6 +109,8 @@ export function PmTicketDetailView({
   formatDate,
   onBack,
   onDelete,
+  canEdit,
+  canDelete
 }: Props) {
   return (
     <div className="px-4 lg:px-6">
@@ -123,59 +127,65 @@ export function PmTicketDetailView({
           </Button>
         </div>
 
-        {ticket && (
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              asChild
-              className="cursor-pointer"
-            >
-              <Link
-                to={`/project-manager/dashboard/tickets/edit/${ticket.id}`}
-              >
-                <IconEdit className="h-4 w-4 mr-1" />
-                Edit
-              </Link>
-            </Button>
+{ticket && (canEdit || canDelete) && (
+  <div className="flex items-center gap-2">
+    {canEdit && (
+      <Button
+        variant="outline"
+        size="sm"
+        asChild
+        className="cursor-pointer"
+      >
+        <Link
+          to={`/project-manager/dashboard/tickets/edit/${ticket.id}`}
+        >
+          <IconEdit className="h-4 w-4 mr-1" />
+          Edit
+        </Link>
+      </Button>
+    )}
 
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="flex items-center gap-2 cursor-pointer"
-                  disabled={deleting}
-                >
-                  <IconTrash className="h-4 w-4 mr-1" />
-                  {deleting ? "Deleting..." : "Delete"}
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Hapus ticket?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    {ticket
-                      ? `Yakin ingin menghapus tiket “${ticket.title}”? Tindakan ini tidak dapat dikembalikan.`
-                      : "Yakin ingin menghapus tiket ini? Tindakan ini tidak dapat dikembalikan."}
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel disabled={deleting}>
-                    Batal
-                  </AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={onDelete}
-                    disabled={deleting}
-                    className="bg-red-600 hover:bg-red-700"
-                  >
-                    {deleting ? "Menghapus..." : "Ya, hapus"}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
-        )}
+    {canDelete && (
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button
+            variant="destructive"
+            size="sm"
+            className="flex items-center gap-2 cursor-pointer"
+            disabled={deleting}
+          >
+            <IconTrash className="h-4 w-4 mr-1" />
+            {deleting ? "Deleting..." : "Delete"}
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus ticket?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {ticket
+                ? `Yakin ingin menghapus tiket “${ticket.title}”? Tindakan ini tidak dapat dikembalikan.`
+                : "Yakin ingin menghapus tiket ini? Tindakan ini tidak dapat dikembalikan."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>
+              Batal
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={onDelete}
+              disabled={deleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {deleting ? "Menghapus..." : "Ya, hapus"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    )}
+  </div>
+)}
+
+
       </div>
 
       <h1 className="text-2xl font-semibold">Ticket Details</h1>

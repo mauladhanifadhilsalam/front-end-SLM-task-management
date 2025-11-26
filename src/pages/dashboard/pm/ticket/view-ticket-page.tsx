@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useNavigate, useParams } from "react-router-dom"
+import { useNavigate, useParams, useLocation } from "react-router-dom"
 
 import { AppSidebarPm } from "../components/sidebar-pm"
 import { SiteHeader } from "@/components/site-header"
@@ -10,9 +10,21 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { useTicketDetail } from "@/features/ticket/hooks/use-ticket-detail"
 import { PmTicketDetailView } from "@/features/ticket/components/pm-ticket-detail-view"
 
+type ViewState = {
+  canEdit?: boolean
+  canDelete?: boolean
+}
+
 export default function ViewTickets() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
+
+  const state = (location.state as ViewState) || {}
+
+  // 🔥 default sekarang = false (aman)
+  const canEdit = state.canEdit ?? false
+  const canDelete = state.canDelete ?? false
 
   const {
     ticket,
@@ -38,14 +50,18 @@ export default function ViewTickets() {
         <div className="flex flex-1 flex-col">
           <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
             <PmTicketDetailView
-                ticket={ticket}
-                loading={loading}
-                error={error}
-                deleting={deleting}
-                formatDate={formatDate}
-                onBack={() => navigate("/project-manager/dashboard/ticket-issue")}
-                onDelete={deleteCurrent}
-                />
+              ticket={ticket}
+              loading={loading}
+              error={error}
+              deleting={deleting}
+              formatDate={formatDate}
+              onBack={() =>
+                navigate("/project-manager/dashboard/ticket-issue")
+              }
+              onDelete={deleteCurrent}
+              canEdit={canEdit}      // ⬅️ pakai state
+              canDelete={canDelete}  // ⬅️ pakai state
+            />
           </div>
         </div>
       </SidebarInset>
