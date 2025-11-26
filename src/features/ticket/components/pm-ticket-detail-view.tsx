@@ -318,7 +318,7 @@ export function PmTicketDetailView({
 
               <div className="md:col-span-2">
                 <Separator className="my-4" />
-                <TicketComments ticketId={ticket.id} />
+                <TicketComments ticketId={ticket.id} type="ISSUE" />
               </div>
             </div>
           ) : (

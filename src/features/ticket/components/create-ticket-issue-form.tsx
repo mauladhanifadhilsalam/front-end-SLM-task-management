@@ -146,18 +146,7 @@ export function CreateTicketIssueForm({
                   </div>
 
                   {/* Requester info (auto, read-only) */}
-                  <div className="space-y-2">
-                    <Label>Requester</Label>
-                      <Input
-                        value={requesterLabel || "Auto: user yang sedang login"}
-                        disabled
-                      />
-                    {fieldErrors.requesterId && (
-                      <p className="text-xs text-red-600 mt-1">
-                        {fieldErrors.requesterId}
-                      </p>
-                    )}
-                  </div>
+
 
                   {/* Title */}
                   <div className="space-y-2">
@@ -188,11 +177,6 @@ export function CreateTicketIssueForm({
                       disabled={saving}
                       placeholder="Use Markdown to format your description..."
                     />
-                    {fieldErrors.description && (
-                      <p className="text-xs text-red-600 mt-1">
-                        {fieldErrors.description}
-                      </p>
-                    )}
                   </div>
 
                   {/* Priority & Status */}
