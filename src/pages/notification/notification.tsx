@@ -5,6 +5,7 @@ import axios from "axios"
 import { useNavigate } from "react-router-dom"
 
 import { AppSidebar } from "@/components/app-sidebar"
+import { AppSidebarPm } from "../dashboard/pm/components/sidebar-pm"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import {
@@ -76,17 +77,29 @@ export default function NotificationPage() {
     React.useEffect(() => {
         fetchNotifications()
     }, [fetchNotifications])
+    const role = React.useMemo(() => {
+    return localStorage.getItem("role") 
+  }, [])
+
+  const basePath =
+  role === "project_manager"
+    ? "/project-manager/dashboard"
+    : role === "developer"
+    ? "/developer/dashboard"
+    : "/admin/dashboard"
 
     const handleOpen = (n: Notification) => {
         if (n.targetType === "TICKET" && n.targetId) {
-        navigate(`/tickets/view/${n.targetId}`)
+        navigate(`${basePath}/tickets/view/${n.targetId}`)
         return
         }
         if (n.targetType === "PROJECT" && n.targetId) {
-        navigate(`/projects/view/${n.targetId}`)
+        navigate(`${basePath}/projects/view/${n.targetId}`)
         return
         }
     }
+
+
 
     const handleMarkAsRead = async (n: Notification) => {
         if (n.state === "READ") return
@@ -163,7 +176,11 @@ export default function NotificationPage() {
             } as React.CSSProperties
         }
         >
+        {role === "project_manager" ? (
+        <AppSidebarPm variant="inset" />
+      ) : (
         <AppSidebar variant="inset" />
+      )}
         <SidebarInset>
             <SiteHeader />
 

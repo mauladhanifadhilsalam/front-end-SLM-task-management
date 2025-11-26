@@ -26,3 +26,16 @@ export function getCurrentUserRole(): string | null {
     return null
   }
 }
+export function getCurrentUserName(): string | null {
+  try {
+    const token = localStorage.getItem("token")
+    if (!token) return null
+
+    const payload = token.split(".")[1]
+    const decoded = JSON.parse(atob(payload))
+
+    return decoded.fullName ?? null
+  } catch {
+    return null
+  }
+}

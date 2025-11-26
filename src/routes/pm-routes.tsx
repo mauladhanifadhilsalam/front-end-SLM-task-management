@@ -15,6 +15,9 @@ import ViewProjectPage from "@/pages/dashboard/pm/project/view-project-page"
 import EditProjectPage from "@/pages/dashboard/pm/project/edit-project-page"
 
 import TicketsPage from "@/pages/dashboard/pm/ticket/ticket-page"
+import ViewTickets from "@/pages/dashboard/pm/ticket/view-ticket-page"
+import CreateTicketIssue from "@/pages/dashboard/pm/ticket/create-ticket-issue"
+import EditTicketIssuePage from "@/pages/dashboard/pm/ticket/edit-ticket-issue"
 
 import NotificationPage from "../pages/notification/notification"
 
@@ -97,6 +100,30 @@ export const pmRoutes = (
         element={
           <ProtectedRoute allowedRoles={["project_manager"]}>
             < TicketsPage/>
+          </ProtectedRoute>
+        }
+      />
+    <Route
+        path="/project-manager/dashboard/ticket-issue/view/:id"
+        element={
+          <ProtectedRoute allowedRoles={["project_manager"]}>
+            < ViewTickets/>
+          </ProtectedRoute>
+        }
+      />
+    <Route
+        path="/project-manager/dashboard/ticket-issue/create"
+        element={
+          <ProtectedRoute allowedRoles={["project_manager"]}>
+            < CreateTicketIssue/>
+          </ProtectedRoute>
+        }
+      />
+    <Route
+        path="/project-manager/dashboard/ticket-issue/edit/:id"
+        element={
+          <ProtectedRoute allowedRoles={["project_manager"]}>
+            < EditTicketIssuePage/>
           </ProtectedRoute>
         }
       />

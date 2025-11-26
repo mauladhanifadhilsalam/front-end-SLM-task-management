@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { IconTrash } from "@tabler/icons-react"
+import { IconTrash, IconDotsVertical, IconEye, IconEdit } from "@tabler/icons-react"
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -13,6 +13,12 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu"
 
 import { Badge } from "@/components/ui/badge"
 
@@ -31,8 +37,12 @@ type Props = {
   loading: boolean
   error: string
   onDelete: (id: number) => void
+  onView: (id: number) => void
+  onEdit: (id: number) => void
   formatDate: (iso?: string) => string
   hasFilter: boolean
+  canDelete?: boolean
+  canEdit?: boolean
 }
 
 const typeLabel: Record<TicketType, string> = {
@@ -101,8 +111,12 @@ export const TicketsCardsBoard: React.FC<Props> = ({
   loading,
   error,
   onDelete,
+  onView,
+  onEdit,
   formatDate,
   hasFilter,
+  canDelete = true,
+  canEdit = true,
 }) => {
   const issueTickets = React.useMemo(
     () =>
@@ -130,13 +144,11 @@ export const TicketsCardsBoard: React.FC<Props> = ({
 
   return (
     <section className="space-y-3 mr-7 ml-7">
-      {/* Header board (tanpa search & new issue) */}
       <div className="space-y-1">
         <h2 className="text-lg font-semibold">{title}</h2>
-        <p className="text-xs text-muted-foreground">
-          {subtitle ??
-            "Issue dari project yang kamu pegang sebagai Project Manager."}
-        </p>
+        {subtitle && (
+          <p className="text-xs text-muted-foreground">{subtitle}</p>
+        )}
       </div>
 
       {hasFilter && (
@@ -145,7 +157,6 @@ export const TicketsCardsBoard: React.FC<Props> = ({
         </p>
       )}
 
-      {/* Grid kartu */}
       {issueTickets.length === 0 ? (
         <div className="rounded-2xl border bg-background/40 p-6 text-sm text-muted-foreground">
           {emptyMessage ?? "Belum ada issue yang ditugaskan ke kamu."}
@@ -153,101 +164,128 @@ export const TicketsCardsBoard: React.FC<Props> = ({
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {issueTickets.map((ticket) => (
-            <article
-              key={ticket.id}
-              className="flex flex-col justify-between rounded-2xl border bg-card/80 p-4 shadow-sm transition hover:-translate-y-[2px] hover:shadow-md"
-            >
-              {/* Judul + deskripsi */}
-              <div className="space-y-2">
-                <h3 className="text-sm font-semibold leading-snug">
-                  {ticket.title}
-                </h3>
+            <AlertDialog key={ticket.id}>
+              <article className="flex flex-col justify-between rounded-2xl border bg-card/80 p-4 shadow-sm transition hover:-translate-y-[2px] hover:shadow-md">
 
-                {ticket.description && (
-                  <p className="line-clamp-3 text-xs text-muted-foreground">
-                    {ticket.description}
-                  </p>
-                )}
+                <div className="flex items-start justify-between">
+                  <h3 className="text-sm font-semibold leading-snug">
+                    {ticket.title}
+                  </h3>
 
-                {/* Badges type / status / priority */}
-                <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
-                  <Badge variant="outline" className="border-primary/60">
-                    {normalizeType(ticket.type)}
-                  </Badge>
+                  {/* TITIK TIGA */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        type="button"
+                        className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-border bg-background/80 text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                      >
+                        <IconDotsVertical className="h-4 w-4" />
+                      </button>
+                    </DropdownMenuTrigger>
 
-                  <Badge variant="outline" className="border-primary/40">
-                    {normalizeStatus(ticket.status)}
-                  </Badge>
+                    <DropdownMenuContent align="end" className="w-40">
+                      <DropdownMenuItem
+                        className="flex items-center gap-2 text-xs"
+                        onClick={() => onView(ticket.id)}
+                      >
+                        <IconEye className="h-3.5 w-3.5" />
+                        View detail
+                      </DropdownMenuItem>
 
-                  <Badge
-                    variant="outline"
-                    className={priorityClass(ticket.priority)}
-                  >
-                    {normalizePriority(ticket.priority)}
-                  </Badge>
+                      {canDelete && (
+                        <AlertDialogTrigger asChild>
+                          <DropdownMenuItem className="flex items-center gap-2 text-xs text-destructive">
+                            <IconTrash className="h-3.5 w-3.5" />
+                            Delete
+                          </DropdownMenuItem>
+                        </AlertDialogTrigger>
+                      )}
+                      {canEdit && (
+                        <DropdownMenuItem
+                          className="flex items-center gap-2 text-xs"
+                          onClick={() => onEdit(ticket.id)}
+                        >
+                          <IconEdit className="h-3.5 w-3.5" />
+                          Edit
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
-              </div>
 
-              {/* Footer info */}
-              <div className="mt-4 flex items-end justify-between text-[11px] text-muted-foreground">
-                <div className="space-y-1">
-                  {ticket.projectName && (
-                    <p className="font-medium text-foreground">
-                      {ticket.projectName}
+                <div className="space-y-2 mt-2">
+                  {ticket.description && (
+                    <p className="line-clamp-3 text-xs text-muted-foreground">
+                      {ticket.description}
                     </p>
                   )}
 
-                  {ticket.requesterName && (
-                    <p>Reported by {ticket.requesterName}</p>
-                  )}
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
+                    <Badge variant="outline" className="border-primary/60">
+                      {normalizeType(ticket.type)}
+                    </Badge>
 
-                  <p className="text-[10px]">
-                    {ticket.createdAt && (
-                      <>Created {formatDate(ticket.createdAt)} · </>
+                    <Badge variant="outline" className="border-primary/40">
+                      {normalizeStatus(ticket.status)}
+                    </Badge>
+
+                    <Badge
+                      variant="outline"
+                      className={priorityClass(ticket.priority)}
+                    >
+                      {normalizePriority(ticket.priority)}
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="mt-4 flex items-end justify-between text-[11px] text-muted-foreground">
+                  <div className="space-y-1">
+                    {ticket.projectName && (
+                      <p className="font-medium text-foreground">
+                        {ticket.projectName}
+                      </p>
                     )}
-                    {ticket.dueDate && <>Due {formatDate(ticket.dueDate)}</>}
-                  </p>
-                </div>
 
-                <div className="flex flex-col items-end gap-1">
+                    {ticket.requesterName && (
+                      <p>Reported by {ticket.requesterName}</p>
+                    )}
+
+                    <p className="text-[10px]">
+                      {ticket.createdAt && (
+                        <>Created {formatDate(ticket.createdAt)} · </>
+                      )}
+                      {ticket.dueDate && <>Due {formatDate(ticket.dueDate)}</>}
+                    </p>
+                  </div>
+
                   <span className="font-mono text-[10px] text-muted-foreground">
-                    #ISU-{ticket.id}
+                    #ISSUE-{ticket.id}
                   </span>
-
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <button
-                        type="button"
-                        className="inline-flex items-center gap-1 rounded-full border border-destructive/40 bg-destructive/5 px-2 py-0.5 text-[10px] text-destructive transition hover:bg-destructive/10"
-                      >
-                        <IconTrash className="h-3 w-3" />
-                        Delete
-                      </button>
-                    </AlertDialogTrigger>
-
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Hapus tiket ini?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Tindakan ini tidak bisa dibatalkan. Tiket akan dihapus
-                          secara permanen.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Batal</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => onDelete(ticket.id)}
-                          className="bg-destructive text-white hover:bg-destructive/90"
-                        >
-                          Ya, hapus
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
                 </div>
-              </div>
-            </article>
+
+                {canDelete && (
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Hapus tiket ini?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Tindakan ini tidak bisa dibatalkan.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Batal</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => onDelete(ticket.id)}
+                        className="bg-destructive text-white hover:bg-destructive/90"
+                      >
+                        Ya, hapus
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                )}
+
+              </article>
+            </AlertDialog>
           ))}
         </div>
       )}

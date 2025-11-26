@@ -61,7 +61,7 @@ export default function TicketsPage() {
   )
 
   const handleCreateIssue = React.useCallback(() => {
-    navigate("/project-manager/dashboard/tickets/create")
+    navigate("/project-manager/dashboard/ticket-issue/create")
   }, [navigate])
 
   const handleDelete = React.useCallback(
@@ -113,14 +113,16 @@ export default function TicketsPage() {
           </div>
               <TicketsCardsBoard
                 title="Issues assigned to you"
-                subtitle="Issue yang ditugaskan kepada kamu sebagai Project Manager."
-                emptyMessage="Belum ada issue yang ditugaskan ke kamu."
                 tickets={assignedTickets}
                 loading={loading}
                 error={error}
-                onDelete={handleDelete}
-                formatDate={formatDate}
                 hasFilter={hasFilter}
+                formatDate={formatDate}
+                onView={(id) => navigate(`/project-manager/dashboard/ticket-issue/view/${id}`)}
+                onDelete={() => {}} 
+                canDelete={false}
+                onEdit={() => {}}
+                canEdit={false}
               />
 
               <TicketsCardsBoard
@@ -133,6 +135,8 @@ export default function TicketsPage() {
                 onDelete={handleDelete}
                 formatDate={formatDate}
                 hasFilter={hasFilter}
+                onEdit={(id) => navigate(`/project-manager/dashboard/ticket-issue/edit/${id}`)}
+                onView={(id) => navigate(`/project-manager/dashboard/ticket-issue/view/${id}`)}
               />
             </div>
           </div>
