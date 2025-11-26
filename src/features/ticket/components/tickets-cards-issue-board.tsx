@@ -195,7 +195,7 @@ export const TicketsCardsBoard: React.FC<Props> = ({
                       {canDelete && (
                         <AlertDialogTrigger asChild>
                           <DropdownMenuItem className="flex items-center gap-2 text-xs text-destructive">
-                            <IconTrash className="h-3.5 w-3.5" />
+                            <IconTrash className="h-3.5 w-3.5 text-destructive" />
                             Delete
                           </DropdownMenuItem>
                         </AlertDialogTrigger>

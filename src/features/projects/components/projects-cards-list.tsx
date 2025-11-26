@@ -121,7 +121,7 @@ export const ProjectsCardsList: React.FC<Props> = ({
                       onClick={() => onDelete(project.id)}
                       className="text-destructive focus:text-destructive"
                     >
-                      <IconTrash className=" h-4 w-4 text-destructive focus:text-destructive"/> Hapus
+                      <IconTrash className=" h-4 w-4 text-destructive focus:text-destructive"/> Delete
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
