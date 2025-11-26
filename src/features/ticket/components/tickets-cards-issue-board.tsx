@@ -1,7 +1,13 @@
 "use client"
 
 import * as React from "react"
-import { IconTrash, IconDotsVertical, IconEye, IconEdit } from "@tabler/icons-react"
+import {
+  IconTrash,
+  IconDotsVertical,
+  IconEye,
+  IconEdit,
+  IconUsers,
+} from "@tabler/icons-react"
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -28,6 +34,7 @@ import type {
   TicketStatus,
   TicketType,
 } from "@/types/ticket-type"
+import { AssignTicketDialog } from "@/features/ticket-assignee/components/assign-ticket-dialog"
 
 type Props = {
   title: string
@@ -126,6 +133,13 @@ export const TicketsCardsBoard: React.FC<Props> = ({
     [tickets],
   )
 
+  const [assignOpen, setAssignOpen] = React.useState(false)
+  const [assignContext, setAssignContext] = React.useState<{
+    projectId?: number
+    ticketId?: number
+    ticketTitle?: string
+  }>({})
+
   if (loading) {
     return (
       <div className="rounded-2xl border bg-background/40 p-6">
@@ -166,13 +180,11 @@ export const TicketsCardsBoard: React.FC<Props> = ({
           {issueTickets.map((ticket) => (
             <AlertDialog key={ticket.id}>
               <article className="flex flex-col justify-between rounded-2xl border bg-card/80 p-4 shadow-sm transition hover:-translate-y-[2px] hover:shadow-md">
-
                 <div className="flex items-start justify-between">
                   <h3 className="text-sm font-semibold leading-snug">
                     {ticket.title}
                   </h3>
 
-                  {/* TITIK TIGA */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <button
@@ -192,6 +204,22 @@ export const TicketsCardsBoard: React.FC<Props> = ({
                         View detail
                       </DropdownMenuItem>
 
+                      <DropdownMenuItem
+                        className="flex items-center gap-2 text-xs"
+                        onClick={() => {
+                          setAssignContext({
+                            projectId:
+                              (ticket as any).projectId ?? undefined,
+                            ticketId: ticket.id,
+                            ticketTitle: ticket.title ?? "",
+                          })
+                          setAssignOpen(true)
+                        }}
+                      >
+                        <IconUsers className="h-3.5 w-3.5" />
+                        Assign user
+                      </DropdownMenuItem>
+
                       {canDelete && (
                         <AlertDialogTrigger asChild>
                           <DropdownMenuItem className="flex items-center gap-2 text-xs text-destructive">
@@ -200,6 +228,7 @@ export const TicketsCardsBoard: React.FC<Props> = ({
                           </DropdownMenuItem>
                         </AlertDialogTrigger>
                       )}
+
                       {canEdit && (
                         <DropdownMenuItem
                           className="flex items-center gap-2 text-xs"
@@ -283,12 +312,19 @@ export const TicketsCardsBoard: React.FC<Props> = ({
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 )}
-
               </article>
             </AlertDialog>
           ))}
         </div>
       )}
+
+      <AssignTicketDialog
+        open={assignOpen}
+        onOpenChange={setAssignOpen}
+        initialProjectId={assignContext.projectId}
+        initialTicketId={assignContext.ticketId}
+        initialTicketTitle={assignContext.ticketTitle}
+      />
     </section>
   )
 }

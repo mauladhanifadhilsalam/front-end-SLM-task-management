@@ -298,16 +298,7 @@ export function EditTicketForm({
                   helperText="Supports GitHub-style Markdown: **bold**, _italic_, ## heading, - list, `code`, dll."
                   error={fieldErrors.description}
                   disabled={saving || loading}
-                  placeholder={`## 1. Title
-
-> Context
-- Jelaskan masalah yang terjadi
-
-## Expected
-- Jelaskan perilaku yang diharapkan
-
-## Notes
-- Info tambahan lain di sini`}
+                  placeholder="Use Markdown to format your description..."
                 />
 
                 {/* Dates */}

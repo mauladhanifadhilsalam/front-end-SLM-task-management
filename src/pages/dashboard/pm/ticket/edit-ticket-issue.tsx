@@ -28,11 +28,11 @@ export default function EditTicketsPm() {
 
   const handleBack = () => {
 
-    navigate("/project-manager/dashboard/tickets")
+    navigate("/project-manager/dashboard/ticket-issue")
   }
 
   const onSubmit = (e: React.FormEvent) => {
-    handleSubmit(e, () => navigate("/project-manager/dashboard/tickets"))
+    handleSubmit(e, () => navigate("/project-manager/dashboard/ticket-issue"))
   }
 
   return (
