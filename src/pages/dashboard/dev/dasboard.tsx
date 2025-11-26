@@ -1,5 +1,5 @@
 import Swal from "sweetalert2";
-import { AppSidebar } from "@/components/app-sidebar"
+import { AppSidebarDev } from "@/components/app-sidebardev"
 import { ChartAreaInteractive } from "@/components/chart-area-interactive"
 import { DataTable } from "@/components/data-table"
 import { SectionCards } from "@/components/section-cards"
@@ -21,7 +21,7 @@ export default function Page() {
         } as React.CSSProperties
       }
     >
-      <AppSidebar variant="inset" />
+      <AppSidebarDev variant="inset" />
       <SidebarInset>
         <SiteHeader />
         <div className="flex flex-1 flex-col">
