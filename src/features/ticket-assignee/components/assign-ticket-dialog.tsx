@@ -16,6 +16,13 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 import {
   projectSchema,
@@ -58,9 +65,9 @@ export function AssignTicketDialog({
   const [projects, setProjects] = React.useState<Project[]>([])
   const [tickets, setTickets] = React.useState<Ticket[]>([])
   const [projectUsers, setProjectUsers] = React.useState<User[]>([])
-  const [existingAssigneeIds, setExistingAssigneeIds] = React.useState<
-    number[]
-  >([])
+  const [existingAssigneeIds, setExistingAssigneeIds] = React.useState<number[]>(
+    [],
+  )
 
   const [projectId, setProjectId] = React.useState<number | undefined>(
     initialProjectId,
@@ -117,7 +124,6 @@ export function AssignTicketDialog({
 
     loadProjects()
   }, [open])
-
 
   React.useEffect(() => {
     if (!open || !projectId) {
@@ -264,6 +270,9 @@ export function AssignTicketDialog({
   const selectedTicketTitle =
     tickets.find((t) => t.id === ticketId)?.title || initialTicketTitle || ""
 
+  const projectSelectValue = projectId ? String(projectId) : undefined
+  const ticketSelectValue = ticketId ? String(ticketId) : undefined
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
@@ -286,24 +295,32 @@ export function AssignTicketDialog({
             <p className="text-xs font-medium">
               Project <span className="text-destructive">*</span>
             </p>
-            <select
-              className="w-full rounded-md border bg-background px-2 py-1.5 text-xs"
-              value={projectId ?? ""}
-              disabled={loadingProjects || loading}
-              onChange={(e) => {
-                const v = e.target.value ? Number(e.target.value) : undefined
+
+            <Select
+              value={projectSelectValue}
+              onValueChange={(value) => {
+                const v = value ? Number(value) : undefined
                 setProjectId(v)
                 setTicketId(undefined)
                 setSelectedUserIds([])
               }}
+              disabled={loadingProjects || loading}
             >
-              <option value="">{loadingProjects ? "Memuat..." : "Pilih project"}</option>
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue
+                  placeholder={
+                    loadingProjects ? "Memuat project..." : "Pilih project"
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent side="bottom" align="start" className="max-h-64">
+                {projects.map((p) => (
+                  <SelectItem key={p.id} value={String(p.id)}>
+                    {p.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Ticket */}
@@ -311,33 +328,40 @@ export function AssignTicketDialog({
             <p className="text-xs font-medium">
               Ticket <span className="text-destructive">*</span>
             </p>
-            <select
-              className="w-full rounded-md border bg-background px-2 py-1.5 text-xs"
-              value={ticketId ?? ""}
-              disabled={!projectId || loadingTicketData || loading}
-              onChange={(e) => {
-                const v = e.target.value ? Number(e.target.value) : undefined
+
+            <Select
+              value={ticketSelectValue}
+              onValueChange={(value) => {
+                const v = value ? Number(value) : undefined
                 setTicketId(v)
                 setSelectedUserIds([])
               }}
+              disabled={
+                !projectId || loadingTicketData || loading || tickets.length === 0
+              }
             >
-              {!projectId && (
-                <option value="">Pilih project terlebih dahulu</option>
-              )}
-              {projectId && tickets.length === 0 && !loadingTicketData && (
-                <option value="">Tidak ada ticket di project ini</option>
-              )}
-              {projectId && loadingTicketData && (
-                <option value="">Memuat ticket...</option>
-              )}
-              {projectId &&
-                !loadingTicketData &&
-                tickets.map((t) => (
-                  <option key={t.id} value={t.id}>
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue
+                  placeholder={
+                    !projectId
+                      ? "Pilih project terlebih dahulu"
+                      : loadingTicketData
+                        ? "Memuat ticket..."
+                        : tickets.length === 0
+                          ? "Tidak ada ticket di project ini"
+                          : "Pilih ticket"
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent  side="bottom" align="start" className="max-h-64">
+                {tickets.map((t) => (
+                  <SelectItem key={t.id} value={String(t.id)}>
                     {t.title}
-                  </option>
+                  </SelectItem>
                 ))}
-            </select>
+              </SelectContent>
+            </Select>
+
             {selectedTicketTitle && (
               <p className="text-[10px] text-muted-foreground">
                 Ticket: {selectedTicketTitle}
