@@ -1,3 +1,5 @@
+
+
 "use client"
 
 import * as React from "react"
@@ -23,7 +25,12 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Separator } from "@/components/ui/separator"
-import { IconArrowLeft, IconEdit, IconTrash } from "@tabler/icons-react"
+import {
+  IconArrowLeft,
+  IconEdit,
+  IconTrash,
+  IconPaperclip,
+} from "@tabler/icons-react"
 
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
@@ -46,6 +53,8 @@ type Props = {
   onDelete: () => void
   canEdit?: boolean
   canDelete?: boolean
+  // 🔹 NEW: handler untuk "Add attachment"
+  onAddAttachment?: (ticketId: number) => void
 }
 
 const statusVariant = (
@@ -110,7 +119,8 @@ export function PmTicketDetailView({
   onBack,
   onDelete,
   canEdit,
-  canDelete
+  canDelete,
+  onAddAttachment,
 }: Props) {
   return (
     <div className="px-4 lg:px-6">
@@ -127,65 +137,63 @@ export function PmTicketDetailView({
           </Button>
         </div>
 
-{ticket && (canEdit || canDelete) && (
-  <div className="flex items-center gap-2">
-    {canEdit && (
-      <Button
-        variant="outline"
-        size="sm"
-        asChild
-        className="cursor-pointer"
-      >
-        <Link
-          to={`/project-manager/dashboard/tickets/edit/${ticket.id}`}
-        >
-          <IconEdit className="h-4 w-4 mr-1" />
-          Edit
-        </Link>
-      </Button>
-    )}
+        {ticket && (canEdit || canDelete) && (
+          <div className="flex items-center gap-2">
+            {canEdit && (
+              <Button
+                variant="outline"
+                size="sm"
+                asChild
+                className="cursor-pointer"
+              >
+                <Link
+                  to={`/project-manager/dashboard/tickets/edit/${ticket.id}`}
+                >
+                  <IconEdit className="h-4 w-4 mr-1" />
+                  Edit
+                </Link>
+              </Button>
+            )}
 
-    {canDelete && (
-      <AlertDialog>
-        <AlertDialogTrigger asChild>
-          <Button
-            variant="destructive"
-            size="sm"
-            className="flex items-center gap-2 cursor-pointer"
-            disabled={deleting}
-          >
-            <IconTrash className="h-4 w-4 mr-1" />
-            {deleting ? "Deleting..." : "Delete"}
-          </Button>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Hapus ticket?</AlertDialogTitle>
-            <AlertDialogDescription>
-              {ticket
-                ? `Yakin ingin menghapus tiket “${ticket.title}”? Tindakan ini tidak dapat dikembalikan.`
-                : "Yakin ingin menghapus tiket ini? Tindakan ini tidak dapat dikembalikan."}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>
-              Batal
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={onDelete}
-              disabled={deleting}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              {deleting ? "Menghapus..." : "Ya, hapus"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    )}
-  </div>
-)}
-
-
+            {canDelete && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="flex items-center gap-2 cursor-pointer"
+                    disabled={deleting}
+                  >
+                    <IconTrash className="h-4 w-4 mr-1" />
+                    {deleting ? "Deleting..." : "Delete"}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Hapus ticket?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {ticket
+                        ? `Yakin ingin menghapus tiket “${ticket.title}”? Tindakan ini tidak dapat dikembalikan.`
+                        : "Yakin ingin menghapus tiket ini? Tindakan ini tidak dapat dikembalikan."}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel disabled={deleting}>
+                      Batal
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={onDelete}
+                      disabled={deleting}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      {deleting ? "Menghapus..." : "Ya, hapus"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+          </div>
+        )}
       </div>
 
       <h1 className="text-2xl font-semibold">Ticket Details</h1>
@@ -216,6 +224,7 @@ export function PmTicketDetailView({
             </div>
           ) : ticket ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* info basic */}
               <div className="space-y-2">
                 <div className="text-xs text-muted-foreground">Project</div>
                 <div className="font-medium">
@@ -233,9 +242,7 @@ export function PmTicketDetailView({
               <div className="space-y-2">
                 <div className="text-xs text-muted-foreground">Type</div>
                 <div>
-                  <Badge variant="secondary">
-                    {ticket.type || "-"}
-                  </Badge>
+                  <Badge variant="secondary">{ticket.type || "-"}</Badge>
                 </div>
               </div>
 
@@ -305,6 +312,7 @@ export function PmTicketDetailView({
                   </div>
                 )}
 
+              {/* Description */}
               <div className="md:col-span-2">
                 <Separator className="my-2" />
                 <div className="text-xs text-muted-foreground mb-1">
@@ -321,11 +329,30 @@ export function PmTicketDetailView({
                 )}
               </div>
 
+              {/* Attachments section + button */}
               <div className="md:col-span-2">
                 <Separator className="my-4" />
+                <div className="mb-2 flex items-center justify-between">
+                  <div className="text-xs text-muted-foreground">
+                    Attachments
+                  </div>
+                  {onAddAttachment && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-7 px-2 text-[11px]"
+                      onClick={() => onAddAttachment(ticket.id)}
+                    >
+                      <IconPaperclip className="mr-1 h-3 w-3" />
+                      Add attachment
+                    </Button>
+                  )}
+                </div>
                 <TicketAttachments ticketId={ticket.id} />
               </div>
 
+              {/* Comments */}
               <div className="md:col-span-2">
                 <Separator className="my-4" />
                 <TicketComments ticketId={ticket.id} type="ISSUE" />

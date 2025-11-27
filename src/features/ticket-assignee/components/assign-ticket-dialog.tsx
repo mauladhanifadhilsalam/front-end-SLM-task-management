@@ -118,7 +118,7 @@ export function AssignTicketDialog({
     loadProjects()
   }, [open])
 
-  // ketika project berubah: load tickets + project assignments
+
   React.useEffect(() => {
     if (!open || !projectId) {
       setTickets([])
@@ -173,7 +173,6 @@ export function AssignTicketDialog({
     loadTicketsAndUsers()
   }, [open, projectId])
 
-  // ketika ticket berubah: cek siapa yang sudah assigned
   React.useEffect(() => {
     if (!open || !ticketId) {
       setExistingAssigneeIds([])

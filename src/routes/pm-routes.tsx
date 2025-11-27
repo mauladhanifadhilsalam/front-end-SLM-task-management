@@ -19,6 +19,9 @@ import ViewTickets from "@/pages/dashboard/pm/ticket/view-ticket-page"
 import CreateTicketIssue from "@/pages/dashboard/pm/ticket/create-ticket-issue"
 import EditTicketIssuePage from "@/pages/dashboard/pm/ticket/edit-ticket-issue"
 
+
+import AddTicketAttachment from "@/pages/dashboard/pm/fileAttachment/add-file-attachment"
+
 import NotificationPage from "../pages/notification/notification"
 
 export const pmRoutes = (
@@ -124,6 +127,14 @@ export const pmRoutes = (
         element={
           <ProtectedRoute allowedRoles={["project_manager"]}>
             < EditTicketIssuePage/>
+          </ProtectedRoute>
+        }
+      />
+    <Route
+        path="/project-manager/dashboard/ticket-issue/:id/attachments/new"
+        element={
+          <ProtectedRoute allowedRoles={["project_manager"]}>
+            < AddTicketAttachment/>
           </ProtectedRoute>
         }
       />

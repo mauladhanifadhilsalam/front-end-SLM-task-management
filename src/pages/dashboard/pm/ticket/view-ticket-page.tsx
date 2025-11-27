@@ -1,3 +1,5 @@
+// src/pages/project-manager/view-tickets.tsx (punyamu ini)
+
 "use client"
 
 import * as React from "react"
@@ -22,7 +24,6 @@ export default function ViewTickets() {
 
   const state = (location.state as ViewState) || {}
 
-  // 🔥 default sekarang = false (aman)
   const canEdit = state.canEdit ?? false
   const canDelete = state.canDelete ?? false
 
@@ -34,6 +35,11 @@ export default function ViewTickets() {
     formatDate,
     deleteCurrent,
   } = useTicketDetail(id)
+
+
+  const handleAddAttachment = (ticketId: number) => {
+    navigate(`/project-manager/dashboard/ticket-issue/${ticketId}/attachments/new`)
+  }
 
   return (
     <SidebarProvider
@@ -59,8 +65,9 @@ export default function ViewTickets() {
                 navigate("/project-manager/dashboard/ticket-issue")
               }
               onDelete={deleteCurrent}
-              canEdit={canEdit}      // ⬅️ pakai state
-              canDelete={canDelete}  // ⬅️ pakai state
+              canEdit={canEdit}
+              canDelete={canDelete}
+              onAddAttachment={handleAddAttachment}
             />
           </div>
         </div>

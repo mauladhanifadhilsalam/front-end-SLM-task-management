@@ -30,7 +30,7 @@ const buildFileUrl = (filePath?: string) => {
   if (!filePath) return undefined
   if (filePath.startsWith("http")) return filePath
   if (filePath.startsWith("/")) return `${API_BASE}${filePath}`
-  return `${API_BASE}/attchments/${filePath}`
+  return `${API_BASE}/attachments/${filePath}`
 }
 
 const normalizeAttachment = (a: AttachmentApi): Attachment => {

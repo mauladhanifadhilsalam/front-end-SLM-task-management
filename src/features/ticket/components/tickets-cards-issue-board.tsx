@@ -7,6 +7,7 @@ import {
   IconEye,
   IconEdit,
   IconUsers,
+  IconPaperclip,
 } from "@tabler/icons-react"
 import {
   AlertDialog,
@@ -50,6 +51,8 @@ type Props = {
   hasFilter: boolean
   canDelete?: boolean
   canEdit?: boolean
+  onAddAttachment?: (id: number) => void
+  canAssignUser?: boolean
 }
 
 const typeLabel: Record<TicketType, string> = {
@@ -124,6 +127,8 @@ export const TicketsCardsBoard: React.FC<Props> = ({
   hasFilter,
   canDelete = true,
   canEdit = true,
+  onAddAttachment,
+  canAssignUser = true,
 }) => {
   const issueTickets = React.useMemo(
     () =>
@@ -204,21 +209,33 @@ export const TicketsCardsBoard: React.FC<Props> = ({
                         View detail
                       </DropdownMenuItem>
 
-                      <DropdownMenuItem
-                        className="flex items-center gap-2 text-xs"
-                        onClick={() => {
-                          setAssignContext({
-                            projectId:
-                              (ticket as any).projectId ?? undefined,
-                            ticketId: ticket.id,
-                            ticketTitle: ticket.title ?? "",
-                          })
-                          setAssignOpen(true)
-                        }}
-                      >
-                        <IconUsers className="h-3.5 w-3.5" />
-                        Assign user
-                      </DropdownMenuItem>
+                     {canAssignUser && (              
+                        <DropdownMenuItem
+                          className="flex items-center gap-2 text-xs"
+                          onClick={() => {
+                            setAssignContext({
+                              projectId: (ticket as any).projectId ?? undefined,
+                              ticketId: ticket.id,
+                              ticketTitle: ticket.title ?? "",
+                            })
+                            setAssignOpen(true)
+                          }}
+                        >
+                          <IconUsers className="h-3.5 w-3.5" />
+                          Assign user
+                        </DropdownMenuItem>
+                      )}
+
+                      {onAddAttachment && (
+                        <DropdownMenuItem
+                          className="flex items-center gap-2 text-xs"
+                          onClick={() => onAddAttachment(ticket.id)}
+                        >
+                          <IconPaperclip className="h-3.5 w-3.5" />
+                          Add attachment
+                        </DropdownMenuItem>
+                      )}
+
 
                       {canDelete && (
                         <AlertDialogTrigger asChild>

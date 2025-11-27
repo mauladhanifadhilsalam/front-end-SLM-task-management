@@ -69,8 +69,12 @@ export default function TicketsPage() {
       deleteTicket(id)
     },
     [deleteTicket],
-  )
+  )        
 
+
+  const handleAddAttachment = (id: number) => {
+    navigate(`/project-manager/dashboard/ticket-issue/${id}/attachments/new`)
+  }
   return (
     <SidebarProvider
       style={
@@ -127,6 +131,7 @@ export default function TicketsPage() {
                 canDelete={false}
                 onEdit={() => {}}
                 canEdit={false}
+                canAssignUser={false}
               />
 
               <TicketsCardsBoard
@@ -136,9 +141,10 @@ export default function TicketsPage() {
                 tickets={reportedTickets}
                 loading={loading}
                 error={error}
-                onDelete={handleDelete}
+                onDelete={handleDelete} 
                 formatDate={formatDate}
                 hasFilter={hasFilter}
+                onAddAttachment={handleAddAttachment}
                 onEdit={(id) => navigate(`/project-manager/dashboard/ticket-issue/edit/${id}`)}
                 onView={(id) =>
                 navigate(`/project-manager/dashboard/ticket-issue/view/${id}`, {

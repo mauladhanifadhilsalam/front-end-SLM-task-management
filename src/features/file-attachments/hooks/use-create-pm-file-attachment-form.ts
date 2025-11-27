@@ -1,3 +1,4 @@
+// src/features/file-attachments/hooks/use-create-pm-file-attachment-form.ts
 "use client"
 
 import * as React from "react"
@@ -14,6 +15,7 @@ import {
   type AttachmentTicketOption,
 } from "@/services/file-attachment.service"
 
+// ⬇️ Biar bisa dipakai sama form yang sama
 export type FileAttachmentFieldErrors = Partial<
   Record<FileAttachmentField, string>
 >
@@ -30,7 +32,15 @@ const ALLOWED_TYPES = [
 
 export const ACCEPT_FILE_TYPES = ALLOWED_TYPES.join(",")
 
-export const useCreateFileAttachmentForm = () => {
+type UseCreatePmFileAttachmentFormOptions = {
+  successPath?: string
+  backPath?: string
+  initialTicketId?: string   // 👈 penting: dari URL
+}
+
+export const useCreatePmFileAttachmentForm = (
+  options?: UseCreatePmFileAttachmentFormOptions,
+) => {
   const navigate = useNavigate()
 
   const [ticketOptions, setTicketOptions] = React.useState<
@@ -45,10 +55,11 @@ export const useCreateFileAttachmentForm = () => {
   const [file, setFile] = React.useState<File | null>(null)
   const [preview, setPreview] = React.useState<string | null>(null)
 
-  const [form, setForm] = React.useState<FileAttachmentValues>({
-    ticketId: "",
+  // ✅ ticketId di-init sekali dari initialTicketId
+  const [form, setForm] = React.useState<FileAttachmentValues>(() => ({
+    ticketId: options?.initialTicketId ?? "",
     file: undefined as unknown as File,
-  })
+  }))
 
   const [fieldErrors, setFieldErrors] =
     React.useState<FileAttachmentFieldErrors>({})
@@ -84,10 +95,10 @@ export const useCreateFileAttachmentForm = () => {
     setPreview(null)
   }, [file])
 
-  const setTicketId = (ticketId: string) => {
+  const setTicketId = React.useCallback((ticketId: string) => {
     setForm((prev) => ({ ...prev, ticketId }))
     setFieldErrors((prev) => ({ ...prev, ticketId: undefined }))
-  }
+  }, [])
 
   const handleFilePick = (f: File | null) => {
     if (!f) {
@@ -190,7 +201,9 @@ export const useCreateFileAttachmentForm = () => {
         description: "Attachment berhasil diunggah.",
       })
 
-      navigate("/admin/dashboard/file-attachments")
+      navigate(
+        options?.successPath ?? "/project-manager/dashboard/ticket-issue",
+      )
     } catch (err: any) {
       const msg =
         err?.response?.data?.message || "Gagal mengunggah attachment."
@@ -205,7 +218,7 @@ export const useCreateFileAttachmentForm = () => {
   }
 
   const goBack = () => {
-    navigate("/admin/dashboard/file-attachments")
+    navigate(options?.backPath ?? "/project-manager/dashboard/ticket-issue")
   }
 
   return {
