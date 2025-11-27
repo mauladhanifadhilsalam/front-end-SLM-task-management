@@ -1,4 +1,4 @@
-// ⬅️ TAMBAH IMPORT INI DI PALING ATAS
+
 import type { UserLite } from "@/types/user.types"
 
 export type ProjectStatus = "NOT_STARTED" | "IN_PROGRESS" | "DONE" | string
@@ -32,6 +32,7 @@ export type Project = {
   status: ProjectStatus
   completion: number
   notes: string
+  phases: ProjectPhase[]
 }
 
 export type CreateProjectPayload = {
@@ -47,7 +48,7 @@ export type CreateProjectPayload = {
   assignments?: ProjectAssignmentPayload[]
 }
 
-// ⬇️ DIPAKAI DI FORM (CREATE / EDIT)
+
 export type ProjectPhaseForm = {
   name: string
   startDate?: Date
@@ -59,7 +60,7 @@ export type ProjectAssignmentForm = {
   roleInProject: string
 }
 
-// ⬇️ DATA DARI API (DETAIL PROJECT)
+
 export type ProjectPhase = {
   id: number
   name: string
@@ -67,7 +68,7 @@ export type ProjectPhase = {
   endDate: string
 }
 
-// ⬇️ 🔥 BARU: type assignment untuk DETAIL
+
 export type ProjectAssignment = {
   id: number
   userId: number
@@ -78,7 +79,6 @@ export type ProjectAssignment = {
   user?: UserLite
 }
 
-// ⬇️ 🔥 UPDATE: ProjectDetail sekarang punya phases + assignments
 export type ProjectDetail = Project & {
   phases: ProjectPhase[]
   assignments?: ProjectAssignment[]

@@ -28,12 +28,16 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog"
+
+import { ProjectGanttChartDialog } from "@/features/projects/components/gantt-chart-dialog"
+
 import {
   IconEye,
   IconEdit,
   IconTrash,
   IconDotsVertical,
   IconListDetails,
+  IconTimeline,
 } from "@tabler/icons-react"
 import type { Project } from "@/types/project.type"
 
@@ -99,6 +103,7 @@ export const ProjectsCardsList: React.FC<Props> = ({
       </div>
     )
   }
+  const [ganttProject, setGanttProject] = React.useState<Project | null>(null)
 
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -136,6 +141,11 @@ export const ProjectsCardsList: React.FC<Props> = ({
                           Edit project
                         </Link>
                       </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setGanttProject(project)} className="text-xs">
+                        <IconTimeline className="h-3.5 w-3.5" />
+                        View Gantt Chart
+                      </DropdownMenuItem>
+
 
                       <DropdownMenuItem asChild>
                         <Link className="flex items-center gap-2 text-xs" to={`/project-manager/dashboard/projects/tasks/${project.id}`}>
@@ -230,6 +240,11 @@ export const ProjectsCardsList: React.FC<Props> = ({
           </AlertDialog>
         )
       })}
+      <ProjectGanttChartDialog
+        project={ganttProject}
+        onClose={() => setGanttProject(null)}
+      />
+
     </div>
   )
 }

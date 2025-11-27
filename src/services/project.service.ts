@@ -54,6 +54,7 @@ const normalizeProject = (raw: any): Project => {
     status: (raw.status as ProjectStatus) ?? "NOT_STARTED",
     completion,
     notes: String(raw.notes ?? ""),
+     phases: raw.phases ?? [],
   }
 }
 
