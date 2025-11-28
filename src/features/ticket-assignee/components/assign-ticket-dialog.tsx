@@ -412,15 +412,16 @@ export function AssignTicketDialog({
                         selectedUserIds.includes(u.id) || alreadyAssigned
 
                       return (
-                        <button
+                       <button
                           key={u.id}
                           type="button"
-                          onClick={() => toggleUser(u.id)}
-                          disabled={alreadyAssigned || loading}
+                          onClick={() => {
+                            if (!alreadyAssigned) toggleUser(u.id)
+                          }}
                           className={[
                             "w-full flex items-center gap-3 rounded-md px-2 py-1.5 text-left text-xs",
                             alreadyAssigned
-                              ? "opacity-60 cursor-not-allowed bg-muted/40"
+                              ? "opacity-60 bg-muted/40 cursor-default"
                               : "hover:bg-muted/60 cursor-pointer",
                           ].join(" ")}
                         >

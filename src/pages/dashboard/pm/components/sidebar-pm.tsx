@@ -38,7 +38,7 @@ const data = {
     },
     {
       title: "Developers",
-      url: "/project-manager/dashboard/developers",
+      url: "/project-manager/dashboard/developer-highlight",
       icon: IconUsers,
     },
     {
@@ -60,7 +60,7 @@ const data = {
   navSecondary: [
     {
       title: "Settings",
-      url: "/project-manager/settings",
+      url: "/project-manager/profile-settings",
       icon: IconSettings,
     },
   ],
