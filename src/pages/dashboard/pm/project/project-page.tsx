@@ -9,17 +9,19 @@ import { useAdminProjects } from "@/features/projects/hooks/use-admin-projects"
 import { ProjectsToolbar } from "@/features/projects/components/projects-toolbar"
 import { ProjectsCardsList } from "@/features/projects/components/projects-cards-list"
 import { ProjectsEmptyState, ProjectsSearchEmptyState } from "../../../../features/projects/components/projecs-empty-state"
+import { ProjectSummaryCharts } from "./project-summary-charts"
+
 export default function AdminProjects() {
   const navigate = useNavigate()
 
   const {
+    projects,
     filteredProjects,
     loading,
     error,
     search,
     statusFilter,
     columns,
-    colSpan,
     setSearch,
     setStatusFilter,
     toggleColumn,
@@ -53,10 +55,12 @@ export default function AdminProjects() {
                   Daftar Project
                 </h1>
                 <p className="text-muted-foreground">
-                  Lihat dan kelola semua project aktif.
+                Lihat dan kelola semua project aktif.
                 </p>
               </div>
             </div>
+
+            <ProjectSummaryCharts projects={projects} />
 
             <ProjectsToolbar
               search={search}

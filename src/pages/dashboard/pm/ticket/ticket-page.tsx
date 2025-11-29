@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom"
 import { AppSidebarPm } from "../components/sidebar-pm"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import { TicketSummaryCharts } from "./ticket-summary-charts"
 import { TicketsCardsBoard } from "@/features/ticket/components/tickets-cards-issue-board"
 import { getCurrentUserId } from "@/utils/get-current-user"
 import { useAdminTickets } from "@/features/ticket/hooks/use-admin-tickets"
@@ -114,6 +115,10 @@ export default function TicketsPage() {
                 New issue
               </Button>
             </div>
+          </div>
+
+          <div className="px-7">
+            <TicketSummaryCharts tickets={tickets} />
           </div>
               <TicketsCardsBoard
                 title="Issues assigned to you"
