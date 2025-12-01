@@ -118,6 +118,14 @@ export const pmRoutes = (
         }
       />
     <Route
+        path="/project-manager/dashboard/projects/:projectId/tasks/:taskId"
+        element={
+          <ProtectedRoute allowedRoles={["project_manager"]}>
+            < PmProjectTaskDetailPage/>
+          </ProtectedRoute>
+        }
+      />
+    <Route
         path="/project-manager/dashboard/ticket-issue"
         element={
           <ProtectedRoute allowedRoles={["project_manager"]}>
