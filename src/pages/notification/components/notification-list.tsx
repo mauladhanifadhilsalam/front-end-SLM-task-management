@@ -46,6 +46,8 @@ export type Notification = {
   recipientId: number
   targetType: NotificationTargetType
   targetId: number | null
+  ticketType?: string | null
+  ticketProjectId?: number | null
   message: string
   state: NotificationState
   createdAt: string

@@ -4,7 +4,7 @@ import * as React from "react"
 import axios from "axios"
 import { useNavigate } from "react-router-dom"
 
-import { AppSidebar } from "@/components/app-sidebar"
+import { AppSidebarDev } from "@/components/app-sidebardev"
 import { AppSidebarPm } from "../dashboard/pm/components/sidebar-pm"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
@@ -51,6 +51,15 @@ export default function NotificationPage() {
             recipientId: n.recipientId,
             targetType: n.targetType,
             targetId: n.targetId ?? null,
+            ticketProjectId:
+              n.ticketProjectId ??
+              n.projectId ??
+              n.project_id ??
+              n.ticket?.projectId ??
+              n.ticket?.project_id ??
+              n.ticket?.project?.id ??
+              null,
+            ticketType: n.ticketType ?? n.type ?? n.ticket?.type ?? null,
             message: n.message,
             state: n.state,
             createdAt: n.createdAt,
@@ -88,16 +97,108 @@ export default function NotificationPage() {
     ? "/developer/dashboard"
     : "/admin/dashboard"
 
-    const handleOpen = (n: Notification) => {
+    const resolveTicketInfo = React.useCallback(
+        async (n: Notification) => {
+        let ticketType = n.ticketType?.toString().toUpperCase() ?? null
+        let projectId =
+            n.ticketProjectId != null ? Number(n.ticketProjectId) : null
+
+        if (ticketType && projectId) {
+            return { ticketType, projectId }
+        }
+
+        if (!n.targetId) {
+            return { ticketType, projectId }
+        }
+
+        try {
+            const res = await axios.get(`${API_BASE}/tickets/${n.targetId}`, {
+            headers: tokenHeader,
+            })
+
+            const data = res?.data?.data ?? res?.data ?? {}
+
+            ticketType =
+            ticketType ??
+            data.type ??
+            data.ticketType ??
+            data.ticket?.type ??
+            null
+
+            const resolvedProjectId = Number(
+            projectId ??
+                data.projectId ??
+                data.project_id ??
+                data.project?.id ??
+                data.ticket?.projectId ??
+                data.ticket?.project_id ??
+                data.ticket?.project?.id ??
+                0,
+            )
+
+            projectId =
+            Number.isFinite(resolvedProjectId) && resolvedProjectId > 0
+                ? resolvedProjectId
+                : null
+        } catch (err) {
+            console.error("Failed to resolve ticket info", err)
+        }
+
+        return {
+            ticketType: ticketType ? ticketType.toString().toUpperCase() : null,
+            projectId,
+        }
+        },
+        [tokenHeader],
+    )
+
+    const handleOpen = React.useCallback(
+        async (n: Notification) => {
         if (n.targetType === "TICKET" && n.targetId) {
-        navigate(`${basePath}/tickets/view/${n.targetId}`)
-        return
+            const { ticketType, projectId } = await resolveTicketInfo(n)
+            const upperType = ticketType?.toString().toUpperCase() ?? ""
+
+            if (role === "project_manager") {
+            if (upperType === "TASK" && projectId) {
+                navigate(
+                `/project-manager/dashboard/projects/${projectId}/tasks/${n.targetId}`,
+                )
+                return
+            }
+
+            navigate(`/project-manager/dashboard/ticket-issue/view/${n.targetId}`)
+            return
+            }
+
+            if (role === "developer") {
+            if (upperType === "TASK" && projectId) {
+                navigate(
+                `/developer-dashboard/projects/${projectId}/tasks/${n.targetId}`,
+                )
+                return
+            }
+
+            if (projectId) {
+                navigate(
+                `/developer-dashboard/projects/${projectId}/issues/${n.targetId}`,
+                )
+                return
+            }
+
+            navigate("/developer-dashboard/projects")
+            return
+            }
+
+            navigate(`/admin/dashboard/tickets/view/${n.targetId}`)
+            return
         }
         if (n.targetType === "PROJECT" && n.targetId) {
-        navigate(`${basePath}/projects/view/${n.targetId}`)
-        return
+            navigate(`${basePath}/projects/view/${n.targetId}`)
+            return
         }
-    }
+        },
+        [resolveTicketInfo, role, navigate, basePath],
+    )
 
 
 
@@ -179,7 +280,7 @@ export default function NotificationPage() {
         {role === "project_manager" ? (
         <AppSidebarPm variant="inset" />
       ) : (
-        <AppSidebar variant="inset" />
+        <AppSidebarDev variant="inset" />
       )}
         <SidebarInset>
             <SiteHeader />

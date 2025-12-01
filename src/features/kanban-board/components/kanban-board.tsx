@@ -97,12 +97,6 @@ export const KanbanBoard = ({
     setActiveId(String(event.active.id));
   };
 
-  const emptyState = (
-    <div className="flex h-[220px] items-center justify-center rounded-xl border border-dashed border-border/60 bg-muted/40 text-xs text-muted-foreground">
-      Tidak ada task
-    </div>
-  );
-
   const statusOrder = useMemo(() => STATUSES, []);
 
   const handleDragEnd = async (event: any) => {
@@ -115,17 +109,16 @@ export const KanbanBoard = ({
 
     const overData = over.data.current;
 
-    // Drop pada column
+    // Drop ke column
     if (overData?.type === "column") {
       const newStatus = overData.status as TicketStatus;
-
       if (newStatus === activeTicket.status) return;
 
       await updateTicketStatus(activeTicket.id, newStatus);
       return;
     }
 
-    // Drop pada ticket (reordering dalam column yang sama)
+    // Reorder dalam column
     if (overData?.type === "ticket") {
       if (activeTicket.status !== overData.ticket.status) return;
 
@@ -146,6 +139,10 @@ export const KanbanBoard = ({
 
   const activeTicket = activeId ? findTicket(activeId) : null;
 
+  /* =====================================
+     ========== MOBILE LAYOUT ============
+     ===================================== */
+
   if (isMobile) {
     return (
       <DndContext
@@ -157,6 +154,8 @@ export const KanbanBoard = ({
         <div className="flex flex-col gap-5 p-4">
           {statusOrder.map((status) => {
             const meta = STATUS_META[status];
+            const items = groups[status];
+
             return (
               <div
                 key={status}
@@ -171,38 +170,36 @@ export const KanbanBoard = ({
                       {formatStatus(status)}
                     </h2>
                   </div>
+
                   <span
-                    className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold text-white shadow-sm ${meta.badge}`}
+                    className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold shadow-sm ${meta.badge}`}
                   >
-                    {groups[status].length} task
+                    {items.length} task
                   </span>
                 </div>
 
                 <SortableContext
-                  items={groups[status].map((t) => String(t.id))}
+                  items={items.map((t) => String(t.id))}
                   strategy={verticalListSortingStrategy}
                 >
-                  <div
-                    className={`rounded-2xl border ${meta.border} bg-card/80 p-3 space-y-3`}
-                  >
-                    {groups[status].length === 0
-                      ? emptyState
-                      : groups[status].map((ticket) => (
-                          <SortableTaskCard
-                            key={ticket.id}
-                            ticket={ticket}
-                            detailHref={
-                              buildDetailLink
-                                ? buildDetailLink(ticket)
-                                : `/developer-dashboard/projects/${ticket.projectId}/tasks/${ticket.id}`
-                            }
-                          />
-                        ))}
+                  <div className={`rounded-2xl border ${meta.border} bg-card/80 p-3 space-y-3`}>
+                    {items.length > 0 &&
+                      items.map((ticket) => (
+                        <SortableTaskCard
+                          key={ticket.id}
+                          ticket={ticket}
+                          detailHref={
+                            buildDetailLink
+                              ? buildDetailLink(ticket)
+                              : `/developer-dashboard/projects/${ticket.projectId}/tasks/${ticket.id}`
+                          }
+                        />
+                      ))}
+
                     <button
                       type="button"
                       onClick={() => handleAddTask(status)}
                       className="flex h-10 w-full items-center justify-center rounded-full border border-dashed border-border/70 bg-muted/50 text-lg font-semibold text-muted-foreground transition hover:border-primary/50 hover:text-foreground"
-                      aria-label={`Tambah task di status ${formatStatus(status)}`}
                     >
                       +
                     </button>
@@ -220,7 +217,10 @@ export const KanbanBoard = ({
     );
   }
 
-  // Desktop Layout
+  /* =====================================
+     ========== DESKTOP LAYOUT ===========
+     ===================================== */
+
   return (
     <DndContext
       sensors={sensors}
@@ -228,55 +228,39 @@ export const KanbanBoard = ({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div
-        className="absolute inset-0 overflow-x-auto overflow-y-hidden bg-background px-4 pb-6 pt-4 scrollbar-hide overscroll-x-contain"
-        style={{
-          scrollPaddingLeft: "1.5rem",
-          scrollPaddingRight: "1.5rem",
-          scrollbarGutter: "stable both-edges",
-          WebkitOverflowScrolling: "touch",
-          scrollbarWidth: "none",
-          msOverflowStyle: "none",
-        }}
-      >
-        <div className="relative h-full">
-          <div className="pointer-events-none absolute left-0 top-0 h-full w-6 bg-gradient-to-r from-background to-transparent" />
+      <div className="absolute inset-0 overflow-x-auto overflow-y-hidden bg-background px-4 pb-6 pt-4 scrollbar-hide">
+        <div className="inline-flex min-w-full gap-5 pr-6 pl-2">
+          {statusOrder.map((status) => {
+            const meta = STATUS_META[status];
+            const items = groups[status];
 
-          <div className="inline-flex min-w-full gap-5 pr-6 pl-2">
-            {statusOrder.map((status) => {
-              const meta = STATUS_META[status];
-              return (
-                <div
-                  key={status}
-                  className="flex w-[320px] flex-shrink-0 flex-col rounded-2xl border border-border bg-card shadow-sm"
-                >
-                  <div className="flex items-center justify-between gap-2 rounded-t-2xl border-b border-border/80 bg-muted/60 px-4 py-3">
-                    <div className="space-y-0.5">
-                      <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-                        {meta.label}
-                      </p>
-                      <h2 className="text-sm font-semibold text-foreground">
-                        {formatStatus(status)}
-                      </h2>
-                    </div>
-                    <span
-                      className="inline-flex items-center rounded-full bg-card px-3 py-1 text-[11px] font-semibold text-foreground shadow-inner"
-                    >
-                      {groups[status].length} task
-                    </span>
+            return (
+              <div
+                key={status}
+                className="flex w-[320px] flex-shrink-0 flex-col rounded-2xl border border-border bg-card shadow-sm"
+              >
+                <div className="flex items-center justify-between gap-2 rounded-t-2xl border-b border-border/80 bg-muted/60 px-4 py-3">
+                  <div className="space-y-0.5">
+                    <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+                      {meta.label}
+                    </p>
+                    <h2 className="text-sm font-semibold text-foreground">
+                      {formatStatus(status)}
+                    </h2>
                   </div>
 
+                  <span className="inline-flex items-center rounded-full bg-card px-3 py-1 text-[11px] font-semibold shadow-inner">
+                    {items.length} task
+                  </span>
+                </div>
+
                 <SortableContext
-                  items={groups[status].map((t) => String(t.id))}
+                  items={items.map((t) => String(t.id))}
                   strategy={verticalListSortingStrategy}
                 >
                   <TaskColumn status={status}>
-                    {groups[status].length === 0 ? (
-                      <div className="m-3 rounded-xl border border-dashed border-border/60 bg-muted/50 p-4 text-center text-xs text-muted-foreground">
-                        Tidak ada task
-                      </div>
-                    ) : (
-                      groups[status].map((ticket) => (
+                    {items.length > 0 &&
+                      items.map((ticket) => (
                         <SortableTaskCard
                           key={ticket.id}
                           ticket={ticket}
@@ -286,14 +270,13 @@ export const KanbanBoard = ({
                               : `/developer-dashboard/projects/${ticket.projectId}/tasks/${ticket.id}`
                           }
                         />
-                      ))
-                    )}
+                      ))}
+
                     <div className="px-3 pb-3">
                       <button
                         type="button"
                         onClick={() => handleAddTask(status)}
                         className="flex h-10 w-full items-center justify-center rounded-full border border-dashed border-border/70 bg-muted/50 text-lg font-semibold text-muted-foreground transition hover:border-primary/50 hover:text-foreground"
-                        aria-label={`Tambah task di status ${formatStatus(status)}`}
                       >
                         +
                       </button>
@@ -303,13 +286,10 @@ export const KanbanBoard = ({
               </div>
             );
           })}
-          </div>
         </div>
       </div>
 
-      <DragOverlay>
-        {activeTicket && <DragOverlayCard ticket={activeTicket} />}
-      </DragOverlay>
+      <DragOverlay>{activeTicket && <DragOverlayCard ticket={activeTicket} />}</DragOverlay>
     </DndContext>
   );
 };
