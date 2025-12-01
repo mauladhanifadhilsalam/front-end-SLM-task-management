@@ -25,8 +25,22 @@ type Props = {
 }
 
 export function TicketSummaryCharts({ tickets }: Props) {
-  const statusSummary = React.useMemo(() => buildStatusSummary(tickets), [tickets])
-  const prioritySummary = React.useMemo(() => buildPrioritySummary(tickets), [tickets])
+  const issueTickets = React.useMemo(
+    () =>
+      tickets.filter(
+        (t) => String(t.type || "").toUpperCase() === "ISSUE",
+      ),
+    [tickets],
+  )
+
+  const statusSummary = React.useMemo(
+    () => buildStatusSummary(issueTickets),
+    [issueTickets],
+  )
+  const prioritySummary = React.useMemo(
+    () => buildPrioritySummary(issueTickets),
+    [issueTickets],
+  )
 
   const statusChartConfig = React.useMemo(
     () =>
@@ -44,14 +58,14 @@ export function TicketSummaryCharts({ tickets }: Props) {
     [],
   )
 
-  const hasTickets = tickets.length > 0
+  const hasTickets = issueTickets.length > 0
 
   return (
     <Card>
       <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <CardTitle>Ringkasan Ticket</CardTitle>
-          <CardDescription>Status dan prioritas ticket</CardDescription>
+          <CardDescription>Status dan prioritas ticket (type ISSUE)</CardDescription>
         </div>
       </CardHeader>
       <CardContent className="px-2 pb-4 sm:px-4">
@@ -64,7 +78,7 @@ export function TicketSummaryCharts({ tickets }: Props) {
             <div className="rounded-xl border bg-card/50 p-4 shadow-sm">
               <div className="flex items-center justify-between pb-3">
                 <h3 className="text-sm font-semibold text-foreground">Status Ticket</h3>
-                <span className="text-xs text-muted-foreground">Total {tickets.length}</span>
+                <span className="text-xs text-muted-foreground">Total {issueTickets.length}</span>
               </div>
               {statusSummary.length === 0 ? (
                 <div className="flex h-[200px] items-center justify-center text-sm text-muted-foreground">
@@ -97,7 +111,7 @@ export function TicketSummaryCharts({ tickets }: Props) {
             <div className="rounded-xl border bg-card/50 p-4 shadow-sm">
               <div className="flex items-center justify-between pb-3">
                 <h3 className="text-sm font-semibold text-foreground">Prioritas Ticket</h3>
-                <span className="text-xs text-muted-foreground">Total {tickets.length}</span>
+                <span className="text-xs text-muted-foreground">Total {issueTickets.length}</span>
               </div>
               {prioritySummary.length === 0 ? (
                 <div className="flex h-[200px] items-center justify-center text-sm text-muted-foreground">
@@ -192,4 +206,3 @@ const priorityPalette = [
   "#93c5fd",
   "#bfdbfe",
 ]
-

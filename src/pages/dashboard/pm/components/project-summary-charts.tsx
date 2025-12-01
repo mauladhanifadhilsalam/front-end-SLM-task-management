@@ -141,22 +141,17 @@ function ChartBlock({
               </div>
             </div>
           </div>
-          <div className="w-full max-w-[320px] space-y-2">
+          <div className="flex w-full flex-wrap items-center justify-center gap-2 ">
             {summary.map((item) => (
               <div
                 key={item.key}
-                className="flex items-center justify-between rounded-lg border bg-card px-3 py-2"
+                className="flex items-center gap-2 rounded-lg border bg-card px-3 py-1"
               >
-                <div className="flex items-center gap-2">
-                  <span
-                    className="h-2.5 w-2.5 rounded-full"
-                    style={{ backgroundColor: item.color }}
-                  />
-                  <span className="text-sm font-medium">{item.label}</span>
-                </div>
-                <span className="text-sm font-semibold text-foreground">
-                  {item.value}
-                </span>
+                <span
+                  className="h-2.5 w-2.5 rounded-full"
+                  style={{ backgroundColor: item.color }}
+                />
+                <span className="text-sm font-medium">{item.label}</span>
               </div>
             ))}
           </div>
@@ -212,9 +207,6 @@ function CategoryRadarBlock({
               />
             </RadarChart>
           </ChartContainer>
-          <div className="text-xs text-muted-foreground">
-            Kategori unik: <span className="font-semibold text-foreground">{summary.length}</span>
-          </div>
         </div>
       )}
     </div>

@@ -9,7 +9,7 @@ import { useAdminProjects } from "@/features/projects/hooks/use-admin-projects"
 import { ProjectsToolbar } from "@/features/projects/components/projects-toolbar"
 import { ProjectsCardsList } from "@/features/projects/components/projects-cards-list"
 import { ProjectsEmptyState, ProjectsSearchEmptyState } from "../../../../features/projects/components/projecs-empty-state"
-import { ProjectSummaryCharts } from "./project-summary-charts"
+import { ProjectSummaryCharts } from "../components/project-summary-charts"
 
 export default function AdminProjects() {
   const navigate = useNavigate()

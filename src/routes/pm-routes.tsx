@@ -2,6 +2,7 @@ import { Fragment } from "react"
 import { Route } from "react-router-dom"
 import { ProtectedRoute } from "../components/ProtectedRoute"
 import PmDashboard from "../pages/dashboard/pm/dashboard"
+import DeveloperHighlightPage from "@/pages/dashboard/pm/developer/developer-highlight"
 
 
 import ViewProjectOwnerPage from "@/pages/dashboard/pm/project-owners/view-project-owner-page"
@@ -31,6 +32,14 @@ export const pmRoutes = (
       element={
         <ProtectedRoute allowedRoles={["project_manager"]}>
           <PmDashboard />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/project-manager/dashboard/developer-highlight"
+      element={
+        <ProtectedRoute allowedRoles={["project_manager"]}>
+          <DeveloperHighlightPage />
         </ProtectedRoute>
       }
     />
