@@ -3,7 +3,6 @@
 import * as React from "react"
 import { AppSidebarPm } from "./components/sidebar-pm"
 import { PmAnalytics } from "./components/pm-analytics"
-import { DeveloperHighlights } from "./components/developer-highlights"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { usePmOverview } from "./hooks/use-pm-overview"
@@ -43,7 +42,6 @@ export default function Page() {
               {overview && (
                 <div className="px-4 lg:px-6 space-y-4">
                   <PmAnalytics overview={overview} />
-                  <DeveloperHighlights />
                 </div>
               )}
 

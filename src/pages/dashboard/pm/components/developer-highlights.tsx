@@ -28,11 +28,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import type { PmDeveloperHighlight } from "@/types/pm-overview.type"
 import { useDeveloperHighlights } from "../hooks/use-developer-highlights"
 
 type SortKey = "workload" | "highPriority" | "overdue"
+type FilterKey = "all" | "highPriority" | "overdue" | "dueSoon"
 
 type Props = {
   data?: PmDeveloperHighlight[]
@@ -47,6 +49,7 @@ export function DeveloperHighlightsContent({
 }: Props) {
   const [sortBy, setSortBy] = React.useState<SortKey>("workload")
   const [query, setQuery] = React.useState("")
+  const [filterBy, setFilterBy] = React.useState<FilterKey>("all")
 
   const highlights = React.useMemo(() => {
     return [...(data || [])].sort((a, b) => b.workloadIndex - a.workloadIndex)
@@ -55,11 +58,26 @@ export function DeveloperHighlightsContent({
   const filtered = React.useMemo(() => {
     const text = query.trim().toLowerCase()
     const base = highlights.filter((item) => {
-      if (!text) return true
-      return (
+      const matchesText =
+        !text ||
         item.fullName.toLowerCase().includes(text) ||
         item.email.toLowerCase().includes(text)
-      )
+
+      if (!matchesText) return false
+
+      if (filterBy === "highPriority") {
+        return (
+          (item.openTasksHighPriority || 0) + (item.openIssuesHighPriority || 0) >
+          0
+        )
+      }
+      if (filterBy === "overdue") {
+        return (item.overdueTasks || 0) > 0
+      }
+      if (filterBy === "dueSoon") {
+        return (item.tasksDueNext7Days || 0) + (item.issuesDueNext7Days || 0) > 0
+      }
+      return true
     })
 
     const sortFn: Record<SortKey, (a: PmDeveloperHighlight, b: PmDeveloperHighlight) => number> = {
@@ -71,7 +89,7 @@ export function DeveloperHighlightsContent({
     }
 
     return [...base].sort(sortFn[sortBy])
-  }, [highlights, query, sortBy])
+  }, [highlights, query, sortBy, filterBy])
 
   const summary = React.useMemo(() => {
     return highlights.reduce(
@@ -85,67 +103,45 @@ export function DeveloperHighlightsContent({
     )
   }, [highlights])
 
-  const topPerformer = filtered[0]
   const maxWorkload = Math.max(...highlights.map((h) => h.workloadIndex), 1)
-  const leaderboard = filtered.slice(0, 3)
 
   return (
     <Card className="min-w-0">
       <CardHeader className="flex flex-col gap-3 px-3 pb-3 sm:px-6 sm:pb-4">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <CardTitle>Developer Highlights</CardTitle>
-            <CardDescription>Pantau workload, risiko, dan aktivitas developer</CardDescription>
-          </div>
-          <div className="flex flex-wrap gap-1.5 text-xs text-muted-foreground">
-            <Pill label={`Total dev: ${highlights.length}`} />
-            <Pill label={`High priority: ${summary.highPriority}`} />
-            <Pill label={`Due next 7d: ${summary.totalDueSoon}`} />
-            <Pill label={`Overdue: ${summary.overdueTasks}`} />
-          </div>
-        </div>
 
-        {topPerformer && (
-          <div className="-mx-1 flex min-w-0 flex-col gap-2 overflow-x-auto rounded-lg border bg-card/70 px-3 py-2 text-xs sm:flex-row sm:flex-wrap sm:items-center sm:overflow-visible">
-            <IconFlame size={16} className="text-primary" />
-            <span className="font-semibold text-foreground leading-snug">
-              {topPerformer.fullName}
-            </span>
-            <span className="text-muted-foreground leading-snug">
-              workload tertinggi (WL {topPerformer.workloadIndex})
-            </span>
-            {leaderboard.length > 1 && (
-              <div className="flex flex-wrap gap-1 text-muted-foreground">
-                {leaderboard.slice(1).map((dev, idx) => (
-                  <Badge key={dev.userId} variant="secondary" className="bg-primary/10 text-foreground">
-                    #{idx + 2} {dev.fullName.split(" ")[0]} - WL {dev.workloadIndex}
-                  </Badge>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        <div className="flex flex-col gap-2 rounded-xl border bg-card/60 p-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex w-full items-center gap-2 sm:flex-1 sm:max-w-sm">
+        <div className="mt-5 flex flex-col gap-2 rounded-xl border bg-card/60 p-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex w-full items-center gap-2 sm:flex-1 sm:max-w-md">
             <IconSearch className="h-4 w-4 text-muted-foreground" />
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Cari developer atau email..."
+              placeholder="Cari nama atau email..."
               className="h-9 text-sm"
             />
+            {query && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2 text-xs"
+                onClick={() => setQuery("")}
+              >
+                Clear
+              </Button>
+            )}
           </div>
-          <div className="flex w-full items-center gap-2 sm:w-auto">
-            <IconFilter className="h-4 w-4 text-muted-foreground" />
+          <div className="flex w-full items-center justify-between gap-2 sm:w-auto">
+            <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+              <IconFilter className="h-4 w-4" />
+              <span>Urutkan</span>
+            </div>
             <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortKey)}>
               <SelectTrigger className="h-9 w-full sm:w-48">
                 <SelectValue placeholder="Urutkan" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="workload">Urutkan: Workload</SelectItem>
-                <SelectItem value="highPriority">Urutkan: High Priority</SelectItem>
-                <SelectItem value="overdue">Urutkan: Overdue</SelectItem>
+                <SelectItem value="workload">Workload tertinggi</SelectItem>
+                <SelectItem value="highPriority">High priority terbanyak</SelectItem>
+                <SelectItem value="overdue">Overdue terbanyak</SelectItem>
               </SelectContent>
             </Select>
           </div>
