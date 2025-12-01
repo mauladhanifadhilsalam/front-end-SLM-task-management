@@ -3,6 +3,7 @@ import { Route } from "react-router-dom"
 import { ProtectedRoute } from "../components/ProtectedRoute"
 import PmDashboard from "../pages/dashboard/pm/dashboard"
 import DeveloperHighlightPage from "@/pages/dashboard/pm/developer/developer-highlight"
+import ProjectTaskPage from "@/pages/dashboard/pm/project/project-task-page"
 
 
 import ViewProjectOwnerPage from "@/pages/dashboard/pm/project-owners/view-project-owner-page"
@@ -14,6 +15,7 @@ import ProjectPage from "@/pages/dashboard/pm/project/project-page"
 import CreateProjectPage from "@/pages/dashboard/pm/project/create-project-page"
 import ViewProjectPage from "@/pages/dashboard/pm/project/view-project-page"
 import EditProjectPage from "@/pages/dashboard/pm/project/edit-project-page"
+import PmProjectTaskDetailPage from "@/pages/dashboard/pm/project/view-task-page"
 
 import TicketsPage from "@/pages/dashboard/pm/ticket/ticket-page"
 import ViewTickets from "@/pages/dashboard/pm/ticket/view-ticket-page"
@@ -80,6 +82,14 @@ export const pmRoutes = (
         element={
           <ProtectedRoute allowedRoles={["project_manager"]}>
             <ProjectPage />
+          </ProtectedRoute>
+        }
+      />
+    <Route
+        path="/project-manager/dashboard/projects/tasks/:projectId"
+        element={
+          <ProtectedRoute allowedRoles={["project_manager"]}>
+            <ProjectTaskPage />
           </ProtectedRoute>
         }
       />

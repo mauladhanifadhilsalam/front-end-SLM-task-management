@@ -1,0 +1,315 @@
+import { useMemo, useState } from "react";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensors,
+  useSensor,
+  DragOverlay,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { Ticket, TicketGroups, TicketStatus } from "@/types/project-tasks.types";
+import { SortableTaskCard } from "../../DevProjectTask/componenst/sortable-task-card";
+import { TaskColumn } from "../../DevProjectTask/componenst/task-column";
+import { DragOverlayCard } from "../../DevProjectTask/componenst/drag-overlay-card";
+import { formatStatus } from "@/utils/format.utils";
+
+interface KanbanBoardProps {
+  tickets: Ticket[];
+  setTickets: React.Dispatch<React.SetStateAction<Ticket[]>>;
+  groups: TicketGroups;
+  updateTicketStatus: (ticketId: number, newStatus: TicketStatus) => Promise<void>;
+  findTicket: (id: string) => Ticket | undefined;
+  isMobile?: boolean;
+  onAddTask?: (status: TicketStatus) => void;
+  buildDetailLink?: (ticket: Ticket) => string;
+}
+
+const STATUSES: TicketStatus[] = [
+  "TO_DO",
+  "IN_PROGRESS",
+  "IN_REVIEW",
+  "DONE",
+  "RESOLVED",
+  "CLOSED",
+];
+
+const STATUS_META: Record<
+  TicketStatus,
+  { label: string; border: string; badge: string }
+> = {
+  TO_DO: {
+    label: "To Do",
+    border: "border-border/70",
+    badge: "bg-slate-200 text-slate-900",
+  },
+  IN_PROGRESS: {
+    label: "In Progress",
+    border: "border-blue-200",
+    badge: "bg-blue-100 text-blue-900",
+  },
+  IN_REVIEW: {
+    label: "In Review",
+    border: "border-indigo-200",
+    badge: "bg-indigo-100 text-indigo-900",
+  },
+  DONE: {
+    label: "Done",
+    border: "border-emerald-200",
+    badge: "bg-emerald-100 text-emerald-900",
+  },
+  RESOLVED: {
+    label: "Resolved",
+    border: "border-teal-200",
+    badge: "bg-teal-100 text-teal-900",
+  },
+  CLOSED: {
+    label: "Closed",
+    border: "border-border/70",
+    badge: "bg-neutral-200 text-neutral-900",
+  },
+};
+
+export const KanbanBoard = ({
+  tickets,
+  setTickets,
+  groups,
+  updateTicketStatus,
+  findTicket,
+  isMobile = false,
+  onAddTask,
+  buildDetailLink,
+}: KanbanBoardProps) => {
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const handleAddTask = onAddTask ?? (() => undefined);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    })
+  );
+
+  const handleDragStart = (event: any) => {
+    setActiveId(String(event.active.id));
+  };
+
+  const emptyState = (
+    <div className="flex h-[220px] items-center justify-center rounded-xl border border-dashed border-border/60 bg-muted/40 text-xs text-muted-foreground">
+      Tidak ada task
+    </div>
+  );
+
+  const statusOrder = useMemo(() => STATUSES, []);
+
+  const handleDragEnd = async (event: any) => {
+    const { active, over } = event;
+    setActiveId(null);
+    if (!over) return;
+
+    const activeTicket = findTicket(active.id);
+    if (!activeTicket) return;
+
+    const overData = over.data.current;
+
+    // Drop pada column
+    if (overData?.type === "column") {
+      const newStatus = overData.status as TicketStatus;
+
+      if (newStatus === activeTicket.status) return;
+
+      await updateTicketStatus(activeTicket.id, newStatus);
+      return;
+    }
+
+    // Drop pada ticket (reordering dalam column yang sama)
+    if (overData?.type === "ticket") {
+      if (activeTicket.status !== overData.ticket.status) return;
+
+      const list = groups[activeTicket.status];
+      const oldIndex = list.findIndex((t) => String(t.id) === active.id);
+      const newIndex = list.findIndex((t) => String(t.id) === overData.ticket.id);
+
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      const reordered = arrayMove(list, oldIndex, newIndex);
+
+      setTickets((prev) => {
+        const others = prev.filter((t) => t.status !== activeTicket.status);
+        return [...others, ...reordered];
+      });
+    }
+  };
+
+  const activeTicket = activeId ? findTicket(activeId) : null;
+
+  if (isMobile) {
+    return (
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="flex flex-col gap-5 p-4">
+          {statusOrder.map((status) => {
+            const meta = STATUS_META[status];
+            return (
+              <div
+                key={status}
+                className="flex-shrink-0 space-y-3 rounded-2xl border border-border/60 bg-card/80 p-3 shadow-sm"
+              >
+                <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/70 px-3 py-2">
+                  <div className="space-y-0.5">
+                    <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
+                      {meta.label}
+                    </p>
+                    <h2 className="text-sm font-semibold text-foreground">
+                      {formatStatus(status)}
+                    </h2>
+                  </div>
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold text-white shadow-sm ${meta.badge}`}
+                  >
+                    {groups[status].length} task
+                  </span>
+                </div>
+
+                <SortableContext
+                  items={groups[status].map((t) => String(t.id))}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div
+                    className={`rounded-2xl border ${meta.border} bg-card/80 p-3 space-y-3`}
+                  >
+                    {groups[status].length === 0
+                      ? emptyState
+                      : groups[status].map((ticket) => (
+                          <SortableTaskCard
+                            key={ticket.id}
+                            ticket={ticket}
+                            detailHref={
+                              buildDetailLink
+                                ? buildDetailLink(ticket)
+                                : `/developer-dashboard/projects/${ticket.projectId}/tasks/${ticket.id}`
+                            }
+                          />
+                        ))}
+                    <button
+                      type="button"
+                      onClick={() => handleAddTask(status)}
+                      className="flex h-10 w-full items-center justify-center rounded-full border border-dashed border-border/70 bg-muted/50 text-lg font-semibold text-muted-foreground transition hover:border-primary/50 hover:text-foreground"
+                      aria-label={`Tambah task di status ${formatStatus(status)}`}
+                    >
+                      +
+                    </button>
+                  </div>
+                </SortableContext>
+              </div>
+            );
+          })}
+        </div>
+
+        <DragOverlay>
+          {activeTicket && <DragOverlayCard ticket={activeTicket} />}
+        </DragOverlay>
+      </DndContext>
+    );
+  }
+
+  // Desktop Layout
+  return (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
+      <div
+        className="absolute inset-0 overflow-x-auto overflow-y-hidden bg-background px-4 pb-6 pt-4 scrollbar-hide overscroll-x-contain"
+        style={{
+          scrollPaddingLeft: "1.5rem",
+          scrollPaddingRight: "1.5rem",
+          scrollbarGutter: "stable both-edges",
+          WebkitOverflowScrolling: "touch",
+          scrollbarWidth: "none",
+          msOverflowStyle: "none",
+        }}
+      >
+        <div className="relative h-full">
+          <div className="pointer-events-none absolute left-0 top-0 h-full w-6 bg-gradient-to-r from-background to-transparent" />
+
+          <div className="inline-flex min-w-full gap-5 pr-6 pl-2">
+            {statusOrder.map((status) => {
+              const meta = STATUS_META[status];
+              return (
+                <div
+                  key={status}
+                  className="flex w-[320px] flex-shrink-0 flex-col rounded-2xl border border-border bg-card shadow-sm"
+                >
+                  <div className="flex items-center justify-between gap-2 rounded-t-2xl border-b border-border/80 bg-muted/60 px-4 py-3">
+                    <div className="space-y-0.5">
+                      <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+                        {meta.label}
+                      </p>
+                      <h2 className="text-sm font-semibold text-foreground">
+                        {formatStatus(status)}
+                      </h2>
+                    </div>
+                    <span
+                      className="inline-flex items-center rounded-full bg-card px-3 py-1 text-[11px] font-semibold text-foreground shadow-inner"
+                    >
+                      {groups[status].length} task
+                    </span>
+                  </div>
+
+                <SortableContext
+                  items={groups[status].map((t) => String(t.id))}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <TaskColumn status={status}>
+                    {groups[status].length === 0 ? (
+                      <div className="m-3 rounded-xl border border-dashed border-border/60 bg-muted/50 p-4 text-center text-xs text-muted-foreground">
+                        Tidak ada task
+                      </div>
+                    ) : (
+                      groups[status].map((ticket) => (
+                        <SortableTaskCard
+                          key={ticket.id}
+                          ticket={ticket}
+                          detailHref={
+                            buildDetailLink
+                              ? buildDetailLink(ticket)
+                              : `/developer-dashboard/projects/${ticket.projectId}/tasks/${ticket.id}`
+                          }
+                        />
+                      ))
+                    )}
+                    <div className="px-3 pb-3">
+                      <button
+                        type="button"
+                        onClick={() => handleAddTask(status)}
+                        className="flex h-10 w-full items-center justify-center rounded-full border border-dashed border-border/70 bg-muted/50 text-lg font-semibold text-muted-foreground transition hover:border-primary/50 hover:text-foreground"
+                        aria-label={`Tambah task di status ${formatStatus(status)}`}
+                      >
+                        +
+                      </button>
+                    </div>
+                  </TaskColumn>
+                </SortableContext>
+              </div>
+            );
+          })}
+          </div>
+        </div>
+      </div>
+
+      <DragOverlay>
+        {activeTicket && <DragOverlayCard ticket={activeTicket} />}
+      </DragOverlay>
+    </DndContext>
+  );
+};
