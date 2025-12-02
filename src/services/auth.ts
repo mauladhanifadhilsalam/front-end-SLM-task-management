@@ -22,7 +22,6 @@ export async function login(email: string, password: string) {
     const accessToken = (data as any)?.accessToken ?? (data as any)?.token
     if (!accessToken) throw new Error("Token tidak ditemukan di respons login.")
 
-    
     const role: RoleApi | undefined =
         toRole((data as any)?.role) ??                 
         toRole((data as any)?.user?.role) ??            
@@ -45,5 +44,15 @@ export async function login(email: string, password: string) {
     return {
         accessToken,
         user: { id: userId, email: userEmail ?? "", role }, 
+    }
+}
+
+export async function logout() {
+    try {
+        await api.post("/auth/logout")
+    } finally {
+        localStorage.removeItem("token")
+        localStorage.removeItem("role")
+        localStorage.removeItem("email")
     }
 }
