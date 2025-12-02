@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Ticket, TicketGroups, TicketStatus } from "@/types/project-tasks.types";
 import type { Phase } from "@/types/project-phases.type";
 import { projectTasksService } from "@/services/project-tasks.service";
@@ -12,6 +12,24 @@ export const useProjectTasks = (projectId: string | undefined) => {
   const [error, setError] = useState<string | null>(null);
 
   const token = localStorage.getItem("token");
+
+  const refreshTickets = useCallback(async () => {
+    if (!token || !projectId) return;
+
+    try {
+      const currentProjectId = Number(projectId);
+      const allTickets = await projectTasksService.getTickets(token);
+
+      const filtered: Ticket[] = allTickets.filter((t: any): t is Ticket => {
+        const ticketProjectId = Number(t.projectId);
+        return ticketProjectId === currentProjectId && t.type === "TASK";
+      });
+
+      setTickets(filtered);
+    } catch (err) {
+      console.error("Error refreshing tickets:", err);
+    }
+  }, [projectId, token]);
 
   useEffect(() => {
     const fetchTickets = async () => {
@@ -54,15 +72,7 @@ export const useProjectTasks = (projectId: string | undefined) => {
           console.error("Error fetching project info:", err);
         }
 
-        // Fetch tickets
-        const allTickets = await projectTasksService.getTickets(token);
-
-        const filtered: Ticket[] = allTickets.filter((t: any): t is Ticket => {
-          const ticketProjectId = Number(t.projectId);
-          return ticketProjectId === currentProjectId && t.type === "TASK";
-        });
-
-        setTickets(filtered);
+        await refreshTickets();
       } catch (err) {
         console.error("❌ Error fetching:", err);
         setError("Gagal memuat data tickets");
@@ -72,7 +82,7 @@ export const useProjectTasks = (projectId: string | undefined) => {
     };
 
     fetchTickets();
-  }, [projectId, token]);
+  }, [projectId, refreshTickets, token]);
 
   const groups: TicketGroups = useMemo(() => {
     return {
@@ -116,5 +126,6 @@ export const useProjectTasks = (projectId: string | undefined) => {
     findTicket,
     token,
     phases,
+    refreshTickets,
   };
 };

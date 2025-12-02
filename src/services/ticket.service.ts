@@ -196,13 +196,15 @@ export const fetchAdminTickets = async (): Promise<AdminTicket[]> => {
   return raw.map(mapTicket)
 }
 
-export async function createTicket(payload: any): Promise<void> {
-  await axios.post(`${API_BASE}/tickets`, payload, {
+export async function createTicket(payload: any): Promise<any> {
+  const res = await axios.post(`${API_BASE}/tickets`, payload, {
     headers: {
       ...getAuthHeaders(),
       "Content-Type": "application/json",
     },
   })
+
+  return res?.data?.data ?? res?.data
 }
 
 export async function updateTicket(

@@ -1,23 +1,26 @@
-import { useState, type Dispatch, type SetStateAction } from "react";
-import { ChartGantt, Kanban as KanbanIcon, Milestone } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Ticket, TicketGroups, TicketStatus } from "@/types/project-tasks.types";
-import type { Phase } from "@/types/project-phases.type";
-import { KanbanBoard } from "./kanban-board";
-import { TaskGanttView } from "./task-gantt-view";
-import { PhaseGanttView } from "./phase-gantt-view";
+import { useState, type Dispatch, type SetStateAction } from "react"
+import { ChartGantt, Kanban as KanbanIcon, Milestone } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Button } from "@/components/ui/button"
+import { Ticket, TicketGroups, TicketStatus } from "@/types/project-tasks.types"
+import type { Phase } from "@/types/project-phases.type"
+import { KanbanBoard } from "./kanban-board"
+import { TaskGanttView } from "./task-gantt-view"
+import { PhaseGanttView } from "./phase-gantt-view"
 
 type TaskViewSwitcherProps = {
-  tickets: Ticket[];
-  setTickets: Dispatch<SetStateAction<Ticket[]>>;
-  groups: TicketGroups;
-  updateTicketStatus: (ticketId: number, newStatus: TicketStatus) => Promise<void>;
-  findTicket: (id: string) => Ticket | undefined;
-  isMobile?: boolean;
-  onAddTask?: (status: TicketStatus) => void;
-  buildDetailLink?: (ticket: Ticket) => string;
-  phases?: Phase[];
-};
+  tickets: Ticket[]
+  setTickets: Dispatch<SetStateAction<Ticket[]>>
+  groups: TicketGroups
+  updateTicketStatus: (ticketId: number, newStatus: TicketStatus) => Promise<void>
+  findTicket: (id: string) => Ticket | undefined
+  isMobile?: boolean
+  onAddTask?: (status: TicketStatus) => void
+  onDeleteTask?: (ticket: Ticket) => void
+  onEditTask?: (ticket: Ticket) => void
+  buildDetailLink?: (ticket: Ticket) => string
+  phases?: Phase[]
+}
 
 export const TaskViewSwitcher = ({
   tickets,
@@ -27,13 +30,15 @@ export const TaskViewSwitcher = ({
   findTicket,
   isMobile = false,
   onAddTask,
+  onDeleteTask,
+  onEditTask,
   buildDetailLink,
   phases = [],
 }: TaskViewSwitcherProps) => {
-  const [view, setView] = useState<"kanban" | "gantt">("kanban");
-  const [ganttMode, setGanttMode] = useState<"tasks" | "phases">("tasks");
-  const hasTickets = tickets.length > 0;
-  const hasPhases = phases.length > 0;
+  const [view, setView] = useState<"kanban" | "gantt">("kanban")
+  const [ganttMode, setGanttMode] = useState<"tasks" | "phases">("tasks")
+  const hasTickets = tickets.length > 0
+  const hasPhases = phases.length > 0
 
   return (
     <Tabs value={view} onValueChange={(v) => setView(v as "kanban" | "gantt")} className="flex h-full flex-col gap-3">
@@ -67,6 +72,8 @@ export const TaskViewSwitcher = ({
               findTicket={findTicket}
               isMobile
               onAddTask={onAddTask}
+              onDeleteTask={onDeleteTask}
+              onEditTask={onEditTask}
               buildDetailLink={buildDetailLink}
             />
           ) : (
@@ -79,12 +86,14 @@ export const TaskViewSwitcher = ({
                 findTicket={findTicket}
                 isMobile={false}
                 onAddTask={onAddTask}
+                onDeleteTask={onDeleteTask}
+                onEditTask={onEditTask}
                 buildDetailLink={buildDetailLink}
               />
             </div>
           )
         ) : (
-          <EmptyState message="Tidak ada task di project ini." />
+          <EmptyState message="Tidak ada task di project ini." onAddTask={onAddTask} />
         )}
       </TabsContent>
 
@@ -132,13 +141,18 @@ export const TaskViewSwitcher = ({
         </div>
       </TabsContent>
     </Tabs>
-  );
-};
+  )
+}
 
-function EmptyState({ message }: { message: string }) {
+function EmptyState({ message, onAddTask }: { message: string; onAddTask?: (status: TicketStatus) => void }) {
   return (
-    <div className="flex h-[320px] items-center justify-center rounded-xl border border-dashed border-border/70 bg-muted/40 px-4 text-sm text-muted-foreground">
+    <div className="flex h-[320px] flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border/70 bg-muted/40 px-4 text-sm text-muted-foreground">
       {message}
+      {onAddTask ? (
+        <Button size="sm" onClick={() => onAddTask("TO_DO")}>
+          Tambah Task
+        </Button>
+      ) : null}
     </div>
-  );
+  )
 }
