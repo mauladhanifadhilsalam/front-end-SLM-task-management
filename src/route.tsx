@@ -1,5 +1,6 @@
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
+import "@/lib/api"
 import "./index.css"
 import "github-markdown-css/github-markdown.css"       
 import "github-markdown-css/github-markdown-dark.css"

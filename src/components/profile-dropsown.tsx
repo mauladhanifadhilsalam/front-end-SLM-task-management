@@ -32,6 +32,7 @@ import {
   IconSettings,
   IconUser,
 } from "@tabler/icons-react"
+import { logout } from "@/services/auth"
 
 const API_BASE = import.meta.env.VITE_API_BASE
 
@@ -85,15 +86,18 @@ export function ProfileDropdown() {
     setOpenLogoutDialog(true)
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem("token")
-    localStorage.removeItem("role")
-
-    toast.success("Berhasil logout", {
-      description: "Anda telah keluar dari sesi.",
-    })
-
-    navigate("/")
+  const handleLogout = async () => {
+    try {
+      await logout()
+      toast.success("Berhasil logout", {
+        description: "Sesi ditutup.",
+      })
+    } catch (err: any) {
+      const msg = err?.message || "Gagal logout, coba lagi."
+      toast.error("Logout gagal", { description: msg })
+    } finally {
+      navigate("/")
+    }
   }
 
   const displayName = me?.fullName || me?.name || "User"

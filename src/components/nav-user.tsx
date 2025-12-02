@@ -43,6 +43,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { logout } from "@/services/auth"
 
 const API_BASE = import.meta.env.VITE_API_BASE
 
@@ -76,16 +77,19 @@ export function NavUser() {
     fetchProfile()
   }, [])
 
-  const handleLogout = () => {
-    localStorage.removeItem("token")
-    localStorage.removeItem("role")
-    localStorage.removeItem("email")
-
-    toast.success("Berhasil logout", {
-      description: "Anda telah keluar dari sesi.",
-    })
-
-    navigate("/")
+  const handleLogout = async () => {
+    try {
+      await logout()
+      toast.success("Berhasil logout", {
+        description: "Anda telah keluar dari sesi.",
+      })
+    } catch (err: any) {
+      toast.error("Logout gagal", {
+        description: err?.message || "Coba lagi nanti.",
+      })
+    } finally {
+      navigate("/")
+    }
   }
 
   const goToNotifications = () => {
