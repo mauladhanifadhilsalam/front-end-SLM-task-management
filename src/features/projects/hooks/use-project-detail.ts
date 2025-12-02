@@ -15,6 +15,7 @@ type UseProjectDetailResult = {
   deleting: boolean
   error: string
   handleDelete: () => void
+  refetch: () => Promise<void>
 }
 
 export const useProjectDetail = (id?: string): UseProjectDetailResult => {
@@ -23,6 +24,7 @@ export const useProjectDetail = (id?: string): UseProjectDetailResult => {
     const [loading, setLoading] = React.useState(true)
     const [deleting, setDeleting] = React.useState(false)
     const [error, setError] = React.useState("")
+    
 
     const fetchData = React.useCallback(async () => {
         if (!id) {
@@ -88,5 +90,6 @@ export const useProjectDetail = (id?: string): UseProjectDetailResult => {
         deleting,
         error,
         handleDelete,
+        refetch: fetchData,
     }
 }

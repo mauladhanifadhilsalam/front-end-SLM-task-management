@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -41,6 +40,9 @@ type Props = {
   onBack: () => void
   onChange: (field: keyof UiEditTicketForm, value: string) => void
   onSubmit: (e: React.FormEvent) => void
+
+  /** mode PM: requester + type di-disable */
+  isPm?: boolean
 }
 
 export function EditTicketForm({
@@ -55,6 +57,7 @@ export function EditTicketForm({
   onBack,
   onChange,
   onSubmit,
+  isPm = false,
 }: Props) {
   return (
     <div className="flex flex-1 flex-col">
@@ -93,6 +96,7 @@ export function EditTicketForm({
               )}
 
               <form onSubmit={onSubmit} className="space-y-6" noValidate>
+                {/* Project & Requester */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label>Project *</Label>
@@ -134,11 +138,13 @@ export function EditTicketForm({
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Requester *</Label>
+                    <Label>
+                      Requester *
+                    </Label>
                     <Select
                       value={form.requesterId}
                       onValueChange={(v) => onChange("requesterId", v)}
-                      disabled={saving || loading}
+                      disabled={saving || loading || isPm}
                     >
                       <SelectTrigger>
                         <SelectValue
@@ -173,13 +179,16 @@ export function EditTicketForm({
                   </div>
                 </div>
 
+                {/* Type / Priority / Status */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="space-y-2">
-                    <Label>Type *</Label>
+                    <Label>
+                      Type *
+                    </Label>
                     <Select
                       value={form.type}
                       onValueChange={(v) => onChange("type", v)}
-                      disabled={saving || loading}
+                      disabled={saving || loading || isPm}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select type" />
@@ -262,6 +271,7 @@ export function EditTicketForm({
                   </div>
                 </div>
 
+                {/* Title */}
                 <div className="space-y-2">
                   <Label htmlFor="title">Title *</Label>
                   <Input
@@ -280,6 +290,7 @@ export function EditTicketForm({
                   )}
                 </div>
 
+                {/* Description */}
                 <MarkdownEditor
                   label="Description *"
                   value={form.description}
@@ -287,18 +298,10 @@ export function EditTicketForm({
                   helperText="Supports GitHub-style Markdown: **bold**, _italic_, ## heading, - list, `code`, dll."
                   error={fieldErrors.description}
                   disabled={saving || loading}
-                  placeholder={`## 1. Title
-
-> Context
-- Jelaskan masalah yang terjadi
-
-## Expected
-- Jelaskan perilaku yang diharapkan
-
-## Notes
-- Info tambahan lain di sini`}
+                  placeholder="Use Markdown to format your description..."
                 />
 
+                {/* Dates */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="startDate">Start Date *</Label>
@@ -337,6 +340,7 @@ export function EditTicketForm({
                   </div>
                 </div>
 
+                {/* Actions */}
                 <div className="flex justify-end gap-3">
                   <Button
                     type="button"

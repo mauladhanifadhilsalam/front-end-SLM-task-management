@@ -94,6 +94,7 @@ type Props = {
   onSubmit: (e: React.FormEvent) => void
   fileInputRef: React.RefObject<HTMLInputElement | null>
   ticketId: string
+  canChangeTicket?: boolean
 }
 
 export const CreateFileAttachmentForm: React.FC<Props> = ({
@@ -116,6 +117,7 @@ export const CreateFileAttachmentForm: React.FC<Props> = ({
   onSubmit,
   fileInputRef,
   ticketId,
+  canChangeTicket = true,
 }) => {
   const canSubmit = !!file && !saving
 
@@ -169,9 +171,10 @@ export const CreateFileAttachmentForm: React.FC<Props> = ({
                         : "Select a ticket"
                     }
                     description="Tiket yang akan menerima lampiran."
+                    
                     value={ticketId || ""}
                     onValueChange={onTicketChange}
-                    disabled={saving || loadingTickets}
+                    disabled={!canChangeTicket || saving || loadingTickets}
                     options={ticketOptions}
                     error={fieldErrors.ticketId}
                   />

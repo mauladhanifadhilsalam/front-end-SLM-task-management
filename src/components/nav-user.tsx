@@ -77,7 +77,6 @@ export function NavUser() {
   }, [])
 
   const handleLogout = () => {
-    // bersihin data auth
     localStorage.removeItem("token")
     localStorage.removeItem("role")
     localStorage.removeItem("email")
@@ -86,9 +85,21 @@ export function NavUser() {
       description: "Anda telah keluar dari sesi.",
     })
 
-    // redirect ke halaman login/home
     navigate("/")
   }
+
+  const goToNotifications = () => {
+    const role = localStorage.getItem("role")
+
+    if (role === "project_manager") {
+      navigate("/project-manager-dashboard/notifications/me")
+    } else if (role === "developer") {
+      navigate("/developer-dashboard/notifications/me")
+    } else {
+      toast.error("Role tidak dikenali")
+    }
+  }
+
 
   return (
     <SidebarMenu>
@@ -145,14 +156,13 @@ export function NavUser() {
                 <IconUserCircle />
                 Account
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconCreditCard />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={goToNotifications}
+              >
                 <IconNotification />
                 Notifications
               </DropdownMenuItem>
+
             </DropdownMenuGroup>
 
             <DropdownMenuSeparator />

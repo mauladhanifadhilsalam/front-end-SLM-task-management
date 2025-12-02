@@ -147,7 +147,7 @@ export default function CreateProjectPage() {
 
                 <ProjectAssignmentsSection
                   assignments={form.assignments}
-                  users={users}
+                  users={users as any}
                   loading={loading}
                   onAddAssignment={addAssignment}
                   onRemoveAssignment={removeAssignment}

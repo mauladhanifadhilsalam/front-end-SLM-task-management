@@ -82,11 +82,7 @@ const {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {error && (
-          <div className="rounded border p-4 mb-4 text-sm text-red-600">
-            {error}
-          </div>
-        )}
+
 
         <form onSubmit={handleSubmit} className="space-y-6" noValidate>
           {/* Basic info */}

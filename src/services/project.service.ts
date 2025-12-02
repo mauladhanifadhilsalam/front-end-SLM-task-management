@@ -1,5 +1,15 @@
 import axios from "axios"
-import { Project, ProjectOwnerLite, ProjectStatus, CreateProjectPayload , ProjectDetail , UpdateProjectPayload  } from "@/types/project.type"
+import {
+  Project,
+  ProjectOwnerLite,
+  ProjectStatus,
+  CreateProjectPayload,
+  ProjectDetail,
+  UpdateProjectPayload,
+  ProjectAssignment,
+} from "@/types/project.type"
+
+import { RoleInProject } from "@/types/project-assignment.type"
 
 const API_BASE = import.meta.env.VITE_API_BASE
 
@@ -10,13 +20,13 @@ const getAuthHeaders = () => {
 }
 
 const normalizeOwner = (raw: any | null | undefined): ProjectOwnerLite | null => {
-    if (!raw) return null
-    return {
-        id: Number(raw.id),
-        name: String(raw.name ?? ""),
-        company: String(raw.company ?? ""),
-        email: String(raw.email ?? ""),
-    }
+  if (!raw) return null
+  return {
+    id: Number(raw.id),
+    name: String(raw.name ?? ""),
+    company: String(raw.company ?? ""),
+    email: String(raw.email ?? ""),
+  }
 }
 
 const normalizeProject = (raw: any): Project => {
@@ -44,50 +54,49 @@ const normalizeProject = (raw: any): Project => {
     status: (raw.status as ProjectStatus) ?? "NOT_STARTED",
     completion,
     notes: String(raw.notes ?? ""),
+     phases: raw.phases ?? [],
   }
 }
 
 export const fetchProjects = async (): Promise<Project[]> => {
-    const res = await axios.get(`${API_BASE}/projects`, {
-        headers: getAuthHeaders(),
-    })
+  const res = await axios.get(`${API_BASE}/projects`, {
+    headers: getAuthHeaders(),
+  })
 
-    const data: any[] = Array.isArray(res.data) ? res.data : res.data?.data || []
-    return data.map(normalizeProject)
+  const data: any[] = Array.isArray(res.data) ? res.data : res.data?.data || []
+  return data.map(normalizeProject)
 }
 
 export const deleteProjectById = async (id: number): Promise<void> => {
-    await axios.delete(`${API_BASE}/projects/${id}`, {
-        headers: getAuthHeaders(),
-    })
+  await axios.delete(`${API_BASE}/projects/${id}`, {
+    headers: getAuthHeaders(),
+  })
 }
 
 export const getProjectOwners = async (): Promise<ProjectOwnerLite[]> => {
-    const res = await axios.get(`${API_BASE}/project-owners`, {
-        headers: getAuthHeaders(),
-    })
+  const res = await axios.get(`${API_BASE}/project-owners`, {
+    headers: getAuthHeaders(),
+  })
 
-    const raw: any[] = Array.isArray(res.data) ? res.data : res.data?.data ?? []
+  const raw: any[] = Array.isArray(res.data) ? res.data : res.data?.data ?? []
 
-    return raw.map((d) => ({
-        id: Number(d.id),
-        name: String(d.name ?? ""),
-        company: String(d.company ?? ""),
-        email: String(d.email ?? ""),
-    }))
+  return raw.map((d) => ({
+    id: Number(d.id),
+    name: String(d.name ?? ""),
+    company: String(d.company ?? ""),
+    email: String(d.email ?? ""),
+  }))
 }
 
-
-
 export const createProject = async (
-    payload: CreateProjectPayload,
-    ): Promise<void> => {
-    await axios.post(`${API_BASE}/projects`, payload, {
-        headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders(),
-        },
-    })
+  payload: CreateProjectPayload,
+): Promise<void> => {
+  await axios.post(`${API_BASE}/projects`, payload, {
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders(),
+    },
+  })
 }
 
 export const fetchProjectById = async (id: number): Promise<ProjectDetail> => {
@@ -105,13 +114,29 @@ export const fetchProjectById = async (id: number): Promise<ProjectDetail> => {
     endDate: String(p.endDate ?? p.end_date ?? ""),
   }))
 
+  const assignments: ProjectAssignment[] = (d.assignments ?? []).map(
+    (a: any) => ({
+      roleInProject: String(a.roleInProject ?? a.role_in_project ?? ""),
+      user: a.user
+        ? {
+            id: Number(a.user.id),
+            fullName: String(a.user.fullName ?? a.user.full_name ?? ""),
+            email: String(a.user.email ?? ""),
+          }
+        : {
+            id: 0,
+            fullName: "",
+            email: "",
+          },
+    }),
+  )
+
   return {
     ...base,
     phases,
+    assignments,
   }
 }
-
-
 
 export const updateProject = async (
   id: number,
@@ -124,3 +149,20 @@ export const updateProject = async (
     },
   })
 }
+
+export const addAssignmentToProject = async (
+  projectId: number,
+  userId: number,
+  roleInProject: RoleInProject,
+) => {
+  return axios.post(
+    `${API_BASE}/project-assignments`,
+    {
+      projectId,    
+      userId,       
+      roleInProject 
+    },
+    { headers: getAuthHeaders() },
+  )
+}
+

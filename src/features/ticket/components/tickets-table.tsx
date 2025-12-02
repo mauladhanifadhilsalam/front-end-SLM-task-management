@@ -95,7 +95,7 @@ const typeLabelVariant = (
   return "secondary"
 }
 
-export function AdminTicketsTable({
+export function TicketsTable({
   tickets,
   loading,
   error,

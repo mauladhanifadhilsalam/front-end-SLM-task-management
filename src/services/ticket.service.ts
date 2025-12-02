@@ -2,6 +2,7 @@ import axios from "axios"
 import type { TicketLite, AdminTicket, TicketDetail } from "@/types/ticket-type"
 import { getAuthHeaders } from "@/utils/auth-header.util"
 import type { EditTicketAssigneeTicket } from "@/types/ticket-assignee.type"
+
 const API_BASE = import.meta.env.VITE_API_BASE as string
 
 type RawTicket = {
@@ -28,6 +29,18 @@ type RawTicket = {
   updatedAt?: string
   updated_at?: string
   project_name?: string
+
+  // ⬇⬇⬇ dari backend kamu (assignees[].user.id)
+  assignees?: {
+    id?: number
+    assignedAt?: string
+    user?: {
+      id?: number
+      fullName?: string
+      email?: string
+      role?: string
+    }
+  }[]
 }
 
 const normalizeArray = (raw: any): any[] => {
@@ -91,8 +104,18 @@ export async function deleteTicket(id: number | string): Promise<void> {
   })
 }
 
+// ✅ map Ticket API → AdminTicket (sekarang termasuk assigneeIds)
 const mapTicket = (raw: RawTicket): AdminTicket => {
+  const assigneeIds =
+    Array.isArray(raw.assignees)
+      ? raw.assignees
+          .map((a) => (a.user?.id != null ? Number(a.user.id) : NaN))
+          .filter((id) => Number.isFinite(id))
+      : []
+
   return {
+    assigneeIds,
+
     id: Number(raw.id),
     projectId: Number(
       raw.projectId ?? raw.project_id ?? raw.project?.id ?? 0,
@@ -194,7 +217,9 @@ export async function updateTicket(
   })
 }
 
-export async function fetchTicketById(id: number | string): Promise<TicketDetail> {
+export async function fetchTicketById(
+  id: number | string,
+): Promise<TicketDetail> {
   const res = await axios.get(`${API_BASE}/tickets/${id}`, {
     headers: getAuthHeaders(),
   })

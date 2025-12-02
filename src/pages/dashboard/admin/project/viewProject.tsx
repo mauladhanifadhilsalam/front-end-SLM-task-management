@@ -7,16 +7,69 @@ import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { IconArrowLeft, IconEdit } from "@tabler/icons-react"
+import { RoleInProject } from "@/types/project-assignment.type"
+
 import { useProjectDetail } from "@/features/projects/hooks/use-project-detail"
 import { ProjectDetailCard } from "@/features/projects/components/project-detail-card"
 import { ProjectDeleteDialog } from "@/features/projects/components/project-delete-dialog"
+import { ProjectPhasesOverview } from "@/features/projects/components/project-phases-overview"
+import { ProjectAssignmentsOverview } from "@/features/projects/components/project-assignments-overview"
+
+import type { UserLite } from "@/types/user.types"
+import { fetchUsers } from "@/services/user.service"
+import {
+  addAssignmentToProject,
+} from "@/services/project.service"
+
+
+import { deleteProjectAssignmentById } from "@/services/project-assignment.service"
 
 export default function ViewProject() {
   const { id } = useParams<{ id: string }>()
+  const projectId = Number(id)
   const navigate = useNavigate()
 
-  const { project, loading, deleting, error, handleDelete } =
+  const { project, loading, deleting, error, handleDelete, refetch } =
     useProjectDetail(id)
+
+  const [allUsers, setAllUsers] = React.useState<UserLite[]>([])
+  const [savingAssignment, setSavingAssignment] = React.useState(false)
+
+  const loadUsers = React.useCallback(async () => {
+    try {
+      const users = await fetchUsers()
+      setAllUsers(users)
+    } catch (err) {
+      console.error(err)
+    }
+  }, [])
+
+  React.useEffect(() => {
+    loadUsers()
+  }, [loadUsers])
+
+const handleAddAssignment = async (userId: number, roleInProject: RoleInProject) => {
+  try {
+    setSavingAssignment(true)
+    await addAssignmentToProject(projectId, userId, roleInProject)
+    await refetch()
+  } finally {
+    setSavingAssignment(false)
+  }
+}
+
+
+const handleRemove = async (assignmentId: number) => {
+    try {
+      setSavingAssignment(true)
+      await deleteProjectAssignmentById(assignmentId)
+      await refetch()
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setSavingAssignment(false)
+    }
+  }
 
   return (
     <SidebarProvider
@@ -80,8 +133,17 @@ export default function ViewProject() {
           {!loading && !error && !project && (
             <div className="p-6">Project tidak ditemukan.</div>
           )}
+
           {!loading && !error && project && (
-            <ProjectDetailCard project={project} />
+            <>
+              <ProjectDetailCard project={project} />
+              <div className="mt-6 grid gap-6 lg:grid-cols-2">
+                <ProjectPhasesOverview phases={project.phases ?? []} />
+                <ProjectAssignmentsOverview
+                  assignments={project.assignments ?? []}
+                />
+              </div>
+            </>
           )}
         </div>
       </SidebarInset>

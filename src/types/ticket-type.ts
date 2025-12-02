@@ -10,6 +10,7 @@ export type TicketStatus =
   | "CLOSED"
 
 export type AdminTicket = {
+  assigneeIds: number[]
   id: number
   projectId: number
   requesterId: number

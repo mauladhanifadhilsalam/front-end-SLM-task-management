@@ -15,6 +15,7 @@ import {
 
 interface SortableTaskCardProps {
   ticket: Ticket;
+  detailHref?: string;
 }
 
 export const SortableTaskCard = ({ ticket }: SortableTaskCardProps) => {
@@ -29,6 +30,15 @@ export const SortableTaskCard = ({ ticket }: SortableTaskCardProps) => {
     transition,
     cursor: "grab",
   };
+
+  const role = localStorage.getItem("role");
+
+  const basePath =
+    role === "project_manager"
+      ? "/project-manager/dashboard"
+      : "/developer-dashboard";
+
+  const href = `${basePath}/projects/${ticket.projectId}/tasks/${ticket.id}`;
 
   return (
     <Card
@@ -80,7 +90,6 @@ export const SortableTaskCard = ({ ticket }: SortableTaskCardProps) => {
         <div className="pt-2 border-t border-border/50 space-y-2">
           <div className="flex items-center justify-between text-[11px] text-muted-foreground">
             <div className="flex items-center space-x-1">
-              <span>📅</span>
               <span>Due:</span>
             </div>
             <span className="font-medium text-foreground">
@@ -88,10 +97,8 @@ export const SortableTaskCard = ({ ticket }: SortableTaskCardProps) => {
             </span>
           </div>
 
-          <Link
-            to={`/developer-dashboard/projects/${ticket.projectId}/tasks/${ticket.id}`}
-          >
-            <Button  size="sm" className="w-full text-xs">
+          <Link to={href}>
+            <Button size="sm" className="w-full text-xs">
               Lihat Detail Task
             </Button>
           </Link>

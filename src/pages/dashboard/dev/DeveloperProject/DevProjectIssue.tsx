@@ -5,7 +5,7 @@ import { AppSidebarDev } from "@/components/app-sidebardev";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useProjectIssues } from "@/features/DevProjectIssue/hook/use-project-issues";
-import { ProjectHeader } from "@/features/DevProjectTask/componenst/project-header";
+import { ProjectHeader } from "@/features/kanban-board/components/kanban-header";
 import { IssuesKanbanBoard } from "@/features/DevProjectIssue/components/issues-kanban-board";
 
 export default function DeveloperProjectIssues() {

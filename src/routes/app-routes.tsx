@@ -7,16 +7,27 @@ import { adminRoutes } from "./admin-routes"
 import { pmRoutes } from "./pm-routes"
 import { devRoutes } from "./dev-routes"
 
+import { PublicRoute } from "./public-route"
+
 export function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<SigninUserPage />} />
+      <Route
+        path="/"
+        element={
+          <PublicRoute>
+            <SigninUserPage />
+          </PublicRoute>
+        }
+      />
+
       <Route path="/notification/me" element={<NotificationMeRedirect />} />
-      <Route path="/*" element={<NotFoundError />} />
 
       {adminRoutes}
       {pmRoutes}
       {devRoutes}
+
+      <Route path="/*" element={<NotFoundError />} />
     </Routes>
   )
 }
