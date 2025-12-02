@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Ticket, TicketGroups, TicketStatus } from "@/types/project-tasks.types";
+import type { Phase } from "@/types/project-phases.type";
 import { projectTasksService } from "@/services/project-tasks.service";
 import { decodeToken } from "@/utils/token.utils";
 
@@ -7,6 +8,7 @@ export const useProjectTasks = (projectId: string | undefined) => {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [projectName, setProjectName] = useState<string>("");
+  const [phases, setPhases] = useState<Phase[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const token = localStorage.getItem("token");
@@ -35,6 +37,19 @@ export const useProjectTasks = (projectId: string | undefined) => {
             token
           );
           setProjectName(projectInfo.name);
+          if (Array.isArray(projectInfo.phases)) {
+            setPhases(
+              projectInfo.phases.map((p) => ({
+                id: p.id,
+                name: p.name,
+                startDate: String((p as any).startDate ?? (p as any).start_date ?? ""),
+                endDate: String((p as any).endDate ?? (p as any).end_date ?? ""),
+                projectId: currentProjectId,
+                createdAt: "",
+                updatedAt: "",
+              }))
+            );
+          }
         } catch (err) {
           console.error("Error fetching project info:", err);
         }
@@ -100,5 +115,6 @@ export const useProjectTasks = (projectId: string | undefined) => {
     updateTicketStatus,
     findTicket,
     token,
+    phases,
   };
 };

@@ -1,12 +1,13 @@
 "use client";
 
+import type React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AppSidebarDev } from "@/components/app-sidebardev";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useProjectTasks } from "@/features/DevProjectTask/hook/use-project-tasks";
 import { ProjectHeader } from "@/features/kanban-board/components/kanban-header";
-import { KanbanBoard } from "@/features/kanban-board/components/kanban-board";
+import { TaskViewSwitcher } from "@/features/kanban-board/components/task-view-switcher";
 import type { Ticket } from "@/types/project-tasks.types";
 
 export default function DeveloperProjectTasks() {
@@ -21,6 +22,7 @@ export default function DeveloperProjectTasks() {
     groups,
     updateTicketStatus,
     findTicket,
+    phases,
   } = useProjectTasks(projectId);
 
   const headerStats = buildStats(tickets);
@@ -54,24 +56,21 @@ export default function DeveloperProjectTasks() {
               <div className="p-4">
                 <p>Loading...</p>
               </div>
-            ) : tickets.length === 0 ? (
-              <div className="p-4">
-                <p className="text-muted-foreground">
-                  Tidak ada task di project ini.
-                </p>
-              </div>
             ) : (
-              <KanbanBoard
-                tickets={tickets}
-                setTickets={setTickets}
-                groups={groups}
-                updateTicketStatus={updateTicketStatus}
-                findTicket={findTicket}
-                buildDetailLink={(ticket) =>
-                  `/developer-dashboard/projects/${ticket.projectId}/tasks/${ticket.id}`
-                }
-                isMobile={true}
-              />
+              <div className="pb-4">
+                <TaskViewSwitcher
+                  tickets={tickets}
+                  setTickets={setTickets}
+                  groups={groups}
+                  updateTicketStatus={updateTicketStatus}
+                  findTicket={findTicket}
+                  buildDetailLink={(ticket) =>
+                    `/developer-dashboard/projects/${ticket.projectId}/tasks/${ticket.id}`
+                  }
+                  isMobile
+                  phases={phases}
+                />
+              </div>
             )}
           </div>
         </div>
@@ -85,19 +84,13 @@ export default function DeveloperProjectTasks() {
             onBack={handleBack}
           />
 
-          <div className="flex-1 relative overflow-hidden">
+          <div className="flex-1 relative overflow-hidden pl-6">
             {loading ? (
               <div className="p-6">
                 <p>Loading...</p>
               </div>
-            ) : tickets.length === 0 ? (
-              <div className="p-6">
-                <p className="text-muted-foreground">
-                  Tidak ada task di project ini.
-                </p>
-              </div>
             ) : (
-              <KanbanBoard
+              <TaskViewSwitcher
                 tickets={tickets}
                 setTickets={setTickets}
                 groups={groups}
@@ -106,7 +99,7 @@ export default function DeveloperProjectTasks() {
                 buildDetailLink={(ticket) =>
                   `/developer-dashboard/projects/${ticket.projectId}/tasks/${ticket.id}`
                 }
-                isMobile={false}
+                phases={phases}
               />
             )}
           </div>
