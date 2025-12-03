@@ -1,5 +1,3 @@
-
-
 "use client"
 
 import * as React from "react"
@@ -53,8 +51,8 @@ type Props = {
   onDelete: () => void
   canEdit?: boolean
   canDelete?: boolean
-  // 🔹 NEW: handler untuk "Add attachment"
   onAddAttachment?: (ticketId: number) => void
+  buildEditHref?: (ticketId: number) => string
 }
 
 const statusVariant = (
@@ -121,6 +119,7 @@ export function PmTicketDetailView({
   canEdit,
   canDelete,
   onAddAttachment,
+  buildEditHref,
 }: Props) {
   return (
     <div className="px-4 lg:px-6">
@@ -147,7 +146,11 @@ export function PmTicketDetailView({
                 className="cursor-pointer"
               >
                 <Link
-                  to={`/project-manager/dashboard/tickets/edit/${ticket.id}`}
+                  to={
+                    buildEditHref
+                      ? buildEditHref(ticket.id)
+                      : `/project-manager/dashboard/ticket-issue/edit/${ticket.id}`
+                  }
                 >
                   <IconEdit className="h-4 w-4 mr-1" />
                   Edit
@@ -173,7 +176,7 @@ export function PmTicketDetailView({
                     <AlertDialogTitle>Hapus ticket?</AlertDialogTitle>
                     <AlertDialogDescription>
                       {ticket
-                        ? `Yakin ingin menghapus tiket “${ticket.title}”? Tindakan ini tidak dapat dikembalikan.`
+                        ? `Yakin ingin menghapus tiket "${ticket.title}"? Tindakan ini tidak dapat dikembalikan.`
                         : "Yakin ingin menghapus tiket ini? Tindakan ini tidak dapat dikembalikan."}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
@@ -203,7 +206,7 @@ export function PmTicketDetailView({
 
       <Card>
         <CardHeader>
-          <CardTitle>{loading ? "Loading…" : ticket?.title ?? "-"}</CardTitle>
+          <CardTitle>{loading ? "Loading..." : ticket?.title ?? "-"}</CardTitle>
           {ticket?.projectName && (
             <CardDescription>Project: {ticket.projectName}</CardDescription>
           )}
@@ -325,7 +328,7 @@ export function PmTicketDetailView({
                     </ReactMarkdown>
                   </div>
                 ) : (
-                  <span className="text-muted-foreground">—</span>
+                  <span className="text-muted-foreground">-</span>
                 )}
               </div>
 
