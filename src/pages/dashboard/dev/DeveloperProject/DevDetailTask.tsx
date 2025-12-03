@@ -64,9 +64,7 @@ export default function DeveloperTaskDetail() {
           ) : !task ? (
             <p className="text-muted-foreground">Task tidak ditemukan.</p>
           ) : (
-            <div className="max-w-4xl mx-auto space-y-6">
-              <TaskDetailCard task={task} />
-            </div>
+            <TaskDetailCard task={task} />
           )}
         </main>
       </SidebarInset>
