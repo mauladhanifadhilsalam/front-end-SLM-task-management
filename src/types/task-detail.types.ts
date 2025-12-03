@@ -8,6 +8,7 @@ export interface TaskDetail {
   projectId: number;
   type: "TASK" | "BUG" | "FEATURE" | "ISSUE";
   assignees: TaskAssignee[];
+  comments?: TaskComment[]; // Tambahan
 }
 
 export interface TaskAssignee {
@@ -18,6 +19,23 @@ export interface TaskAssignee {
     fullName: string;
     email: string;
     role: string;
+  };
+}
+
+// Tambahan interface untuk comments
+export interface TaskComment {
+  id: number;
+  ticketId: number;
+  userId: number;
+  message: string;
+  createdAt: string;
+  updatedAt?: string | null;
+  user?: {
+    id: number;
+    fullName?: string;
+    name?: string;
+    email?: string;
+    role?: string;
   };
 }
 

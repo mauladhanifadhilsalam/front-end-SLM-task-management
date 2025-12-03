@@ -4,6 +4,7 @@ import { TaskDetailHeader } from "./task-detail-header";
 import { TaskDescription } from "./task-description";
 import { TaskMetadata } from "./task-metadata";
 import { TaskAssignees } from "./task-assignees";
+import TaskComments from "./TaskComments";
 
 interface TaskDetailCardProps {
   task: TaskDetail;
@@ -18,6 +19,7 @@ export const TaskDetailCard = ({ task }: TaskDetailCardProps) => {
         <TaskDescription description={task.description} />
         <TaskMetadata task={task} />
         <TaskAssignees assignees={task.assignees} />
+        <TaskComments taskId={task.id} />
       </CardContent>
     </Card>
   );
