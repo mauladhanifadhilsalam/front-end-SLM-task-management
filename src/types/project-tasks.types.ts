@@ -4,6 +4,7 @@ export interface Ticket {
   description: string;
   status: "TO_DO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE" | "RESOLVED" | "CLOSED";
   priority: string;
+  startDate?: string | null;
   dueDate: string | null;
   projectId: number;
   type: "TASK" | "BUG" | "FEATURE" | "ISSUE";
@@ -33,4 +34,10 @@ export interface TicketGroups {
 export interface ProjectInfo {
   id: number;
   name: string;
+  phases?: Array<{
+    id: number;
+    name: string;
+    startDate: string;
+    endDate: string;
+  }>;
 }

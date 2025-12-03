@@ -17,6 +17,18 @@ import { SortableTaskCard } from "../../DevProjectTask/componenst/sortable-task-
 import { TaskColumn } from "../../DevProjectTask/componenst/task-column";
 import { DragOverlayCard } from "../../DevProjectTask/componenst/drag-overlay-card";
 import { formatStatus } from "@/utils/format.utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { User2 } from "lucide-react";
 
 interface KanbanBoardProps {
   tickets: Ticket[];
@@ -85,6 +97,15 @@ export const KanbanBoard = ({
   buildDetailLink,
 }: KanbanBoardProps) => {
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newTaskStatus, setNewTaskStatus] = useState<TicketStatus>("TO_DO");
+  const [newTaskForm, setNewTaskForm] = useState({
+    title: "",
+    startDate: "",
+    dueDate: "",
+    priority: "MEDIUM",
+    assignee: "",
+  });
   const handleAddTask = onAddTask ?? (() => undefined);
 
   const sensors = useSensors(
@@ -98,6 +119,18 @@ export const KanbanBoard = ({
   };
 
   const statusOrder = useMemo(() => STATUSES, []);
+
+  const openNewTaskDialog = (status: TicketStatus) => {
+    setNewTaskStatus(status);
+    setNewTaskForm((prev) => ({ ...prev, title: "", startDate: "", dueDate: "", priority: "MEDIUM", assignee: "" }));
+    setIsDialogOpen(true);
+  };
+
+  const handleSubmitNewTask = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    handleAddTask(newTaskStatus);
+    setIsDialogOpen(false);
+  };
 
   const handleDragEnd = async (event: any) => {
     const { active, over } = event;
@@ -198,7 +231,7 @@ export const KanbanBoard = ({
 
                     <button
                       type="button"
-                      onClick={() => handleAddTask(status)}
+                      onClick={() => openNewTaskDialog(status)}
                       className="flex h-10 w-full items-center justify-center rounded-full border border-dashed border-border/70 bg-muted/50 text-lg font-semibold text-muted-foreground transition hover:border-primary/50 hover:text-foreground"
                     >
                       +
