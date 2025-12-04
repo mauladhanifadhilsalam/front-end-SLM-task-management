@@ -3,12 +3,19 @@
 import * as React from "react"
 import { AppSidebarPm } from "./components/sidebar-pm"
 import { PmAnalytics } from "./components/pm-analytics"
+import { ProjectOwnerTable } from "./components/project-owner-table"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { usePmOverview } from "./hooks/use-pm-overview"
+import { usePmProjects } from "./hooks/use-pm-projects"
 
 export default function Page() {
   const { data: overview, loading, error } = usePmOverview()
+  const {
+    projects,
+    loading: projectsLoading,
+    error: projectsError,
+  } = usePmProjects()
 
   return (
     <SidebarProvider
@@ -39,11 +46,14 @@ export default function Page() {
                 </div>
               )}
 
-              {overview && (
-                <div className="px-4 lg:px-6 space-y-4">
-                  <PmAnalytics overview={overview} />
-                </div>
-              )}
+              <div className="px-4 lg:px-6 space-y-4">
+                {overview && <PmAnalytics overview={overview} />}
+                <ProjectOwnerTable
+                  projects={projects}
+                  loading={projectsLoading}
+                  error={projectsError}
+                />
+              </div>
 
             </div>
           </div>

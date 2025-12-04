@@ -79,12 +79,14 @@ export function PmAnalytics({ overview }: Props) {
     [priorityData],
   )
 
+  const darkBlue = "#1e3a8a"
+
   const statusConfig: ChartConfig = {
-    status: { label: "Status", color: "hsl(var(--primary))" },
+    status: { label: "Status", color: darkBlue },
   }
 
   const projectConfig: ChartConfig = {
-    project: { label: "Tickets", color: "hsl(var(--primary))" },
+    project: { label: "Tickets", color: darkBlue },
   }
 
   return (
