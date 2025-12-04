@@ -95,9 +95,7 @@ export const useProjectTasks = (projectId: string | undefined) => {
       return;
     }
 
-    let source: EventSource | null = null;
     let pollId: number | undefined;
-    let destroyed = false;
     let refreshing = false;
 
     const safeRefresh = async () => {
@@ -110,44 +108,8 @@ export const useProjectTasks = (projectId: string | undefined) => {
       }
     };
 
-    const startPolling = () => {
-      setRealtimeStatus("polling");
-      if (pollId) window.clearInterval(pollId);
-      pollId = window.setInterval(safeRefresh, 2000);
-    };
-
-    const apiBase =
-      (import.meta?.env?.VITE_API_BASE as string | undefined)?.replace(/\/$/, "") ||
-      "http://localhost:3000";
-    const streamUrl = `${apiBase}/tickets/stream?projectId=${projectId}`;
-
-    if (typeof EventSource !== "undefined") {
-      try {
-        setRealtimeStatus("connecting");
-        source = new EventSource(streamUrl, { withCredentials: true });
-
-        source.onopen = () => {
-          if (!destroyed) setRealtimeStatus("connected");
-        };
-
-        source.onmessage = () => {
-          safeRefresh();
-        };
-
-        source.onerror = () => {
-          source?.close();
-          source = null;
-          if (!destroyed) {
-            setRealtimeStatus("error");
-            startPolling();
-          }
-        };
-      } catch (err) {
-        startPolling();
-      }
-    } else {
-      startPolling();
-    }
+    setRealtimeStatus("polling");
+    pollId = window.setInterval(safeRefresh, 2000);
 
     const handleVisibility = () => {
       if (document.visibilityState === "visible") {
@@ -158,8 +120,6 @@ export const useProjectTasks = (projectId: string | undefined) => {
     window.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
-      destroyed = true;
-      if (source) source.close();
       if (pollId) window.clearInterval(pollId);
       window.removeEventListener("visibilitychange", handleVisibility);
     };
