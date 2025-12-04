@@ -189,10 +189,6 @@ export function ProfileSettings() {
               <Card>
                 <CardHeader>
                   <CardTitle>Ganti Password</CardTitle>
-                  <CardDescription>
-                    Tidak perlu memasukkan password saat ini. Pastikan password baru
-                    kuat.
-                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <form className="space-y-3" onSubmit={submitPassword} noValidate>
