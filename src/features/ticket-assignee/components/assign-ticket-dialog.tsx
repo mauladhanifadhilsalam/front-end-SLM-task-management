@@ -140,21 +140,17 @@ export function AssignTicketDialog({
 
         const headers = getAuthHeaders()
 
-        const [ticketRes, projectAssignmentsRes] = await Promise.all([
+        const [ticketRes, projectDetailRes] = await Promise.all([
           axios.get(`${API_BASE}/tickets`, {
             headers,
             params: { projectId },
           }),
-          axios.get(`${API_BASE}/project-assignments`, {
+          axios.get(`${API_BASE}/projects/${projectId}`, {
             headers,
-            params: { projectId },
           }),
         ])
 
         const ticketPayload = ticketRes?.data?.data ?? ticketRes?.data ?? []
-        const assignmentPayload =
-          projectAssignmentsRes?.data?.data ?? projectAssignmentsRes?.data ?? []
-
         try {
           const validatedTickets = z
             .array(ticketSchema)
@@ -164,9 +160,17 @@ export function AssignTicketDialog({
           setTickets(ticketPayload ?? [])
         }
 
-        const extractedUsers = (assignmentPayload ?? []).map(
-          (item: any) => item.user,
-        )
+        let extractedUsers =
+          (projectDetailRes.data?.assignments ?? projectDetailRes.data?.data?.assignments ?? [])
+            .map((item: any) => item?.user)
+            .filter(Boolean)
+
+        if (!extractedUsers.length) {
+          extractedUsers =
+            (projectDetailRes.data?.members ?? projectDetailRes.data?.data?.members ?? [])
+              .map((item: any) => item?.user ?? item)
+              .filter(Boolean)
+        }
 
         try {
           const validatedUsers = z.array(userSchema).parse(extractedUsers)
@@ -394,41 +398,39 @@ export function AssignTicketDialog({
               className="h-8 text-xs"
             />
 
-            <div className="border rounded-md bg-muted/30">
-              <ScrollArea className="max-h-56">
-                <div className="p-1.5 space-y-1">
+            <div className="border rounded-md bg-muted/30 overflow-hidden">
+              <ScrollArea className="h-64">
+                <div className="p-1.5 space-y-1 pr-2">
                   {!projectId && (
-                    <p className="text-[11px] text-muted-foreground px-1 py-2">
+                    <p className="px-1 py-2 text-[11px] text-muted-foreground">
                       Pilih project terlebih dahulu.
                     </p>
                   )}
 
                   {projectId && filteredUsers.length === 0 && (
-                    <p className="text-[11px] text-muted-foreground px-1 py-2">
+                    <p className="px-1 py-2 text-[11px] text-muted-foreground">
                       Tidak ada user yang cocok.
                     </p>
                   )}
 
                   {projectId &&
                     filteredUsers.map((u) => {
-                      const alreadyAssigned = existingAssigneeIds.includes(
-                        u.id,
-                      )
+                      const alreadyAssigned = existingAssigneeIds.includes(u.id)
                       const checked =
                         selectedUserIds.includes(u.id) || alreadyAssigned
 
                       return (
-                       <button
+                        <button
                           key={u.id}
                           type="button"
                           onClick={() => {
                             if (!alreadyAssigned) toggleUser(u.id)
                           }}
                           className={[
-                            "w-full flex items-center gap-3 rounded-md px-2 py-1.5 text-left text-xs",
+                            "flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left text-xs",
                             alreadyAssigned
-                              ? "opacity-60 bg-muted/40 cursor-default"
-                              : "hover:bg-muted/60 cursor-pointer",
+                              ? "cursor-default bg-muted/40 opacity-60"
+                              : "cursor-pointer hover:bg-muted/60",
                           ].join(" ")}
                         >
                           <input
@@ -439,11 +441,9 @@ export function AssignTicketDialog({
                           />
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
-                              <span className="font-medium">
-                                {u.fullName}
-                              </span>
+                              <span className="font-medium">{u.fullName}</span>
                               {alreadyAssigned && (
-                                <span className="text-[9px] rounded-full bg-blue-100 px-2 py-[1px] text-blue-600">
+                                <span className="rounded-full bg-blue-100 px-2 py-[1px] text-[9px] text-blue-600">
                                   Already assigned
                                 </span>
                               )}

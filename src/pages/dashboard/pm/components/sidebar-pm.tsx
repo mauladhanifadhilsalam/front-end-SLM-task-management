@@ -60,7 +60,7 @@ const data = {
   navSecondary: [
     {
       title: "Settings",
-      url: "/project-manager/profile-settings",
+      url: "/project-manager/dashboard/settings/profile",
       icon: IconSettings,
     },
   ],
@@ -77,7 +77,7 @@ export function AppSidebarPm(
                 <SidebarMenuButton className="data-[slot=sidebar-menu-button]:!p-1.5" asChild>
                 <a href="/project-manager/dashboard">
                     <span className="text-base font-semibold">
-                        Task Management
+                        Project Management
                     </span>
                 </a>
                 </SidebarMenuButton>

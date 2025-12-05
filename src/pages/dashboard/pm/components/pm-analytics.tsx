@@ -79,12 +79,14 @@ export function PmAnalytics({ overview }: Props) {
     [priorityData],
   )
 
+  const darkBlue = "#1e3a8a"
+
   const statusConfig: ChartConfig = {
-    status: { label: "Status", color: "hsl(var(--primary))" },
+    status: { label: "Status", color: darkBlue },
   }
 
   const projectConfig: ChartConfig = {
-    project: { label: "Tickets", color: "hsl(var(--primary))" },
+    project: { label: "Tickets", color: darkBlue },
   }
 
   return (
@@ -226,7 +228,7 @@ export function PmAnalytics({ overview }: Props) {
             ) : (
               <ChartContainer
                 config={projectConfig}
-                className="h-full w-full min-h-[220px]"
+                className="h-full w-full min-h-[220px] justify-start sm:justify-center"
               >
                 <BarChart
                   data={ticketsByProject.map((p) => ({
@@ -234,7 +236,7 @@ export function PmAnalytics({ overview }: Props) {
                     value: p.openTickets,
                   }))}
                   layout="vertical"
-                  margin={{ left: 80 }}
+                  margin={{ left: 12, right: 12 }}
                 >
                   <CartesianGrid strokeDasharray="3 6" stroke="#e5e7eb" />
                   <XAxis type="number" tickLine={false} axisLine={false} />
@@ -244,7 +246,7 @@ export function PmAnalytics({ overview }: Props) {
                     tickLine={false}
                     axisLine={false}
                     tickFormatter={(v) => truncateLabel(String(v))}
-                    width={140}
+                    width={120}
                   />
                   <ChartTooltip
                     content={

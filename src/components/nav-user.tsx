@@ -157,7 +157,21 @@ export function NavUser() {
             <DropdownMenuSeparator />
 
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  const role = localStorage.getItem("role")
+                  const to =
+                    role === "admin"
+                      ? "/admin/dashboard/settings/profile"
+                      : role === "project_manager"
+                        ? "/project-manager/dashboard/settings/profile"
+                        : role === "developer"
+                          ? "/developer/dashboard/settings/profile"
+                          : "/settings/profile"
+                  navigate(to)
+                }}
+                className="cursor-pointer"
+              >
                 <IconUserCircle />
                 Account
               </DropdownMenuItem>

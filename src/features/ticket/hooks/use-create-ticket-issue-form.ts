@@ -35,8 +35,8 @@ export function useCreateTicketIssueForm(): UseCreateTicketIssueFormReturn {
 
   const [form, setForm] = React.useState<CreateTicketValues>({
     projectId: 0 as any,
-    requesterId: 0 as any, 
-    type: "ISSUE" as any,  // fix ISSUE
+    requesterId: 0 as any,
+    type: "ISSUE" as any,
     title: "",
     description: "",
     priority: "" as any,
@@ -55,7 +55,7 @@ export function useCreateTicketIssueForm(): UseCreateTicketIssueFormReturn {
     let mounted = true
 
     if (typeof window !== "undefined") {
-      const userId = getCurrentUserId() 
+      const userId = getCurrentUserId()
 
       if (mounted) {
         if (userId && !Number.isNaN(userId)) {
@@ -70,13 +70,11 @@ export function useCreateTicketIssueForm(): UseCreateTicketIssueFormReturn {
       }
     }
 
-    (async () => {
+    ;(async () => {
       try {
         setLoadingOptions(true)
         const { projects } = await fetchTicketFormOptions()
-        if (mounted) {
-          setProjects(projects)
-        }
+        if (mounted) setProjects(projects)
       } catch (err: any) {
         const msg =
           err?.response?.data?.message ||

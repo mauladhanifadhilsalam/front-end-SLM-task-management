@@ -185,13 +185,21 @@ export default function ProjectTaskPage() {
         </AlertDialog>
 
         <div className="md:hidden flex flex-col h-full">
-          <ProjectHeader projectName={projectName} projectId={projectId} onBack={handleBack} />
+          <ProjectHeader
+            projectName={projectName}
+            projectId={projectId}
+            onBack={handleBack}
+          />
 
           <div className="flex-1 overflow-y-auto">{renderContent(true)}</div>
         </div>
 
         <div className="hidden md:flex flex-col h-[calc(100vh-var(--header-height))]">
-          <ProjectHeader projectName={projectName} projectId={projectId} onBack={handleBack} />
+          <ProjectHeader
+            projectName={projectName}
+            projectId={projectId}
+            onBack={handleBack}
+          />
 
           <div className="flex-1 relative overflow-hidden">{renderContent(false)}</div>
         </div>

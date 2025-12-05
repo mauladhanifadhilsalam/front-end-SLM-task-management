@@ -6,8 +6,11 @@ import NotificationPage from "../pages/notification/notification"
 import DeveloperProjects from "@/pages/dashboard/dev/DeveloperProject/DevProject"
 import DevProjectTask from "@/pages/dashboard/dev/DeveloperProject/DevProjectTask"
 import DeveloperTaskDetail from "@/pages/dashboard/dev/DeveloperProject/DevDetailTask"
-import DevProjectIssue from "@/pages/dashboard/dev/DeveloperProject/DevProjectIssue"
-import DevProjectIssueDetail from "@/pages/dashboard/dev/DeveloperProject/DevDetailIssue"
+import DevTicketsPage from "@/pages/dashboard/dev/ticket/ticket-page"
+import DevViewTicketIssue from "@/pages/dashboard/dev/ticket/view-ticket-page"
+import DevCreateTicketIssue from "@/pages/dashboard/dev/ticket/create-ticket-issue"
+import DevEditTicketIssue from "@/pages/dashboard/dev/ticket/edit-ticket-issue"
+import DevAddTicketAttachment from "@/pages/dashboard/dev/fileAttachment/add-file-attachment"
 
 export const devRoutes = (
   <Fragment>
@@ -46,30 +49,57 @@ export const devRoutes = (
       }
     />
 
-      <Route
-        path="/developer-dashboard/projects/:projectId/tasks/:taskId"
-        element={
-          <ProtectedRoute allowedRoles={["developer"]}>
-            <DeveloperTaskDetail />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/developer-dashboard/issues/:projectId"
-        element={
-          <ProtectedRoute allowedRoles={["developer"]}>
-            <DevProjectIssue />
-          </ProtectedRoute>
-        }
-      />
+    <Route
+      path="/developer-dashboard/projects/:projectId/tasks/:taskId"
+      element={
+        <ProtectedRoute allowedRoles={["developer"]}>
+          <DeveloperTaskDetail />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/developer-dashboard/ticket-issue"
+      element={
+        <ProtectedRoute allowedRoles={["developer"]}>
+          <DevTicketsPage />
+        </ProtectedRoute>
+      }
+    />
 
-      <Route
-        path="/developer-dashboard/projects/:projectId/issues/:issueId"
-        element={
-          <ProtectedRoute allowedRoles={["developer"]}>
-            <DevProjectIssueDetail />
-          </ProtectedRoute>
-        }
-      />
+    <Route
+      path="/developer-dashboard/ticket-issue/view/:id"
+      element={
+        <ProtectedRoute allowedRoles={["developer"]}>
+          <DevViewTicketIssue />
+        </ProtectedRoute>
+      }
+    />
+
+    <Route
+      path="/developer-dashboard/ticket-issue/create"
+      element={
+        <ProtectedRoute allowedRoles={["developer"]}>
+          <DevCreateTicketIssue />
+        </ProtectedRoute>
+      }
+    />
+
+    <Route
+      path="/developer-dashboard/ticket-issue/edit/:id"
+      element={
+        <ProtectedRoute allowedRoles={["developer"]}>
+          <DevEditTicketIssue />
+        </ProtectedRoute>
+      }
+    />
+
+    <Route
+      path="/developer-dashboard/ticket-issue/:id/attachments/new"
+      element={
+        <ProtectedRoute allowedRoles={["developer"]}>
+          <DevAddTicketAttachment />
+        </ProtectedRoute>
+      }
+    />
   </Fragment>
 )

@@ -4,7 +4,15 @@ import { toast } from "sonner"
 import type { TicketDetail } from "@/types/ticket-type"
 import { fetchTicketById, deleteTicket } from "@/services/ticket.service"
 
-export function useTicketDetail(id: string | undefined) {
+type UseTicketDetailOptions = {
+  onDeleted?: () => void
+  onDeletedPath?: string
+}
+
+export function useTicketDetail(
+  id: string | undefined,
+  options?: UseTicketDetailOptions,
+) {
   const navigate = useNavigate()
 
   const [ticket, setTicket] = React.useState<TicketDetail | null>(null)
@@ -57,7 +65,14 @@ export function useTicketDetail(id: string | undefined) {
       toast.success("Ticket dihapus", {
         description: `Ticket "${ticket.title}" berhasil dihapus.`,
       })
-      navigate("/admin/dashboard/tickets")
+
+      if (options?.onDeleted) {
+        options.onDeleted()
+      } else if (options?.onDeletedPath) {
+        navigate(options.onDeletedPath)
+      } else {
+        navigate("/admin/dashboard/tickets")
+      }
     } catch (e: any) {
       const msg =
         e?.response?.data?.message ||
@@ -66,7 +81,7 @@ export function useTicketDetail(id: string | undefined) {
       toast.error("Gagal menghapus ticket", { description: msg })
       setDeleting(false)
     }
-  }, [ticket, navigate])
+  }, [ticket, navigate, options])
 
   return {
     ticket,
