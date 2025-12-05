@@ -109,7 +109,7 @@ export const useProjectTasks = (projectId: string | undefined) => {
     };
 
     setRealtimeStatus("polling");
-    pollId = window.setInterval(safeRefresh, 2000);
+    pollId = window.setInterval(safeRefresh, 8000);
 
     const handleVisibility = () => {
       if (document.visibilityState === "visible") {
