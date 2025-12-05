@@ -97,9 +97,8 @@ export const useCreateProjectAssignmentForm =
         const res = await axios.get(`${API_BASE}/projects`, {
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         })
-        const raw: any[] = Array.isArray(res.data)
-          ? res.data
-          : res.data?.data ?? []
+        const payload = res?.data?.data ?? res?.data ?? []
+        const raw: any[] = Array.isArray(payload) ? payload : []
         const normalized: ProjectLite[] = raw.map((p) => ({
           id: Number(p.id),
           name: p.name ?? p.projectName ?? `Project #${p.id}`,
@@ -117,9 +116,8 @@ export const useCreateProjectAssignmentForm =
         const res = await axios.get(`${API_BASE}/users`, {
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         })
-        const raw: any[] = Array.isArray(res.data)
-          ? res.data
-          : res.data?.data ?? []
+        const payload = res?.data?.data ?? res?.data ?? []
+        const raw: any[] = Array.isArray(payload) ? payload : []
         const normalized: UserLite[] = raw.map((u) => ({
           id: Number(u.id),
           fullName: u.fullName ?? u.name ?? `User #${u.id}`,

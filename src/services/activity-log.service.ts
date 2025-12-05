@@ -1,21 +1,12 @@
 import axios from "axios"
 import type { ActivityLog } from "@/types/activity-log.type"
+import { extractArrayFromApi } from "@/utils/api-response.util"
 
 const API_BASE = import.meta.env.VITE_API_BASE as string
 
 const getAuthHeader = () => {
   const token = localStorage.getItem("token")
   return token ? { Authorization: `Bearer ${token}` } : undefined
-}
-
-const normalizeArray = (raw: any): any[] => {
-  if (Array.isArray(raw)) return raw
-  if (Array.isArray(raw?.data)) return raw.data
-  if (Array.isArray(raw?.items)) return raw.items
-  if (Array.isArray(raw?.logs)) return raw.logs
-  if (Array.isArray(raw?.data?.logs)) return raw.data.logs
-  if (raw && typeof raw === "object") return [raw]
-  return []
 }
 
 const mapActivityLog = (item: any): ActivityLog => ({
@@ -45,7 +36,9 @@ export const fetchActivityLogs = async (): Promise<ActivityLog[]> => {
     headers: getAuthHeader(),
   })
 
-  const list = normalizeArray(res?.data).map(mapActivityLog) as ActivityLog[]
+  const list = extractArrayFromApi(res.data, ["logs"]).map(
+    mapActivityLog,
+  ) as ActivityLog[]
 
   list.sort(
     (a, b) =>

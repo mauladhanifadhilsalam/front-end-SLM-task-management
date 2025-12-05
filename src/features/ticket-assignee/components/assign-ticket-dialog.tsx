@@ -106,12 +106,13 @@ export function AssignTicketDialog({
         const res = await axios.get(`${API_BASE}/projects`, {
           headers: getAuthHeaders(),
         })
+        const payload = res?.data?.data ?? res?.data ?? []
 
         try {
-          const validated = z.array(projectSchema).parse(res.data ?? [])
+          const validated = z.array(projectSchema).parse(payload ?? [])
           setProjects(validated)
         } catch {
-          setProjects(res.data ?? [])
+          setProjects(payload ?? [])
         }
       } catch {
         toast.error("Gagal memuat project", {
@@ -149,13 +150,14 @@ export function AssignTicketDialog({
           }),
         ])
 
+        const ticketPayload = ticketRes?.data?.data ?? ticketRes?.data ?? []
         try {
           const validatedTickets = z
             .array(ticketSchema)
-            .parse(ticketRes.data ?? [])
+            .parse(ticketPayload ?? [])
           setTickets(validatedTickets)
         } catch {
-          setTickets(ticketRes.data ?? [])
+          setTickets(ticketPayload ?? [])
         }
 
         let extractedUsers =
@@ -198,13 +200,14 @@ export function AssignTicketDialog({
           headers: getAuthHeaders(),
         })
 
+        const payload = res?.data?.data ?? res?.data
         try {
-          const validated = ticketSchema.parse(res.data)
+          const validated = ticketSchema.parse(payload)
           const ids =
             (validated.assignees ?? []).map((a: any) => a.user?.id) ?? []
           setExistingAssigneeIds(ids.filter(Boolean) as number[])
         } catch {
-          const raw = res.data
+          const raw = payload ?? {}
           const ids =
             (raw?.assignees ?? []).map((a: any) => a.user?.id) ?? []
           setExistingAssigneeIds(ids.filter(Boolean) as number[])

@@ -1,5 +1,9 @@
 import axios from "axios"
-import type { ProjectAssignment, CreateProjectAssignmentPayload } from "@/types/project-assignment.type"
+import type {
+  ProjectAssignment,
+  CreateProjectAssignmentPayload,
+} from "@/types/project-assignment.type"
+import { extractArrayFromApi } from "@/utils/api-response.util"
 
 const API_BASE = import.meta.env.VITE_API_BASE
 
@@ -40,7 +44,10 @@ export const fetchProjectAssignments = async (): Promise<ProjectAssignment[]> =>
         headers: getAuthHeaders(),
     })
 
-    const raw: any[] = Array.isArray(res.data) ? res.data : res.data?.data ?? []
+    const raw: any[] = extractArrayFromApi(res.data, [
+        "projectAssignments",
+        "assignments",
+    ])
     return raw.map(normalizeProjectAssignment)
 }
 

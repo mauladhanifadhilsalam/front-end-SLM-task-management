@@ -65,9 +65,10 @@ export function NavUser() {
             Authorization: `Bearer ${token}`,
           },
         })
+        const data = res?.data?.data ?? res?.data ?? {}
         setUser({
-          fullName: res.data.fullName,
-          email: res.data.email,
+          fullName: data.fullName ?? "",
+          email: data.email ?? "",
         })
       } catch (err) {
         console.error("Failed to fetch profile:", err)

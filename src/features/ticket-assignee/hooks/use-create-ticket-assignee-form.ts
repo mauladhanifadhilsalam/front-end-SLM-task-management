@@ -68,17 +68,20 @@ export function useCreateTicketAssigneeForm() {
           axios.get(`${API_BASE}/users`, { headers }),
         ])
 
+        const projectPayload = projectRes?.data?.data ?? projectRes?.data ?? []
+        const userPayload = userRes?.data?.data ?? userRes?.data ?? []
+
         try {
           const validatedProjects = z
             .array(projectSchema)
-            .parse(projectRes.data ?? [])
-          const validatedUsers = z.array(userSchema).parse(userRes.data ?? [])
+            .parse(projectPayload ?? [])
+          const validatedUsers = z.array(userSchema).parse(userPayload ?? [])
 
           setProjects(validatedProjects)
           setProjectUsers(validatedUsers)
         } catch {
-          setProjects(projectRes.data ?? [])
-          setProjectUsers(userRes.data ?? [])
+          setProjects(projectPayload ?? [])
+          setProjectUsers(userPayload ?? [])
         }
       } catch {
         const msg = "Gagal memuat data project atau user."
@@ -121,16 +124,20 @@ export function useCreateTicketAssigneeForm() {
           }),
         ])
 
+        const ticketPayload = ticketRes?.data?.data ?? ticketRes?.data ?? []
+        const assignmentPayload =
+          projectAssignmentsRes?.data?.data ?? projectAssignmentsRes?.data ?? []
+
         try {
           const validatedTickets = z
             .array(ticketSchema)
-            .parse(ticketRes.data ?? [])
+            .parse(ticketPayload ?? [])
           setTickets(validatedTickets)
         } catch {
-          setTickets(ticketRes.data ?? [])
+          setTickets(ticketPayload ?? [])
         }
 
-        const extractedUsers = (projectAssignmentsRes.data ?? []).map(
+        const extractedUsers = (assignmentPayload ?? []).map(
           (item: any) => item.user,
         )
 
@@ -173,11 +180,12 @@ export function useCreateTicketAssigneeForm() {
           headers: getAuthHeaders(),
         })
 
+        const payload = res?.data?.data ?? res?.data
         try {
-          const validatedTicket = ticketSchema.parse(res.data)
+          const validatedTicket = ticketSchema.parse(payload)
           setSelectedTicket(validatedTicket)
         } catch {
-          setSelectedTicket(res.data)
+          setSelectedTicket(payload ?? null)
         }
       } catch {
         setSelectedTicket(null)

@@ -6,6 +6,7 @@ import type {
   TicketType,
 } from "@/types/ticket-assignee.type"
 import { getAuthHeaders } from "@/utils/auth-header.util"
+import { extractArrayFromApi } from "@/utils/api-response.util"
 
 const API_BASE = import.meta.env.VITE_API_BASE as string
 
@@ -117,7 +118,7 @@ export const fetchTicketAssignees = async (): Promise<TicketAssignee[]> => {
     headers: getAuthHeaders(),
   })
 
-  const data = Array.isArray(res.data) ? res.data : res.data?.data ?? []
+  const data = extractArrayFromApi<RawTicket>(res.data, ["tickets"])
   const list = mapTicketAssignees(data)
 
   list.sort((a, b) => b.id - a.id)

@@ -27,6 +27,7 @@ import {
 import { IconDotsVertical, IconPencil, IconTrash } from "@tabler/icons-react";
 
 const API_BASE = import.meta.env.VITE_API_BASE;
+const unwrap = (res: any) => res?.data?.data ?? res?.data ?? null;
 
 type UserLite = {
   id: number;
@@ -136,8 +137,8 @@ export default function TaskComments({ taskId }: { taskId: number }) {
         headers: tokenHeader,
       });
 
-      const raw = res.data;
-      const list: any[] = Array.isArray(raw) ? raw : [];
+      const rawPayload = unwrap(res);
+      const list: any[] = Array.isArray(rawPayload) ? rawPayload : [];
 
       const normalized: TaskComment[] = list.map((c) => ({
         id: Number(c.id),
@@ -209,7 +210,7 @@ export default function TaskComments({ taskId }: { taskId: number }) {
         headers: tokenHeader,
       });
 
-      const saved = res.data ?? {};
+      const saved = unwrap(res) ?? {};
       setComments((prev) =>
         prev.map((c) =>
           c.id === tempId
@@ -291,7 +292,7 @@ export default function TaskComments({ taskId }: { taskId: number }) {
         { message: msg },
         { headers: tokenHeader }
       );
-      const saved = res.data ?? {};
+      const saved = unwrap(res) ?? {};
       setComments((prev) =>
         prev.map((x) =>
           x.id === c.id

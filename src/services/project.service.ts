@@ -10,6 +10,10 @@ import {
 } from "@/types/project.type"
 
 import { RoleInProject } from "@/types/project-assignment.type"
+import {
+  extractArrayFromApi,
+  unwrapApiData,
+} from "@/utils/api-response.util"
 
 const API_BASE = import.meta.env.VITE_API_BASE
 
@@ -63,7 +67,7 @@ export const fetchProjects = async (): Promise<Project[]> => {
     headers: getAuthHeaders(),
   })
 
-  const data: any[] = Array.isArray(res.data) ? res.data : res.data?.data || []
+  const data: any[] = extractArrayFromApi<any>(res.data, ["projects"])
   return data.map(normalizeProject)
 }
 
@@ -78,7 +82,7 @@ export const getProjectOwners = async (): Promise<ProjectOwnerLite[]> => {
     headers: getAuthHeaders(),
   })
 
-  const raw: any[] = Array.isArray(res.data) ? res.data : res.data?.data ?? []
+  const raw: any[] = extractArrayFromApi(res.data, ["projectOwners"])
 
   return raw.map((d) => ({
     id: Number(d.id),
@@ -103,7 +107,7 @@ export const fetchProjectById = async (id: number): Promise<ProjectDetail> => {
   const res = await axios.get(`${API_BASE}/projects/${id}`, {
     headers: getAuthHeaders(),
   })
-  const d = res.data?.data ?? res.data
+  const d = unwrapApiData<any>(res.data)
 
   const base = normalizeProject(d)
 
