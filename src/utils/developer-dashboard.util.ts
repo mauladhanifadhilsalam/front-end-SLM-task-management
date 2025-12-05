@@ -19,7 +19,6 @@ export const calculatePerformanceRating = (dashboard: DeveloperDashboard): numbe
   const completedIssuesLast7Days = safeNumber(dashboard.completedIssuesLast7Days)
   const totalAssignedIssues = safeNumber(dashboard.totalAssignedIssues)
   const issuesInProgress = safeNumber(dashboard.issuesInProgress)
-  const criticalIssues = safeNumber(dashboard.criticalIssues)
   const commentsWrittenLast7Days = safeNumber(dashboard.commentsWrittenLast7Days)
 
   // Task Completion Rate (50 points)
@@ -37,22 +36,18 @@ export const calculatePerformanceRating = (dashboard: DeveloperDashboard): numbe
     score += Math.min(10, recentProductivity * 2)
   }
 
-  // Issue Resolution (5 points)
+  // Issue Resolution (5 points) → pakai status, bukan priority
   if (totalAssignedIssues > 0) {
-    const issueCompletionRate =
-      ((totalAssignedIssues - issuesInProgress - criticalIssues) /
-        totalAssignedIssues) *
-      5
+    const resolvedIssues = totalAssignedIssues - issuesInProgress
+    const issueCompletionRate = (resolvedIssues / totalAssignedIssues) * 5
     score += issueCompletionRate
   } else {
     score += 5
   }
 
-  // Engagement (5 points)
+  // Engagement (5 points) → linear tanpa baseline
   if (commentsWrittenLast7Days > 0) {
     score += Math.min(5, commentsWrittenLast7Days * 0.5)
-  } else {
-    score += 2.5
   }
 
   return Math.round(Math.min(100, score))
