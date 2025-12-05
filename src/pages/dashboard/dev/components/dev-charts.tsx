@@ -28,6 +28,7 @@ export function DevCharts({ dashboard }: Props) {
   const totalAssignedTasks = safeNumber(dashboard.totalAssignedTasks)
   const tasksInProgress = safeNumber(dashboard.tasksInProgress)
   const overdueTasks = safeNumber(dashboard.overdueTasks)
+  const taskCompletionPercentage = safeNumber(dashboard.taskCompletionPercentage)
 
   const totalAssignedIssues = safeNumber(dashboard.totalAssignedIssues)
   const issuesInProgress = safeNumber(dashboard.issuesInProgress)
@@ -40,7 +41,13 @@ export function DevCharts({ dashboard }: Props) {
     { name: "Overdue", value: overdueTasks },
     {
       name: "Completed",
-      value: Math.max(0, totalAssignedTasks - tasksInProgress - overdueTasks),
+      value: Math.max(
+        0,
+        Math.min(
+          totalAssignedTasks,
+          Math.round((totalAssignedTasks * taskCompletionPercentage) / 100),
+        ),
+      ),
     },
   ]
 
