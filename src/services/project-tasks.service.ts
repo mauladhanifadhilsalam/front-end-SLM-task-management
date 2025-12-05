@@ -1,7 +1,9 @@
 import axios from "axios";
 import { Ticket, ProjectInfo } from "../types/project-tasks.types";
 
-const API_BASE_URL = "http://localhost:3000";
+const API_BASE_URL =
+  (import.meta?.env?.VITE_API_BASE as string | undefined)?.replace(/\/$/, "") ||
+  "http://localhost:3000";
 
 export const projectTasksService = {
   async getProjectInfo(projectId: number, token: string): Promise<ProjectInfo> {

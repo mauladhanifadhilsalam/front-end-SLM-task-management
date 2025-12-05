@@ -32,7 +32,7 @@ export const ProjectHeader = ({
 
   return (
     <div className="flex-shrink-0 px-4 md:px-6 pt-4 md:pt-6 pb-3 md:pb-4 space-y-4 border-b border-border bg-background">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <Button
           variant="ghost"
           size="sm"
@@ -41,16 +41,16 @@ export const ProjectHeader = ({
         >
           <ArrowLeft className="h-4 w-4" /> Kembali
         </Button>
-
       </div>
-        <div className="flex justify-center">
-          <div>
-            <h1 className="text-2xl font-semibold text-foreground sm:text-3xl">
-              {projectName || "Task Project"}
-            </h1>
-          </div>
+
+      <div className="flex justify-center">
+        <div>
+          <h1 className="text-2xl font-semibold text-foreground sm:text-3xl">
+            {projectName || "Task Project"}
+          </h1>
         </div>
       </div>
+    </div>
   );
 };
 
