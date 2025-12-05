@@ -24,3 +24,30 @@ export type UserLite = {
     email: string
     role: string
 }
+
+export type UserProfile = {
+    id: number
+    fullName: string
+    email: string
+    role: Role
+    phone?: string | null
+    avatarUrl?: string | null
+    timezone?: string | null
+}
+
+export type ProfileUpdatePayload = Partial<{
+    fullName: string
+    email: string
+    phone?: string
+    avatarUrl?: string | null
+    timezone?: string | null
+}>
+
+export type ChangePasswordPayload = {
+    newPassword: string
+    confirmPassword: string
+}
+
+export type UserPreferences = {
+    theme?: "light" | "dark" | "system"
+}

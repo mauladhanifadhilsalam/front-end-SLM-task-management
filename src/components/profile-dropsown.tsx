@@ -102,6 +102,15 @@ export function ProfileDropdown() {
 
   const displayName = me?.fullName || me?.name || "User"
   const displayEmail = me?.email || "-"
+  const role = localStorage.getItem("role")
+  const profilePath =
+    role === "admin"
+      ? "/admin/dashboard/settings/profile"
+      : role === "project_manager"
+        ? "/project-manager/dashboard/settings/profile"
+        : role === "developer"
+          ? "/developer/dashboard/settings/profile"
+          : "/settings/profile"
 
   return (
     <>
@@ -135,16 +144,9 @@ export function ProfileDropdown() {
 
           <DropdownMenuGroup>
             <DropdownMenuItem asChild>
-              <Link to="/settings/profile" className="flex items-center gap-2">
+              <Link to={profilePath} className="flex items-center gap-2">
                 <IconUser className="h-4 w-4" />
                 Profile
-              </Link>
-            </DropdownMenuItem>
-
-            <DropdownMenuItem asChild>
-              <Link to="/settings" className="flex items-center gap-2">
-                <IconSettings className="h-4 w-4" />
-                Settings
               </Link>
             </DropdownMenuItem>
           </DropdownMenuGroup>

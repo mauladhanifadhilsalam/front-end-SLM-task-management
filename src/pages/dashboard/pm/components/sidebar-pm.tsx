@@ -60,7 +60,7 @@ const data = {
   navSecondary: [
     {
       title: "Settings",
-      url: "/project-manager/profile-settings",
+      url: "/project-manager/dashboard/settings/profile",
       icon: IconSettings,
     },
   ],
