@@ -3,7 +3,7 @@ import type { ProjectInfo } from "@/types/project-tasks.types";
 import { TaskDetail } from "../types/task-detail.types";
 import { unwrapApiData } from "@/utils/api-response.util";
 
-const API_BASE_URL = "http://localhost:3000";
+const API_BASE_URL = import.meta.env.VITE_API_BASE;
 
 export const taskDetailService = {
   async getProjectInfo(

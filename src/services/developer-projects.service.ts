@@ -2,7 +2,7 @@ import axios from "axios";
 import { ProjectResponse } from "@/types/developer-projects.types";
 import { extractArrayFromApi } from "@/utils/api-response.util";
 
-const API_BASE_URL = "http://localhost:3000";
+const API_BASE_URL = import.meta.env.VITE_API_BASE;
 
 export const developerProjectService = {
   /**
