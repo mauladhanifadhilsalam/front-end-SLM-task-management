@@ -1,5 +1,9 @@
 import axios from "axios";
 import { Ticket, ProjectInfo } from "../types/project-tasks.types";
+import {
+  extractArrayFromApi,
+  unwrapApiData,
+} from "@/utils/api-response.util";
 
 const API_BASE_URL = "http://localhost:3000";
 
@@ -11,14 +15,14 @@ export const projectTasksService = {
         headers: { Authorization: `Bearer ${token}` },
       }
     );
-    return response.data;
+    return unwrapApiData<ProjectInfo>(response.data);
   },
 
   async getTickets(token: string): Promise<Ticket[]> {
     const response = await axios.get(`${API_BASE_URL}/tickets`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    return response.data;
+    return extractArrayFromApi<Ticket>(response.data, ["tickets"]);
   },
 
   async updateTicketStatus(

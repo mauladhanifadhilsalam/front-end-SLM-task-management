@@ -38,6 +38,8 @@ export default function NotificationPage() {
         return token ? { Authorization: `Bearer ${token}` } : undefined
     }, [])
 
+    const unwrap = (res: any) => res?.data?.data ?? res?.data ?? []
+
     const fetchNotifications = React.useCallback(async () => {
         setLoading(true)
         setError(null)
@@ -45,7 +47,7 @@ export default function NotificationPage() {
         const res = await axios.get(`${API_BASE}/notifications`, {
             headers: tokenHeader,
         })
-        const arr = normalizeArray(res.data)
+        const arr = normalizeArray(unwrap(res))
         const list: Notification[] = arr.map((n: any) => ({
             id: n.id,
             recipientId: n.recipientId,
@@ -116,7 +118,7 @@ export default function NotificationPage() {
             headers: tokenHeader,
             })
 
-            const data = res?.data?.data ?? res?.data ?? {}
+            const data = unwrap(res)
 
             ticketType =
             ticketType ??

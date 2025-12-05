@@ -1,6 +1,10 @@
 import axios from "axios"
 import { Role, User, CreateUserPayload, UserLite } from "@/types/user.types"
 import type { EditTicketAssigneeUser } from "@/types/ticket-assignee.type"
+import {
+    extractArrayFromApi,
+    unwrapApiData,
+} from "@/utils/api-response.util"
 
 const API_BASE = import.meta.env.VITE_API_BASE
 
@@ -25,7 +29,7 @@ export const fetchUsers = async (): Promise<User[]> => {
         headers: getAuthHeaders(),
 })
 
-    const raw: any[] = Array.isArray(res.data) ? res.data : res.data?.data || []
+    const raw: any[] = extractArrayFromApi(res.data, ["users"])
     const normalized = normalizeUsers(raw)
     return normalized.slice().sort((a, b) => a.id - b.id)
 }
@@ -40,14 +44,14 @@ export const createUser = async (payload: CreateUserPayload): Promise<User> => {
     const res = await axios.post(`${API_BASE}/users`, payload, {
         headers: getAuthHeaders(),
     })
-    return res.data as User
+    return unwrapApiData<User>(res.data)
 }
 
 export const getUserById = async (id: string | number): Promise<any> => {
     const res = await axios.get(`${API_BASE}/users/${id}`, {
         headers: getAuthHeaders(),
     })
-    return res.data?.data ?? res.data
+    return unwrapApiData(res.data)
 }
 
 export const updateUser = async (
@@ -64,7 +68,7 @@ export const fetchAssignableUsers = async (): Promise<UserLite[]> => {
     headers: getAuthHeaders(),
   })
 
-  const raw: any[] = Array.isArray(res.data) ? res.data : res.data?.data ?? []
+  const raw: any[] = extractArrayFromApi(res.data, ["users"])
 
   return raw
     .map((u) => ({
@@ -85,5 +89,5 @@ export async function fetchUsersTicketAssignees(): Promise<EditTicketAssigneeUse
     headers: getAuthHeaders(),
   })
 
-  return res.data ?? []
+  return extractArrayFromApi<EditTicketAssigneeUser>(res.data, ["users"])
 }

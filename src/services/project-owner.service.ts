@@ -1,10 +1,16 @@
 import axios from "axios";
-import { ProjectOwner, CreateProjectOwnerPayload, UpdateProjectOwnerPayload } from "@/types/project-owner.type";
+import {
+  ProjectOwner,
+  CreateProjectOwnerPayload,
+  UpdateProjectOwnerPayload,
+} from "@/types/project-owner.type";
 import { array } from "zod";
-
+import {
+  extractArrayFromApi,
+  unwrapApiData,
+} from "@/utils/api-response.util";
 
 const API_BASE = import.meta.env.VITE_API_BASE
-
 
 const getAuthHeaders = () =>{
     const token = localStorage.getItem('token')
@@ -32,7 +38,7 @@ export const fetchProjectOwners = async (): Promise<ProjectOwner[]> => {
     headers: getAuthHeaders(),
   })
 
-  const raw: any[] = Array.isArray(res.data) ? res.data : res.data?.data ?? []
+  const raw: any[] = extractArrayFromApi(res.data, ["projectOwners"])
   return normalizeProjectOwners(raw)
 }
 
@@ -51,7 +57,7 @@ export const createProjectOwner = async (
       ...getAuthHeaders(),
     },
   })
-  return res.data
+  return unwrapApiData<ProjectOwner | void>(res.data)
 }
 
 export const getProjectOwnerById = async (
@@ -60,7 +66,7 @@ export const getProjectOwnerById = async (
   const res = await axios.get(`${API_BASE}/project-owners/${id}`, {
     headers: getAuthHeaders(),
   })
-  const d: any = res.data?.data ?? res.data
+  const d: any = unwrapApiData(res.data)
   return {
     id: Number(d.id),
     name: d?.name ?? "",

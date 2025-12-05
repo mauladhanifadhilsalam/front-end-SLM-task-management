@@ -31,7 +31,8 @@ export function useUnread() {
           headers: { Authorization: `Bearer ${token}` },
         })
 
-        const value = res.data?.unreadNotificationsCount || 0
+        const payload = res?.data?.data ?? res?.data ?? {}
+        const value = payload?.unreadNotificationsCount || 0
 
         if (mounted) setUnread(value)
       } catch (err) {

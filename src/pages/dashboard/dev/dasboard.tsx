@@ -54,7 +54,8 @@ export default function DeveloperDashboard() {
           },
         });
 
-        setDashboard(res.data);
+        const payload = res?.data?.data ?? res?.data ?? null;
+        setDashboard(payload);
       } catch (err) {
         console.error("Error fetching dashboard:", err);
       } finally {

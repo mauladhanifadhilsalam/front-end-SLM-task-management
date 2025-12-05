@@ -1,5 +1,6 @@
 import axios from "axios"
 import type { Attachment } from "@/types/file-attachment.type"
+import { extractArrayFromApi } from "@/utils/api-response.util"
 
 const API_BASE = import.meta.env.VITE_API_BASE
 
@@ -54,18 +55,18 @@ const normalizeAttachment = (a: AttachmentApi): Attachment => {
 }
 
 export const fetchFileAttachments = async (): Promise<Attachment[]> => {
-  const token = localStorage.getItem("token")
   const res = await axios.get<AttachmentApi[]>(`${API_BASE}/attachments`, {
-    headers: getAuthHeaders()
+    headers: getAuthHeaders(),
   })
 
-  return res.data.map(normalizeAttachment)
+  return extractArrayFromApi<AttachmentApi>(res.data, [
+    "attachments",
+  ]).map(normalizeAttachment)
 }
 
 export const deleteFileAttachmentById = async (id: number): Promise<void> => {
-  const token = localStorage.getItem("token")
   await axios.delete(`${API_BASE}/attachments/${id}`, {
-    headers: getAuthHeaders()
+    headers: getAuthHeaders(),
   })
 }
 
@@ -87,7 +88,9 @@ export const fetchAttachmentTicketOptions =
       headers: getAuthHeaders(),
     })
 
-    const tickets = res.data || []
+    const tickets = extractArrayFromApi<TicketApi>(res.data, [
+      "tickets",
+    ])
     return tickets.map((t) => {
       const title = t.title || t.subject || t.code || `Ticket #${t.id}`
       return { value: String(t.id), label: `${title} (#${t.id})` }

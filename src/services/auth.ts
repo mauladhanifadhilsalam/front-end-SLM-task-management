@@ -1,4 +1,5 @@
 import { api } from "@/lib/api"
+import { unwrapApiData } from "@/utils/api-response.util"
 
 export type RoleApi = "admin" | "project_manager" | "developer"
 
@@ -17,7 +18,8 @@ const toRole = (r: unknown): RoleApi | undefined => {
 }
 
 export async function login(email: string, password: string) {
-    const { data } = await api.post<AnyLoginResponse>("/auth/login", { email, password })
+    const res = await api.post<AnyLoginResponse>("/auth/login", { email, password })
+    const data = unwrapApiData<AnyLoginResponse>(res.data)
 
     const accessToken = (data as any)?.accessToken ?? (data as any)?.token
     if (!accessToken) throw new Error("Token tidak ditemukan di respons login.")

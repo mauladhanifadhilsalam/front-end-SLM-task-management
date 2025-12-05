@@ -124,7 +124,8 @@ export default function TicketAttachments({ ticketId }: { ticketId: number }) {
           }
         );
 
-        const data = res.data || [];
+        const payload = (res?.data as any)?.data ?? res?.data ?? [];
+        const data: AttachmentApi[] = Array.isArray(payload) ? payload : [];
 
         const mapped: Attachment[] = data.map((a) => {
           let fileUrl: string | undefined = a.filePath;

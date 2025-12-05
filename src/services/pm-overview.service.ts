@@ -3,6 +3,7 @@ import type {
   PmDeveloperHighlight,
   PmOverview,
 } from "@/types/pm-overview.type"
+import { unwrapApiData } from "@/utils/api-response.util"
 
 const API_BASE = import.meta.env.VITE_API_BASE
 
@@ -15,7 +16,7 @@ export async function getPmOverview(): Promise<PmOverview> {
     },
   })
 
-  return res.data as PmOverview
+  return unwrapApiData<PmOverview>(res.data)
 }
 
 export async function getPmDeveloperHighlights(): Promise<
@@ -32,5 +33,5 @@ export async function getPmDeveloperHighlights(): Promise<
     },
   )
 
-  return res.data as PmDeveloperHighlight[]
+  return unwrapApiData<PmDeveloperHighlight[]>(res.data)
 }

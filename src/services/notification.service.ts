@@ -1,5 +1,9 @@
 import axios from "axios"
 import type { Notification } from "@/types/notification.type"
+import {
+  extractArrayFromApi,
+  unwrapApiData,
+} from "@/utils/api-response.util"
 
 const API_BASE = import.meta.env.VITE_API_BASE
 
@@ -14,9 +18,9 @@ export const fetchNotifications = async (): Promise<Notification[]> => {
     headers: getAuthHeaders(),
   })
 
-  const data = Array.isArray(res.data)
-    ? res.data
-    : ((res.data as any)?.data as Notification[]) || []
+  const data = extractArrayFromApi<Notification>(res.data, [
+    "notifications",
+  ])
 
   return data
 }
@@ -38,7 +42,7 @@ export const resendNotificationEmail = async (
     },
   )
 
-  return res.data
+  return unwrapApiData<Notification>(res.data)
 }
 
 export const fetchNotificationById = async (id: number): Promise<Notification> => {
@@ -46,6 +50,5 @@ export const fetchNotificationById = async (id: number): Promise<Notification> =
     headers: getAuthHeaders(),
   })
 
-  const data = res.data ?? (res as any).data
-  return data
+  return unwrapApiData<Notification>(res.data)
 }

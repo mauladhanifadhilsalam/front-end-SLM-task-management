@@ -1,7 +1,15 @@
 import axios from "axios"
 import { ProjectPhaseForm } from "@/types/project.type"
-import { Phase, CreateProjectPhasePayload, EditProjectPhasePayload} from "@/types/project-phases.type"
+import {
+  Phase,
+  CreateProjectPhasePayload,
+  EditProjectPhasePayload,
+} from "@/types/project-phases.type"
 import { getAuthHeaders } from "@/utils/auth-header.util";
+import {
+  extractArrayFromApi,
+  unwrapApiData,
+} from "@/utils/api-response.util"
 const API_BASE = import.meta.env.VITE_API_BASE
 
 
@@ -86,8 +94,7 @@ export const fetchProjectPhases = async (): Promise<Phase[]> => {
     headers: getAuthHeaders(),
   });
 
-  const data = Array.isArray(res.data) ? res.data : res.data?.data ?? [];
-  return data;
+  return extractArrayFromApi<Phase>(res.data, ["phases"]);
 };
 
 export const createProjectPhase = async (
@@ -118,6 +125,5 @@ export const fetchProjectPhaseById = async (id: number): Promise<Phase> => {
     headers: getAuthHeaders(),
   });
 
-  const data = res.data?.data ?? res.data;
-  return data as Phase;
+  return unwrapApiData<Phase>(res.data);
 };

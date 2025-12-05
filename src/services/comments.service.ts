@@ -1,26 +1,23 @@
 import axios from "axios"
-import type { AdminComment, CreateCommentPayload, EditCommentPayload } from "@/types/comment.type"
+import type {
+  AdminComment,
+  CreateCommentPayload,
+  EditCommentPayload,
+} from "@/types/comment.type"
 import { getAuthHeaders } from "@/utils/auth-header.util"
+import {
+  extractArrayFromApi,
+  unwrapApiData,
+} from "@/utils/api-response.util"
 const API_BASE = import.meta.env.VITE_API_BASE as string
 
-
-const normalizeToArray = (raw: any): any[] => {
-  if (Array.isArray(raw)) return raw
-  if (Array.isArray(raw?.data)) return raw.data
-  if (Array.isArray(raw?.items)) return raw.items
-  if (Array.isArray(raw?.comments)) return raw.comments
-  if (Array.isArray(raw?.data?.items)) return raw.data.items
-  if (Array.isArray(raw?.data?.comments)) return raw.data.comments
-  if (raw && typeof raw === "object") return [raw]
-  return []
-}
 
 export const fetchComments = async (): Promise<AdminComment[]> => {
   const res = await axios.get(`${API_BASE}/comments`, {
     headers: getAuthHeaders(),
   })
 
-  const candidate = normalizeToArray(res?.data)
+  const candidate = extractArrayFromApi(res.data, ["comments"])
 
   const list: AdminComment[] = candidate.map((c: any): AdminComment => ({
     id: Number(c.id),
@@ -111,8 +108,8 @@ export const fetchCommentById = async (id: number): Promise<AdminComment> => {
   const res = await axios.get(`${API_BASE}/comments/${id}`, {
     headers: getAuthHeaders(),
   })
-  const data = res?.data?.data ?? res?.data ?? {}
-  return mapRawComment(data)
+  const data = unwrapApiData(res.data)
+  return mapRawComment(data ?? {})
 }
 
 export const updateComment = async (
