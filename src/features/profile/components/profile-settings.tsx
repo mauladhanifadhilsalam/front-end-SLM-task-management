@@ -52,6 +52,7 @@ export function ProfileSettings() {
     errorMessage,
     theme,
     handlePasswordChange,
+    handlePasswordBlur,
     submitPassword,
     applyThemePreference,
   } = useProfileSettings()
@@ -189,8 +190,13 @@ export function ProfileSettings() {
                           onChange={(e) =>
                             handlePasswordChange("newPassword", e.target.value)
                           }
+                          onBlur={() => handlePasswordBlur("newPassword")}
                           disabled={changingPassword}
                           aria-invalid={!!passwordErrors.newPassword}
+                          className={cn(
+                            passwordErrors.newPassword &&
+                              "border-destructive focus-visible:ring-destructive/40",
+                          )}
                         />
                         <button
                           type="button"
@@ -204,6 +210,11 @@ export function ProfileSettings() {
                           )}
                         </button>
                       </div>
+                      {passwordErrors.newPassword && (
+                        <p className="text-xs text-destructive">
+                          {passwordErrors.newPassword}
+                        </p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
@@ -218,8 +229,13 @@ export function ProfileSettings() {
                           onChange={(e) =>
                             handlePasswordChange("confirmPassword", e.target.value)
                           }
+                          onBlur={() => handlePasswordBlur("confirmPassword")}
                           disabled={changingPassword}
                           aria-invalid={!!passwordErrors.confirmPassword}
+                          className={cn(
+                            passwordErrors.confirmPassword &&
+                              "border-destructive focus-visible:ring-destructive/40",
+                          )}
                         />
                         <button
                           type="button"
@@ -235,6 +251,11 @@ export function ProfileSettings() {
                           )}
                         </button>
                       </div>
+                      {passwordErrors.confirmPassword && (
+                        <p className="text-xs text-destructive">
+                          {passwordErrors.confirmPassword}
+                        </p>
+                      )}
                     </div>
 
                     <div className="flex items-center justify-end gap-2 pt-2">

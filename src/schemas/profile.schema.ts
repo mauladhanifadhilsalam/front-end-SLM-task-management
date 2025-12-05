@@ -10,28 +10,7 @@ const passwordRule = z
     message: "Harus mengandung karakter spesial.",
   })
 
-const emptyToUndefined = z
-  .string()
-  .trim()
-  .transform((val) => (val.length === 0 ? undefined : val))
-
-export const profileSchema = z.object({
-  fullName: z
-    .string()
-    .trim()
-    .min(1, { message: "Nama lengkap wajib diisi." })
-    .min(3, { message: "Nama minimal 3 karakter." }),
-  email: z
-    .string()
-    .trim()
-    .min(1, { message: "Email wajib diisi." })
-    .email({ message: "Format email tidak valid." }),
-  phone: emptyToUndefined.optional(),
-  avatarUrl: emptyToUndefined
-    .optional()
-    .pipe(z.string().url({ message: "Link avatar tidak valid." }).optional()),
-  timezone: emptyToUndefined.optional(),
-})
+export const profileSchema = z.object({})
 
 export type ProfileFormValues = z.infer<typeof profileSchema>
 export type ProfileField = keyof ProfileFormValues
@@ -55,11 +34,5 @@ export const themePreferenceSchema = z.object({
 export type ThemePreferenceValues = z.infer<typeof themePreferenceSchema>
 
 export function toProfileUpdatePayload(values: ProfileFormValues) {
-  return {
-    fullName: values.fullName.trim(),
-    email: values.email.trim(),
-    phone: values.phone?.trim(),
-    avatarUrl: values.avatarUrl?.trim(),
-    timezone: values.timezone?.trim(),
-  }
+  return {}
 }

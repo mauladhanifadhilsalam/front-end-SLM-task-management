@@ -118,9 +118,16 @@ export function useProfileSettings() {
   const handlePasswordChange = React.useCallback(
     (field: ChangePasswordField, value: string) => {
       setPasswordForm((prev) => ({ ...prev, [field]: value }))
-      if (passwordErrors[field]) validatePasswordField(field, value)
+      validatePasswordField(field, value)
     },
-    [passwordErrors, validatePasswordField],
+    [validatePasswordField],
+  )
+
+  const handlePasswordBlur = React.useCallback(
+    (field: ChangePasswordField) => {
+      validatePasswordField(field, passwordForm[field] ?? "")
+    },
+    [passwordForm, validatePasswordField],
   )
 
   const submitProfile = React.useCallback(
@@ -232,6 +239,7 @@ export function useProfileSettings() {
     loadProfile,
     handleProfileChange,
     handlePasswordChange,
+    handlePasswordBlur,
     submitProfile,
     submitPassword,
     applyThemePreference,
