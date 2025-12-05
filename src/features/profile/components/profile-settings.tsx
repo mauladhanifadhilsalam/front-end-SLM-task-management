@@ -3,7 +3,6 @@
 import * as React from "react"
 import {
   IconKey,
-  IconRefresh,
   IconEye,
   IconEyeOff,
   IconUser,
@@ -49,11 +48,9 @@ export function ProfileSettings() {
     profileErrors,
     passwordForm,
     passwordErrors,
-    loadingProfile,
     changingPassword,
     errorMessage,
     theme,
-    loadProfile,
     handlePasswordChange,
     submitPassword,
     applyThemePreference,
@@ -85,16 +82,6 @@ export function ProfileSettings() {
             Kelola profil akun dan keamanan password kamu.
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => loadProfile()}
-          disabled={loadingProfile}
-          className="gap-2"
-        >
-          <IconRefresh className="h-4 w-4" />
-          Refresh
-        </Button>
       </div>
 
       {errorMessage && (
