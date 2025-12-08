@@ -132,16 +132,20 @@ export const CreateProjectPhaseForm: React.FC<Props> = ({
               onValueChange={(value) => onChange("projectId", value)}
               disabled={saving || loadingProjects}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue
                   placeholder={
                     loadingProjects ? "Loading projects..." : "Select a project"
                   }
                 />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="min-w-[260px] max-h-64 overflow-auto">
                 {projects.map((project) => (
-                  <SelectItem key={project.id} value={String(project.id)}>
+                  <SelectItem
+                    key={project.id}
+                    value={String(project.id)}
+                    className="whitespace-normal leading-snug"
+                  >
                     {project.name}
                   </SelectItem>
                 ))}
@@ -154,16 +158,17 @@ export const CreateProjectPhaseForm: React.FC<Props> = ({
             )}
           </div>
 
-          <div className="flex justify-end space-x-3">
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end sm:space-x-3 sm:gap-0">
             <Button
               type="button"
               variant="outline"
               onClick={onCancel}
               disabled={saving}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={saving}>
+            <Button type="submit" disabled={saving} className="w-full sm:w-auto">
               <IconCheck className="mr-2 h-4 w-4" />
               {saving ? "Creating..." : "Create Phase"}
             </Button>

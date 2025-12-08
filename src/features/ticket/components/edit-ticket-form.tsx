@@ -63,7 +63,7 @@ export function EditTicketForm({
     <div className="flex flex-1 flex-col">
       <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
         <div className="px-4 lg:px-6">
-          <div className="flex items-center gap-4 mb-4">
+          <div className="mb-4 flex items-center gap-4">
             <Button
               variant="ghost"
               size="sm"
@@ -90,14 +90,14 @@ export function EditTicketForm({
             </CardHeader>
             <CardContent>
               {error && (
-                <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-3 mb-4">
+                <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-600">
                   {error}
                 </div>
               )}
 
               <form onSubmit={onSubmit} className="space-y-6" noValidate>
                 {/* Project & Requester */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label>Project *</Label>
                     <Select
@@ -105,8 +105,9 @@ export function EditTicketForm({
                       onValueChange={(v) => onChange("projectId", v)}
                       disabled={saving || loading}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className=" w-full max-w-full items-start py-2">
                         <SelectValue
+                          className="whitespace-normal break-words text-left leading-snug"
                           placeholder={
                             loadingOptions
                               ? form.projectId
@@ -116,14 +117,18 @@ export function EditTicketForm({
                           }
                         />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="min-w-[320px] max-w-[90vw]  overflow-auto">
                         {loadingOptions ? (
                           <div className="p-2 text-xs text-muted-foreground">
                             Loading projects…
                           </div>
                         ) : (
                           projects.map((p) => (
-                            <SelectItem key={p.id} value={String(p.id)}>
+                            <SelectItem
+                              key={p.id}
+                              value={String(p.id)}
+                              className="whitespace-normal leading-snug text-left"
+                            >
                               {p.name} (#{p.id})
                             </SelectItem>
                           ))
@@ -131,23 +136,22 @@ export function EditTicketForm({
                       </SelectContent>
                     </Select>
                     {fieldErrors.projectId && (
-                      <p className="text-xs text-red-600 mt-1">
+                      <p className="mt-1 text-xs text-red-600">
                         {fieldErrors.projectId}
                       </p>
                     )}
                   </div>
 
                   <div className="space-y-2">
-                    <Label>
-                      Requester *
-                    </Label>
+                    <Label>Requester *</Label>
                     <Select
                       value={form.requesterId}
                       onValueChange={(v) => onChange("requesterId", v)}
                       disabled={saving || loading || isPm}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full max-w-full items-start py-2">
                         <SelectValue
+                          className="whitespace-normal break-words text-left leading-snug"
                           placeholder={
                             loadingOptions
                               ? form.requesterId
@@ -157,14 +161,18 @@ export function EditTicketForm({
                           }
                         />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="min-w-[320px] max-w-[90vw] max-h-64 overflow-auto">
                         {loadingOptions ? (
                           <div className="p-2 text-xs text-muted-foreground">
                             Loading requesters…
                           </div>
                         ) : (
                           requesters.map((r) => (
-                            <SelectItem key={r.id} value={String(r.id)}>
+                            <SelectItem
+                              key={r.id}
+                              value={String(r.id)}
+                              className="whitespace-normal leading-snug text-left"
+                            >
                               {r.name} (#{r.id})
                             </SelectItem>
                           ))
@@ -172,7 +180,7 @@ export function EditTicketForm({
                       </SelectContent>
                     </Select>
                     {fieldErrors.requesterId && (
-                      <p className="text-xs text-red-600 mt-1">
+                      <p className="mt-1 text-xs text-red-600">
                         {fieldErrors.requesterId}
                       </p>
                     )}
@@ -180,11 +188,9 @@ export function EditTicketForm({
                 </div>
 
                 {/* Type / Priority / Status */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                   <div className="space-y-2">
-                    <Label>
-                      Type *
-                    </Label>
+                    <Label>Type *</Label>
                     <Select
                       value={form.type}
                       onValueChange={(v) => onChange("type", v)}
@@ -202,7 +208,7 @@ export function EditTicketForm({
                       </SelectContent>
                     </Select>
                     {fieldErrors.type && (
-                      <p className="text-xs text-red-600 mt-1">
+                      <p className="mt-1 text-xs text-red-600">
                         {fieldErrors.type}
                       </p>
                     )}
@@ -219,17 +225,17 @@ export function EditTicketForm({
                         <SelectValue placeholder="Select priority" />
                       </SelectTrigger>
                       <SelectContent>
-                        {(
-                          ["LOW", "MEDIUM", "HIGH", "CRITICAL"] as const
-                        ).map((p) => (
-                          <SelectItem key={p} value={p}>
-                            {p}
-                          </SelectItem>
-                        ))}
+                        {(["LOW", "MEDIUM", "HIGH", "CRITICAL"] as const).map(
+                          (p) => (
+                            <SelectItem key={p} value={p}>
+                              {p}
+                            </SelectItem>
+                          ),
+                        )}
                       </SelectContent>
                     </Select>
                     {fieldErrors.priority && (
-                      <p className="text-xs text-red-600 mt-1">
+                      <p className="mt-1 text-xs text-red-600">
                         {fieldErrors.priority}
                       </p>
                     )}
@@ -264,7 +270,7 @@ export function EditTicketForm({
                       </SelectContent>
                     </Select>
                     {fieldErrors.status && (
-                      <p className="text-xs text-red-600 mt-1">
+                      <p className="mt-1 text-xs text-red-600">
                         {fieldErrors.status}
                       </p>
                     )}
@@ -284,7 +290,7 @@ export function EditTicketForm({
                     required
                   />
                   {fieldErrors.title && (
-                    <p className="text-xs text-red-600 mt-1">
+                    <p className="mt-1 text-xs text-red-600">
                       {fieldErrors.title}
                     </p>
                   )}
@@ -302,7 +308,7 @@ export function EditTicketForm({
                 />
 
                 {/* Dates */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="startDate">Start Date *</Label>
                     <Input
@@ -315,7 +321,7 @@ export function EditTicketForm({
                       required
                     />
                     {fieldErrors.startDate && (
-                      <p className="text-xs text-red-600 mt-1">
+                      <p className="mt-1 text-xs text-red-600">
                         {fieldErrors.startDate}
                       </p>
                     )}
@@ -333,7 +339,7 @@ export function EditTicketForm({
                       required
                     />
                     {fieldErrors.dueDate && (
-                      <p className="text-xs text-red-600 mt-1">
+                      <p className="mt-1 text-xs text-red-600">
                         {fieldErrors.dueDate}
                       </p>
                     )}

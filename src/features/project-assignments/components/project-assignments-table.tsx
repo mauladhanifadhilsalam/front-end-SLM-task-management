@@ -35,7 +35,6 @@ type Props = {
   onRequestDelete: (id: number) => void
 }
 
-
 export const ProjectAssignmentsTable: React.FC<Props> = ({
   assignments,
   filteredAssignments,
@@ -52,15 +51,17 @@ export const ProjectAssignmentsTable: React.FC<Props> = ({
 
   return (
     <div className="px-4 lg:px-6">
-      <div className="mb-4 flex items-center gap-3">
-        <Input
-          placeholder="Filter by project, assignee, role, or status..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-80"
-        />
+      <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+          <Input
+            placeholder="Filter by project, assignee, role, or status..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full sm:max-w-xs md:w-80"
+          />
+        </div>
 
-        <div className="ml-auto flex items-center gap-3">
+        <div className="flex w-full flex-wrap items-center gap-2 sm:justify-end md:ml-auto md:w-auto">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -119,7 +120,7 @@ export const ProjectAssignmentsTable: React.FC<Props> = ({
           <Button
             size="sm"
             onClick={onCreateClick}
-            className="cursor-pointer"
+            className="w-full cursor-pointer sm:w-auto"
           >
             <IconPlus className="mr-2 h-4 w-4" />
             Add Assignment
@@ -244,7 +245,7 @@ export const ProjectAssignmentsTable: React.FC<Props> = ({
                   <p className="text-sm text-muted-foreground">
                     Tidak ditemukan hasil untuk{" "}
                     <span className="font-medium text-foreground">
-                      “{search}”
+                      ƒ?o{search}ƒ??
                     </span>
                     .
                   </p>

@@ -326,7 +326,7 @@ export function ViewTicketAssigneeLayout({
                               ?.charAt(0)
                               ?.toUpperCase() || "?"}
                           </div>
-                          <div className="flex-1">
+                          <div className="min-w-0">
                             <div className="font-medium">
                               {assignee.user?.fullName ||
                                 assignee.user?.email ||
@@ -336,7 +336,6 @@ export function ViewTicketAssigneeLayout({
                               {assignee.user?.email || "-"}
                             </div>
                           </div>
-                          <Badge variant="outline">Assigned</Badge>
                         </div>
                       ))}
                     </div>

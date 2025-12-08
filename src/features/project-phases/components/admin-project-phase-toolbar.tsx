@@ -30,14 +30,16 @@ export const AdminProjectPhaseToolbar: React.FC<Props> = ({
   onCreateClick,
 }) => {
   return (
-    <div className="flex items-center gap-3 mb-4">
-      <Input
-        placeholder="Filter by phase or project name..."
-        value={query}
-        onChange={(e) => onQueryChange(e.target.value)}
-        className="w-80"
-      />
-      <div className="ml-auto">
+    <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+        <Input
+          placeholder="Filter by phase or project name..."
+          value={query}
+          onChange={(e) => onQueryChange(e.target.value)}
+          className="w-full sm:max-w-xs md:w-80"
+        />
+      </div>
+      <div className="flex w-full flex-wrap items-center gap-2 sm:justify-end md:ml-auto md:w-auto">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -104,7 +106,7 @@ export const AdminProjectPhaseToolbar: React.FC<Props> = ({
       <Button
         size="sm"
         onClick={onCreateClick}
-        className="cursor-pointer"
+        className="w-full cursor-pointer sm:w-auto"
       >
         <IconPlus className="mr-2 h-4 w-4" />
         Add Phase

@@ -79,29 +79,37 @@ export const CreateProjectAssignmentForm: React.FC<Props> = ({
               <form onSubmit={onSubmit} className="space-y-6" noValidate>
                 <div className="grid gap-6 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="projectId">Project *</Label>
-                    <Select
-                      value={form.projectId}
-                      onValueChange={(val) => onChange("projectId", val)}
+              <Label htmlFor="projectId">Project *</Label>
+              <Select
+                value={form.projectId}
+                onValueChange={(val) => onChange("projectId", val)}
+              >
+                <SelectTrigger
+                  id="projectId"
+                  className="w-80 max-w-full h-auto  items-start py-2"
+                >
+                  <SelectValue
+                    className="text-left whitespace-normal break-words leading-snug"
+                    placeholder={
+                      loadingProjects
+                        ? "Memuat project..."
+                        : "Pilih project"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent className="max-w-[90vw] overflow-auto">
+                  {projects.map((p) => (
+                    <SelectItem
+                      key={p.id}
+                      value={String(p.id)}
+                      className="whitespace-normal leading-snug text-left"
                     >
-                      <SelectTrigger id="projectId">
-                        <SelectValue
-                          placeholder={
-                            loadingProjects
-                              ? "Memuat project..."
-                              : "Pilih project"
-                          }
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {projects.map((p) => (
-                          <SelectItem key={p.id} value={String(p.id)}>
-                            {p.name} (ID: {p.id})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {errors.projectId && (
+                      {p.name} (ID: {p.id})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.projectId && (
                       <p className="mt-1 text-xs text-red-600">
                         {errors.projectId}
                       </p>
@@ -109,27 +117,35 @@ export const CreateProjectAssignmentForm: React.FC<Props> = ({
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="userId">User *</Label>
-                    <Select
-                      value={form.userId}
-                      onValueChange={(val) => onChange("userId", val)}
+              <Label htmlFor="userId">User *</Label>
+              <Select
+                value={form.userId}
+                onValueChange={(val) => onChange("userId", val)}
+              >
+                <SelectTrigger
+                  id="userId"
+                  className=""
+                >
+                  <SelectValue
+                    className="text-left whitespace-normal break-words leading-snug"
+                    placeholder={
+                      loadingUsers ? "Memuat user..." : "Pilih user"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent className="min-w-[320px] max-w-[90vw] max-h-64 overflow-auto">
+                  {users.map((u) => (
+                    <SelectItem
+                      key={u.id}
+                      value={String(u.id)}
+                      className="whitespace-normal leading-snug text-left"
                     >
-                      <SelectTrigger id="userId">
-                        <SelectValue
-                          placeholder={
-                            loadingUsers ? "Memuat user..." : "Pilih user"
-                          }
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {users.map((u) => (
-                          <SelectItem key={u.id} value={String(u.id)}>
-                            {u.fullName} (ID: {u.id})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {errors.userId && (
+                      {u.fullName} (ID: {u.id})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.userId && (
                       <p className="mt-1 text-xs text-red-600">
                         {errors.userId}
                       </p>
@@ -139,19 +155,19 @@ export const CreateProjectAssignmentForm: React.FC<Props> = ({
 
                 <div className="grid gap-6 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label>Role in Project *</Label>
-                    <Select
-                      value={form.roleInProject}
-                      onValueChange={(val) =>
-                        onRoleChange(val as RoleInProject)
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="FRONT_END">FRONT_END</SelectItem>
-                        <SelectItem value="BACK_END">BACK_END</SelectItem>
+              <Label>Role in Project *</Label>
+              <Select
+                value={form.roleInProject}
+                onValueChange={(val) =>
+                  onRoleChange(val as RoleInProject)
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Pilih role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="FRONT_END">FRONT_END</SelectItem>
+                  <SelectItem value="BACK_END">BACK_END</SelectItem>
                         <SelectItem value="TECH_LEAD">TECH_LEAD</SelectItem>
                         <SelectItem value="DEVOPS">DEVOPS</SelectItem>
                         <SelectItem value="CLOUD_ENGINEER">
@@ -162,29 +178,30 @@ export const CreateProjectAssignmentForm: React.FC<Props> = ({
                     {errors.roleInProject && (
                       <p className="mt-1 text-xs text-red-600">
                         {errors.roleInProject}
-                      </p>
-                    )}
-                  </div>
-                </div>
+                  </p>
+                )}
+              </div>
+            </div>
 
-                <div className="flex justify-end space-x-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled={saving}
-                    onClick={onBack}
-                  >
-                    Batal
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={saving}
-                    className="cursor-pointer"
-                  >
-                    <IconCheck className="mr-2 h-4 w-4" />
-                    {saving ? "Menyimpan..." : "Simpan Assignment"}
-                  </Button>
-                </div>
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end sm:space-x-3 sm:gap-0">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={saving}
+                onClick={onBack}
+                className="w-full sm:w-auto"
+              >
+                Batal
+              </Button>
+              <Button
+                type="submit"
+                disabled={saving}
+                className="w-full cursor-pointer sm:w-auto"
+              >
+                <IconCheck className="mr-2 h-4 w-4" />
+                {saving ? "Menyimpan..." : "Simpan Assignment"}
+              </Button>
+            </div>
               </form>
             </CardContent>
           </Card>

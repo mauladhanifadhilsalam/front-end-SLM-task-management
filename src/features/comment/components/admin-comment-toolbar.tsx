@@ -37,36 +37,40 @@ export const AdminCommentToolbar: React.FC<Props> = ({
   onClearSelection,
 }) => {
   return (
-    <div className="flex flex-col gap-3 mb-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+    <div className="mb-4 flex flex-col gap-3">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
           <Input
             placeholder="Filter by message, user, email, role, ticket title/project…"
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
-            className="w-[28rem]"
+            className="w-full sm:max-w-md md:w-[28rem]"
           />
-        </div>
-        <div className="flex items-center gap-2">
-          {selectedCount > 0 && (
+          <div className="flex flex-wrap items-center gap-2">
+            {selectedCount > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onClearSelection}
+                title="Clear selection"
+                className="w-full sm:w-auto"
+              >
+                Clear selection
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
-              onClick={onClearSelection}
-              title="Clear selection"
+              onClick={onRefresh}
+              className="cursor-pointer w-full sm:w-auto"
+              title="Refresh"
             >
-              Clear selection
+              <IconReload className="h-4 w-4" />
             </Button>
-          )}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onRefresh}
-            className="cursor-pointer"
-            title="Refresh"
-          >
-            <IconReload className="h-4 w-4" />
-          </Button>
+          </div>
+        </div>
+
+        <div className="flex w-full flex-wrap items-center gap-2 sm:justify-end md:w-auto">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button size="sm" className="flex items-center gap-2">
@@ -123,7 +127,7 @@ export const AdminCommentToolbar: React.FC<Props> = ({
           <Button
             size="sm"
             onClick={onCreate}
-            className="cursor-pointer"
+            className="w-full cursor-pointer sm:w-auto"
             title="Create a new comment"
           >
             <IconPlus className="mr-2 h-4 w-4" />
