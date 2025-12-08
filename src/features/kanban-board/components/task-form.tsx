@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+﻿import { useEffect, useMemo, useState } from "react"
 import { X, Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -59,7 +59,14 @@ function toDateTimeLocal(value?: string | null) {
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
 }
 
-export function TaskForm({
+type TaskFormBaseProps = TaskFormProps & {
+  heading: string
+  eyebrow: string
+}
+
+function TaskFormBase({
+  heading,
+  eyebrow,
   projectName,
   defaultStatus = "TO_DO",
   assignees = [],
@@ -67,12 +74,12 @@ export function TaskForm({
   submitting = false,
   errorMessage,
   assigneeError,
-  statusLocked = true,
+  statusLocked,
   initialValues,
-  submitLabel = "Buat Item Baru",
+  submitLabel,
   onCancel,
   onSubmit,
-}: TaskFormProps) {
+}: TaskFormBaseProps) {
   const initialState: TaskFormValues = {
     title: initialValues?.title ?? "",
     description: initialValues?.description ?? "",
@@ -135,8 +142,8 @@ export function TaskForm({
     <div className="rounded-2xl border border-border/70 bg-card shadow-sm max-h-[90vh] overflow-hidden flex flex-col">
       <div className="flex items-center justify-between gap-3 border-b border-border/70 px-5 py-4">
         <div className="space-y-1">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Form Task</p>
-          <h2 className="text-lg font-semibold text-foreground">Tambah Task Baru</h2>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">{eyebrow}</p>
+          <h2 className="text-lg font-semibold text-foreground">{heading}</h2>
           {projectName ? <p className="text-sm text-muted-foreground">Project: {projectName}</p> : null}
         </div>
         <Button variant="ghost" size="icon" onClick={onCancel} aria-label="Tutup form">
@@ -296,7 +303,7 @@ export function TaskForm({
                           <span className="text-sm font-medium">
                             {user.fullName || user.email || `User #${user.id}`}
                           </span>
-                          <span className="text-[11px] text-muted-foreground">{user.email || "�"}</span>
+                          <span className="text-[11px] text-muted-foreground">{user.email || "—"}</span>
                         </div>
                       </label>
                     )
@@ -309,5 +316,33 @@ export function TaskForm({
         </div>
       </form>
     </div>
+  )
+}
+
+export function TaskForm(props: TaskFormProps) {
+  const { submitLabel, statusLocked, ...rest } = props
+
+  return (
+    <TaskFormBase
+      {...rest}
+      submitLabel={submitLabel ?? "Buat Item Baru"}
+      statusLocked={statusLocked ?? true}
+      heading="Tambah Task Baru"
+      eyebrow="Form Task"
+    />
+  )
+}
+
+export function TaskEditForm(props: TaskFormProps) {
+  const { submitLabel, statusLocked, ...rest } = props
+
+  return (
+    <TaskFormBase
+      {...rest}
+      submitLabel={submitLabel ?? "Update Task"}
+      statusLocked={statusLocked ?? false}
+      heading="Edit Task"
+      eyebrow="Edit Kanban Task"
+    />
   )
 }

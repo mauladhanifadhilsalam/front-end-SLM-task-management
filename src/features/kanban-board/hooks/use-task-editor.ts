@@ -3,7 +3,7 @@ import { toast } from "sonner"
 
 import type { TaskFormValues } from "../components/task-form"
 import { updateTicket } from "@/services/ticket.service"
-import { createTicketAssignees } from "@/services/ticket-assignee.service"
+import { createTicketAssignees, deleteTicketAssignee } from "@/services/ticket-assignee.service"
 import { useProjectAssignees } from "./use-project-assignees"
 import type { Ticket } from "@/types/project-tasks.types"
 
@@ -45,11 +45,21 @@ export const useTaskEditor = (projectId?: string, refreshTickets?: () => Promise
           dueDate: new Date(values.dueDate).toISOString(),
         })
 
-        const selectedIds = (values.assigneeIds ?? []).map((id) => Number(id)).filter((n) => Number.isFinite(n))
-        const existingIds = (editingTicket.assignees ?? []).map((a) => a.user.id)
+        const selectedIds = Array.from(
+          new Set((values.assigneeIds ?? []).map((id) => Number(id)).filter((n) => Number.isFinite(n))),
+        )
+        const existingAssignments = editingTicket.assignees ?? []
+        const existingIds = existingAssignments.map((a) => a.user.id)
+        const selectedSet = new Set(selectedIds)
         const toAdd = selectedIds.filter((id) => !existingIds.includes(id))
+        const toRemove = existingAssignments.filter((assignee) => !selectedSet.has(assignee.user.id))
+
         if (toAdd.length > 0) {
           await createTicketAssignees(ticketId, toAdd)
+        }
+
+        if (toRemove.length > 0) {
+          await Promise.all(toRemove.map((assignee) => deleteTicketAssignee(assignee.id)))
         }
 
         await refreshTickets?.()
