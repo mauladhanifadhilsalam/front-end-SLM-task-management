@@ -87,7 +87,7 @@ export function ChartAreaInteractive({ data, loading = false }: Props) {
   const hasData = filteredData.length > 0
 
   return (
-    <Card className="@container/card">
+    <Card className="@container/card h-[450px]">
       <CardHeader>
         <CardTitle>Ticket by Status</CardTitle>
         <CardAction className="gap-2">

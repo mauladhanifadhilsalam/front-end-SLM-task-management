@@ -1,4 +1,4 @@
-import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react"
+import { IconTrendingUp } from "@tabler/icons-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -6,80 +6,53 @@ import {
   Card,
   CardAction,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
 
+type StatCard = {
+  title: string
+  value?: number | string
+  accent?: "blue" | "green" | "orange" | "purple"
+}
+
 type SectionCardsProps = {
-  totalProjects?: number
-  notStarted?: number
-  inProgress?: number
-  done?: number
-  totalTickets?: number
+  stats: StatCard[]
   loading?: boolean
 }
 
-export function SectionCards({
-  totalProjects = 0,
-  notStarted = 0,
-  inProgress = 0,
-  done = 0,
-  totalTickets,
-  loading = false,
-}: SectionCardsProps) {
-  const formatValue = (value: number) =>
-    loading ? <Skeleton className="h-7 w-10" /> : value
+const accentClass: Record<NonNullable<StatCard["accent"]>, string> = {
+  blue: "from-sky-500/10 dark:from-sky-500/20",
+  green: "from-emerald-500/10 dark:from-emerald-500/20",
+  orange: "from-amber-500/10 dark:from-amber-500/20",
+  purple: "from-violet-500/10 dark:from-violet-500/20",
+}
 
+export function SectionCards({ stats, loading = false }: SectionCardsProps) {
   return (
-    <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>Total Project</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl flex items-center gap-2">
-            {formatValue(totalProjects)}
-          </CardTitle>
-          {typeof totalTickets === "number" && (
+    <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 sm:grid-cols-2 xl:grid-cols-4">
+      {stats.map((item, idx) => (
+        <Card
+          key={`${item.title}-${idx}`}
+          className={`@container/card bg-gradient-to-br ${accentClass[item.accent ?? "blue"]} to-card shadow-sm border-border/70`}
+        >
+          <CardHeader className="flex flex-row items-start justify-between gap-3 pb-3">
+            <div className="space-y-1">
+              <CardDescription className="text-xs uppercase tracking-wide text-muted-foreground">
+                {item.title}
+              </CardDescription>
+              <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl flex items-center gap-2">
+                {loading ? <Skeleton className="h-7 w-12" /> : item.value ?? "-"}
+              </CardTitle>
+            </div>
             <CardAction>
-              <Badge variant="outline" className="text-xs">
-                {loading ? "Memuat tiket..." : `${totalTickets} tiket`}
+              <Badge variant="outline" className="text-[11px] px-2 py-1">
+                {idx + 1}
               </Badge>
             </CardAction>
-          )}
-        </CardHeader>
-        
-      </Card>
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>Not Started</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {formatValue(notStarted)}
-          </CardTitle>
-          <CardAction>
-          </CardAction>
-        </CardHeader>
-      </Card>
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>In Progress</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {formatValue(inProgress)}
-          </CardTitle>
-          <CardAction>
-          </CardAction>
-        </CardHeader>
-      </Card>
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>Done</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {formatValue(done)}
-          </CardTitle>
-          <CardAction>
-          </CardAction>
-        </CardHeader>
-      
-      </Card>
+          </CardHeader>
+        </Card>
+      ))}
     </div>
   )
 }

@@ -15,6 +15,8 @@ export type AdminDashboardMetrics = {
   ticketsByStatus: Record<string, number>
   openTickets: number
   closedTickets: number
+  ticketsByPriority: Record<string, number>
+  averageProjectCompletion: number
 }
 
 export type AdminChartPoint = {
@@ -27,6 +29,9 @@ export type AdminDashboardState = {
   metrics: AdminDashboardMetrics
   chartData: AdminChartPoint[]
   recentTickets: AdminTicket[]
+  ticketStatusChart: { status: string; count: number }[]
+  ticketPriorityChart: { priority: string; count: number }[]
+  projectStatusChart: { status: string; count: number }[]
 }
 
 type DashboardStatus =
@@ -100,22 +105,34 @@ const buildMetrics = (
     IN_PROGRESS: 0,
     DONE: 0,
   }
+  let totalCompletion = 0
 
   projects.forEach((project) => {
     const status = normalizeStatus(project.status)
     if (status in projectsByStatus) {
       projectsByStatus[status] += 1
     }
+    const completion = Number(project.completion ?? 0)
+    totalCompletion += Number.isFinite(completion) ? completion : 0
   })
 
   const ticketsByStatus: Record<string, number> = {}
+  const ticketsByPriority: Record<string, number> = {}
   let closedTickets = 0
 
   tickets.forEach((ticket) => {
     const status = normalizeStatus(ticket.status)
     ticketsByStatus[status] = (ticketsByStatus[status] ?? 0) + 1
     if (CLOSED_STATUSES.has(status)) closedTickets += 1
+
+    const priority = normalizeStatus(ticket.priority)
+    if (priority) {
+      ticketsByPriority[priority] = (ticketsByPriority[priority] ?? 0) + 1
+    }
   })
+
+  const averageProjectCompletion =
+    projects.length > 0 ? Math.round(totalCompletion / projects.length) : 0
 
   return {
     totalProjects: projects.length,
@@ -126,6 +143,8 @@ const buildMetrics = (
     ticketsByStatus,
     openTickets: Math.max(tickets.length - closedTickets, 0),
     closedTickets,
+    ticketsByPriority,
+    averageProjectCompletion,
   }
 }
 
@@ -169,6 +188,15 @@ export const useAdminDashboard = () => {
           metrics,
           chartData,
           recentTickets,
+          ticketStatusChart: Object.entries(metrics.ticketsByStatus).map(
+            ([status, count]) => ({ status, count }),
+          ),
+          ticketPriorityChart: Object.entries(metrics.ticketsByPriority).map(
+            ([priority, count]) => ({ priority, count }),
+          ),
+          projectStatusChart: Object.entries(metrics.projectsByStatus).map(
+            ([status, count]) => ({ status, count }),
+          ),
         })
         setStatus("success")
       } catch (err) {
