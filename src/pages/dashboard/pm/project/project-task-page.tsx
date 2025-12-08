@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useProjectTasks } from "@/features/DevProjectTask/hook/use-project-tasks"
 import { ProjectHeader } from "@/features/kanban-board/components/kanban-header"
-import { TaskForm } from "@/features/kanban-board/components/task-form"
+import { TaskEditForm, TaskForm } from "@/features/kanban-board/components/task-form"
 import { TaskViewSwitcher } from "@/features/kanban-board/components/task-view-switcher"
 import { useTaskCreation } from "@/features/kanban-board/hooks/use-task-creation"
 import { useTaskEditor } from "@/features/kanban-board/hooks/use-task-editor"
@@ -119,7 +119,7 @@ export default function ProjectTaskPage() {
                   : "animate-in zoom-in-95 slide-in-from-top-4"
               }`}
             >
-              <TaskForm
+              <TaskEditForm
                 projectName={projectName}
                 assignees={taskEditor.assignees}
                 loadingAssignees={taskEditor.loadingAssignees}
@@ -128,7 +128,6 @@ export default function ProjectTaskPage() {
                 assigneeError={taskEditor.assigneeError}
                 statusLocked={false}
                 initialValues={initialEditValues}
-                submitLabel="Update Task"
                 onCancel={taskEditor.close}
                 onSubmit={taskEditor.handleSubmit}
               />
