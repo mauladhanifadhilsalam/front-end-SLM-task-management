@@ -59,14 +59,14 @@ export const AdminFileAttachmentsGrid: React.FC<Props> = ({
 }) => {
   return (
     <div className="flex flex-1 flex-col">
-      <div className="px-4 lg:px-6 flex justify-between py-4">
-        <div>
+      <div className="px-4 lg:px-6 flex flex-col gap-3 py-4 md:flex-row md:items-center md:justify-between">
+        <div className="space-y-1">
           <h1 className="text-2xl font-semibold">File Attachments</h1>
           <p className="text-muted-foreground">
             Daftar file yang diunggah ke ticket.
           </p>
         </div>
-        <Button onClick={onCreateClick}>
+        <Button onClick={onCreateClick} className="w-full sm:w-auto">
           <IconPlus className="mr-2 h-4 w-4" />
           Add File Attachment
         </Button>

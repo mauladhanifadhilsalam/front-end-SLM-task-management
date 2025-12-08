@@ -126,8 +126,9 @@ export function CreateTicketForm({
                         onValueChange={(v) => onChange("projectId", v)}
                         disabled={saving || loadingOptions}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full max-w-full  items-start py-2">
                           <SelectValue
+                            className="text-left whitespace-normal break-words leading-snug"
                             placeholder={
                               loadingOptions
                                 ? "Loading projects..."
@@ -135,9 +136,13 @@ export function CreateTicketForm({
                             }
                           />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="min-w-[320px] max-w-[90vw] max-h-64 overflow-auto">
                           {projects.map((p) => (
-                            <SelectItem key={p.id} value={String(p.id)}>
+                            <SelectItem
+                              key={p.id}
+                              value={String(p.id)}
+                              className="whitespace-normal leading-snug text-left"
+                            >
                               {p.name} (#{p.id})
                             </SelectItem>
                           ))}
@@ -157,8 +162,9 @@ export function CreateTicketForm({
                         onValueChange={(v) => onChange("requesterId", v)}
                         disabled={saving || loadingOptions}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full max-w-full items-start py-2">
                           <SelectValue
+                            className="text-left whitespace-normal break-words leading-snug"
                             placeholder={
                               loadingOptions
                                 ? "Loading requesters..."
@@ -166,9 +172,13 @@ export function CreateTicketForm({
                             }
                           />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="min-w-[320px] max-w-[90vw] max-h-64 overflow-auto">
                           {requesters.map((r) => (
-                            <SelectItem key={r.id} value={String(r.id)}>
+                            <SelectItem
+                              key={r.id}
+                              value={String(r.id)}
+                              className="whitespace-normal leading-snug text-left"
+                            >
                               {r.name} (#{r.id})
                             </SelectItem>
                           ))}

@@ -39,21 +39,18 @@ export const TicketAssigneesToolbar: React.FC<Props> = ({
   onStatusChange,
   onToggleColumn,
 }) => {
-    const navigate =  useNavigate();
+  const navigate = useNavigate()
   return (
-    <div className="flex flex-wrap gap-3 items-center justify-between">
-      <div className="flex gap-3">
+    <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
         <Input
           placeholder="Cari ticket atau assignee..."
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-80"
+          className="w-full sm:max-w-xs md:w-80"
         />
-        <Select
-          value={statusFilter}
-          onValueChange={onStatusChange}
-        >
-          <SelectTrigger className="w-48">
+        <Select value={statusFilter} onValueChange={onStatusChange}>
+          <SelectTrigger className="w-full sm:w-56 md:w-48">
             <SelectValue placeholder="Filter status" />
           </SelectTrigger>
           <SelectContent>
@@ -66,23 +63,17 @@ export const TicketAssigneesToolbar: React.FC<Props> = ({
           </SelectContent>
         </Select>
       </div>
-   <div className="flex  items-center gap-2">
-
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-2"
-          >
-            <IconLayoutGrid className="h-4 w-4" />
-            Kolom
-            <IconChevronDown className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          {(Object.keys(cols) as (keyof TicketAssigneeColumns)[]).map(
-            (key) => (
+      <div className="flex w-full flex-wrap items-center gap-2 sm:justify-end md:w-auto">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="flex items-center gap-2">
+              <IconLayoutGrid className="h-4 w-4" />
+              Kolom
+              <IconChevronDown className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {(Object.keys(cols) as (keyof TicketAssigneeColumns)[]).map((key) => (
               <DropdownMenuCheckboxItem
                 key={key}
                 checked={cols[key]}
@@ -90,21 +81,17 @@ export const TicketAssigneesToolbar: React.FC<Props> = ({
               >
                 {key.toUpperCase()}
               </DropdownMenuCheckboxItem>
-            ),
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
-      <Button
-                    onClick={() =>
-                      navigate(
-                        "/admin/dashboard/ticket-assignees/create",
-                      )
-                    }
-                  >
-                    <IconPlus className="mr-2 h-4 w-4" />
-                    Assign Ticket Baru
-                  </Button>
-   </div>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <Button
+          onClick={() => navigate("/admin/dashboard/ticket-assignees/create")}
+          className="w-full sm:w-auto"
+        >
+          <IconPlus className="mr-2 h-4 w-4" />
+          Assign Ticket Baru
+        </Button>
+      </div>
     </div>
   )
 }

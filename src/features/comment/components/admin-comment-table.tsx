@@ -68,12 +68,13 @@ export const AdminCommentTable: React.FC<Props> = ({
   const handleNextPage = () => onPageChange(Math.min(totalPages, page + 1))
 
   return (
-    <Card className="rounded-md border overflow-x-auto">
-      <table className="min-w-full divide-y divide-border">
+    <Card className="overflow-hidden rounded-lg border">
+      <div className="w-full overflow-x-auto">
+        <table className="min-w-full divide-y divide-border text-sm">
         <thead className="bg-muted/50">
           <tr className="text-left">
             {cols.sel && (
-              <th className="px-4 py-3 text-sm font-medium">
+              <th className="px-4 py-3 font-medium">
                 <input
                   type="checkbox"
                   aria-label="Select all on this page"
@@ -83,22 +84,22 @@ export const AdminCommentTable: React.FC<Props> = ({
               </th>
             )}
             {cols.id && (
-              <th className="px-4 py-3 text-sm font-medium">ID</th>
+              <th className="px-4 py-3 font-medium">ID</th>
             )}
             {cols.ticket && (
-              <th className="px-4 py-3 text-sm font-medium">Ticket</th>
+              <th className="px-4 py-3 font-medium">Ticket</th>
             )}
             {cols.user && (
-              <th className="px-4 py-3 text-sm font-medium">User</th>
+              <th className="px-4 py-3 font-medium">User</th>
             )}
             {cols.message && (
-              <th className="px-4 py-3 text-sm font-medium">Message</th>
+              <th className="px-4 py-3 font-medium">Message</th>
             )}
             {cols.created && (
-              <th className="px-4 py-3 text-sm font-medium">Created</th>
+              <th className="px-4 py-3 font-medium">Created</th>
             )}
             {cols.actions && (
-              <th className="px-4 py-3 text-sm font-medium">Actions</th>
+              <th className="px-4 py-3 font-medium">Actions</th>
             )}
           </tr>
         </thead>
@@ -142,7 +143,7 @@ export const AdminCommentTable: React.FC<Props> = ({
                   : undefined)
 
               return (
-                <tr key={c.id} className="align-top">
+                <tr key={c.id} className="align-top hover:bg-muted/40">
                   {cols.sel && (
                     <td className="px-4 py-3">
                       <input
@@ -158,7 +159,7 @@ export const AdminCommentTable: React.FC<Props> = ({
                   )}
                   {cols.ticket && (
                     <td className="px-4 py-3 text-sm">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <Badge variant="outline">#{c.ticketId}</Badge>
                         {ticketTitle && (
                           <span className="text-muted-foreground">
@@ -170,7 +171,7 @@ export const AdminCommentTable: React.FC<Props> = ({
                             c.ticket?.id ?? c.ticketId
                           }`}
                           title="View Ticket"
-                          className="ml-1 inline-flex"
+                          className="inline-flex"
                         >
                           <IconEye className="h-4 w-4" />
                         </Link>
@@ -179,7 +180,7 @@ export const AdminCommentTable: React.FC<Props> = ({
                   )}
                   {cols.user && (
                     <td className="px-4 py-3 text-sm">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <span className="font-medium">{userName}</span>
                         {userRole && (
                           <Badge variant="outline" className="uppercase">
@@ -257,7 +258,8 @@ export const AdminCommentTable: React.FC<Props> = ({
             })
           )}
         </tbody>
-      </table>
+        </table>
+      </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 py-3 gap-3">
         <div className="text-sm text-muted-foreground text-center sm:text-left">
