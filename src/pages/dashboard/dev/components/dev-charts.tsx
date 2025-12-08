@@ -130,7 +130,7 @@ export function DevCharts({ dashboard }: Props) {
   return (
     <>
       {/* Charts & Stats Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         {/* Task Overview Chart */}
         <Card className="hover:shadow-md transition-all duration-300 border border-border bg-card">
           <CardHeader className="pb-2">
