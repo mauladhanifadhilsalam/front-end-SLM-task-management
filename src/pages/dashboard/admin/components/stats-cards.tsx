@@ -1,9 +1,8 @@
-import { SectionCards } from "@/components/section-cards"
+import { SectionCards } from "@/pages/dashboard/admin/components/section-cards"
 
 type StatCard = {
   title: string
   value: number
-  accent?: "blue" | "green" | "orange" | "purple"
 }
 
 type Props = {

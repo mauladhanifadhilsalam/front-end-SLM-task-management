@@ -21,12 +21,6 @@ type SectionCardsProps = {
   loading?: boolean
 }
 
-const accentClass: Record<NonNullable<StatCard["accent"]>, string> = {
-  blue: "from-sky-500/10 dark:from-sky-500/20",
-  green: "from-emerald-500/10 dark:from-emerald-500/20",
-  orange: "from-amber-500/10 dark:from-amber-500/20",
-  purple: "from-violet-500/10 dark:from-violet-500/20",
-}
 
 export function SectionCards({ stats, loading = false }: SectionCardsProps) {
   return (
@@ -34,7 +28,7 @@ export function SectionCards({ stats, loading = false }: SectionCardsProps) {
       {stats.map((item, idx) => (
         <Card
           key={`${item.title}-${idx}`}
-          className={`@container/card bg-gradient-to-br ${accentClass[item.accent ?? "blue"]} to-card shadow-sm border-border/70`}
+          className={`@container/card bg-gradient-to-br to-card shadow-sm border-border/70`}
         >
           <CardHeader className="flex flex-row items-start justify-between gap-3 pb-3">
             <div className="space-y-1">

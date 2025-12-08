@@ -42,7 +42,7 @@ export default function AdminDashboard() {
       accent: "green" as const,
     },
     {
-      title: "Proyek Berjalan",
+      title: "Proyek In Progress",
       value: inProgress ?? 0,
       accent: "purple" as const,
     },
