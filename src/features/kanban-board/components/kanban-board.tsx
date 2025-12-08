@@ -27,7 +27,7 @@ interface KanbanBoardProps {
   buildDetailLink?: (ticket: Ticket) => string
 }
 
-const STATUSES: TicketStatus[] = ["TO_DO", "IN_PROGRESS", "IN_REVIEW", "DONE", "RESOLVED", "CLOSED"]
+const STATUSES: TicketStatus[] = ["NEW", "TO_DO", "IN_PROGRESS", "IN_REVIEW", "DONE", "RESOLVED", "CLOSED"]
 
 const STATUS_META: Record<
   TicketStatus,
@@ -35,6 +35,11 @@ const STATUS_META: Record<
 > = {
   TO_DO: {
     label: "To Do",
+    border: "border-border/70",
+    badge: "bg-slate-200 text-slate-900",
+  },
+  NEW: {
+    label: "New",
     border: "border-border/70",
     badge: "bg-slate-200 text-slate-900",
   },

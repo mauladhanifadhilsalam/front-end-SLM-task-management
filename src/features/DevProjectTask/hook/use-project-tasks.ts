@@ -127,6 +127,7 @@ export const useProjectTasks = (projectId: string | undefined) => {
 
   const groups: TicketGroups = useMemo(() => {
     return {
+      NEW: tickets.filter((t) => t.status === "NEW"),
       TO_DO: tickets.filter((t) => t.status === "TO_DO"),
       IN_PROGRESS: tickets.filter((t) => t.status === "IN_PROGRESS"),
       IN_REVIEW: tickets.filter((t) => t.status === "IN_REVIEW"),
