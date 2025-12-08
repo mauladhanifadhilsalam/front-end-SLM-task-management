@@ -73,7 +73,9 @@ export function useCreateTicketIssueForm(): UseCreateTicketIssueFormReturn {
     ;(async () => {
       try {
         setLoadingOptions(true)
-        const { projects } = await fetchTicketFormOptions()
+        const { projects } = await fetchTicketFormOptions({
+          includeRequesters: false,
+        })
         if (mounted) setProjects(projects)
       } catch (err: any) {
         const msg =

@@ -25,7 +25,6 @@ export function useDeveloperDashboard() {
         setError(null)
 
         const data = await getDeveloperDashboard()
-        console.log("✅ Dashboard data loaded:", data)
         setDashboard(data)
       } catch (err: any) {
         console.error("❌ Error fetching dashboard:", err)

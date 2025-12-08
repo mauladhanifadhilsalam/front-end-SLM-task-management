@@ -145,29 +145,43 @@ export type TicketFormRequesterOption = {
   name: string
 }
 
-export async function fetchTicketFormOptions(): Promise<{
+type TicketFormOptionsParams = {
+  includeRequesters?: boolean
+}
+
+export async function fetchTicketFormOptions(
+  params: TicketFormOptionsParams = {},
+): Promise<{
   projects: TicketFormProjectOption[]
   requesters: TicketFormRequesterOption[]
 }> {
+  const { includeRequesters = true } = params
   const headers = getAuthHeaders()
 
-  const [projRes, userRes] = await Promise.all([
-    axios.get(`${API_BASE}/projects`, { headers }),
-    axios.get(`${API_BASE}/users`, { headers }),
-  ])
+  const projectPromise = axios.get(`${API_BASE}/projects`, { headers })
+  const requesterPromise = includeRequesters
+    ? axios.get(`${API_BASE}/users`, { headers })
+    : null
 
+  const projRes = await projectPromise
   const projRaw: any[] = extractArrayFromApi(projRes.data, ["projects"])
-  const userRaw: any[] = extractArrayFromApi(userRes.data, ["users"])
 
   const projects: TicketFormProjectOption[] = projRaw.map((p) => ({
     id: Number(p.id ?? p.projectId ?? 0),
     name: String(p.name ?? p.projectName ?? `Project #${p.id}`),
   }))
 
-  const requesters: TicketFormRequesterOption[] = userRaw.map((u) => ({
-    id: Number(u.id ?? u.userId ?? 0),
-    name: String(u.fullName ?? u.name ?? u.email ?? `User #${u.id}`),
-  }))
+  let requesters: TicketFormRequesterOption[] = []
+
+  if (includeRequesters && requesterPromise) {
+    const userRes = await requesterPromise
+    const userRaw: any[] = extractArrayFromApi(userRes.data, ["users"])
+
+    requesters = userRaw.map((u) => ({
+      id: Number(u.id ?? u.userId ?? 0),
+      name: String(u.fullName ?? u.name ?? u.email ?? `User #${u.id}`),
+    }))
+  }
 
   return { projects, requesters }
 }

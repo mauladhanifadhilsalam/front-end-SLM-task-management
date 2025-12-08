@@ -17,7 +17,7 @@ export const decodeToken = (token: string) => {
 
 export const getUserIdFromToken = (token: string): number | null => {
   const decoded = decodeToken(token);
-  
+
   if (!decoded) {
     console.error("❌ Token tidak valid atau gagal di-decode.");
     return null;
@@ -27,7 +27,6 @@ export const getUserIdFromToken = (token: string): number | null => {
 
   if (!userId) {
     console.error("❌ User ID tidak ditemukan dalam token.");
-    console.log("🔍 Isi token:", decoded);
     return null;
   }
 
