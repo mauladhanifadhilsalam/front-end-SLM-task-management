@@ -45,9 +45,6 @@ export default function AddTicketAttachment() {
     goBack()
   }
 
-  console.log("URL id =", id)
-  console.log("ticketId state di hook =", form.ticketId)
-  console.log("ticketOptions =", ticketOptions)
 
   return (
     <SidebarProvider

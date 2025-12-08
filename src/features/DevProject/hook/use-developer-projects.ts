@@ -37,19 +37,15 @@ export function useDeveloperProjects() {
         const userId = developerProjectService.getUserIdFromToken(decoded);
 
         if (!userId) {
-          console.error("❌ User ID tidak ditemukan dalam token.");
-          console.log("🔍 Isi token:", decoded);
+
           setError("User ID tidak ditemukan");
           setLoading(false);
           return;
         }
 
-        console.log("🔍 User ID dari token:", userId);
-        console.log("🔍 Decoded token:", decoded);
 
         // Fetch semua projects
         const projects = await developerProjectService.getAllProjects(token);
-        console.log("📦 Total projects dari API:", projects.length);
 
         // Filter projects yang assigned ke user ini
         const filtered: AssignmentCard[] = projects
@@ -61,7 +57,6 @@ export function useDeveloperProjects() {
             });
 
             if (hasUserAssignment) {
-              console.log(`✅ Project "${project.name}" ditugaskan ke user ${userId}`);
             }
 
             return hasUserAssignment;
@@ -82,7 +77,6 @@ export function useDeveloperProjects() {
             };
           });
 
-        console.log("📊 Project yang difilter:", filtered.length);
         setAssignments(filtered);
       } catch (err) {
         console.error("❌ Error fetching developer projects:", err);
