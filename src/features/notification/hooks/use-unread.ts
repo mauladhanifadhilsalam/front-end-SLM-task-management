@@ -15,7 +15,6 @@ export function useUnread() {
     if (!role || !token) return
 
     const endpointMap: Record<string, string> = {
-      admin: "/dashboard/admin-overview",
       project_manager: "/dashboard/project-manager",
       developer: "/dashboard/developer",
     }
