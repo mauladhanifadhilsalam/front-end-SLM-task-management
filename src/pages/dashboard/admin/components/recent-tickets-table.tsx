@@ -98,7 +98,8 @@ export function RecentTicketsTable({ tickets, loading, error }: Props) {
                   <TableHead>Project</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Priority</TableHead>
-                  <TableHead>Due / Created</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead>Due</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -132,10 +133,12 @@ export function RecentTicketsTable({ tickets, loading, error }: Props) {
                             </Badge>
                           </TableCell>
                           <TableCell className="text-muted-foreground">
-                            <div>{formatDate(ticket.dueDate)}</div>
-                            <div className="text-xs">
-                              Dibuat {formatDate(ticket.createdAt)}
+                            <div>
+                              {formatDate(ticket.createdAt)}
                             </div>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            <div>{formatDate(ticket.dueDate)}</div>
                           </TableCell>
                         </TableRow>
                       ))
