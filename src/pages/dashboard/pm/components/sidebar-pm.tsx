@@ -57,13 +57,6 @@ const data = {
       icon: IconTicket,
     },
   ],
-  navSecondary: [
-    {
-      title: "Settings",
-      url: "/project-manager/dashboard/settings/profile",
-      icon: IconSettings,
-    },
-  ],
 }
 
 export function AppSidebarPm(
@@ -87,7 +80,6 @@ export function AppSidebarPm(
 
         <SidebarContent>
             <NavMain items={data.navMain} />
-            <NavSecondary items={data.navSecondary} className="mt-auto" />
         </SidebarContent>
 
         <SidebarFooter>

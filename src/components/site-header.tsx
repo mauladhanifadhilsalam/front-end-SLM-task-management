@@ -3,7 +3,6 @@ import { SidebarTrigger } from "@/components/ui/sidebar"
 import { ModeToggle } from "./mode-toggle"
 import { IconMail } from "@tabler/icons-react"
 import { Link } from "react-router-dom"
-import { ProfileDropdown } from "./profile-dropsown"
 import { useUnread } from "@/features/notification/hooks/use-unread"
 
 export function SiteHeader() {
@@ -55,8 +54,6 @@ export function SiteHeader() {
               )}
             </Link>
           )}
-
-          <ProfileDropdown />
         </div>
       </div>
     </header>
