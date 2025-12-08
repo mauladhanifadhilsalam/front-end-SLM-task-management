@@ -4,16 +4,12 @@ import type { Phase } from "@/types/project-phases.type";
 import { projectTasksService } from "@/services/project-tasks.service";
 import { decodeToken } from "@/utils/token.utils";
 
-export type RealtimeStatus = "idle" | "connecting" | "connected" | "polling" | "error";
-
 export const useProjectTasks = (projectId: string | undefined) => {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [projectName, setProjectName] = useState<string>("");
   const [phases, setPhases] = useState<Phase[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [realtimeStatus, setRealtimeStatus] = useState<RealtimeStatus>("idle");
-  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
 
   const token = localStorage.getItem("token");
 
@@ -30,7 +26,6 @@ export const useProjectTasks = (projectId: string | undefined) => {
       });
 
       setTickets(filtered);
-      setLastSyncedAt(new Date());
     } catch (err) {
       console.error("Error refreshing tickets:", err);
     }
@@ -89,44 +84,9 @@ export const useProjectTasks = (projectId: string | undefined) => {
     fetchTickets();
   }, [projectId, refreshTickets, token]);
 
-  useEffect(() => {
-    if (!projectId || !token) {
-      setRealtimeStatus("idle");
-      return;
-    }
-
-    let pollId: number | undefined;
-    let refreshing = false;
-
-    const safeRefresh = async () => {
-      if (refreshing || document.visibilityState === "hidden") return;
-      refreshing = true;
-      try {
-        await refreshTickets();
-      } finally {
-        refreshing = false;
-      }
-    };
-
-    setRealtimeStatus("polling");
-    pollId = window.setInterval(safeRefresh, 8000);
-
-    const handleVisibility = () => {
-      if (document.visibilityState === "visible") {
-        safeRefresh();
-      }
-    };
-
-    window.addEventListener("visibilitychange", handleVisibility);
-
-    return () => {
-      if (pollId) window.clearInterval(pollId);
-      window.removeEventListener("visibilitychange", handleVisibility);
-    };
-  }, [projectId, refreshTickets, token]);
-
   const groups: TicketGroups = useMemo(() => {
     return {
+      NEW: tickets.filter((t) => t.status === "NEW"),
       TO_DO: tickets.filter((t) => t.status === "TO_DO"),
       IN_PROGRESS: tickets.filter((t) => t.status === "IN_PROGRESS"),
       IN_REVIEW: tickets.filter((t) => t.status === "IN_REVIEW"),
@@ -168,7 +128,5 @@ export const useProjectTasks = (projectId: string | undefined) => {
     token,
     phases,
     refreshTickets,
-    realtimeStatus,
-    lastSyncedAt,
   };
 };

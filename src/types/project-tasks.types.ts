@@ -2,7 +2,7 @@ export interface Ticket {
   id: number;
   title: string;
   description: string;
-  status: "TO_DO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE" | "RESOLVED" | "CLOSED";
+  status: "NEW"|"TO_DO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE" | "RESOLVED" | "CLOSED";
   priority: string;
   startDate?: string | null;
   dueDate: string | null;
@@ -23,6 +23,7 @@ export interface Ticket {
 export type TicketStatus = Ticket["status"];
 
 export interface TicketGroups {
+  NEW: Ticket[];
   TO_DO: Ticket[];
   IN_PROGRESS: Ticket[];
   IN_REVIEW: Ticket[];
