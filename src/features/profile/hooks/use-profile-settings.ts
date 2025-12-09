@@ -33,6 +33,7 @@ const defaultProfileForm: ProfileFormValues = {
 }
 
 const defaultPasswordForm: ChangePasswordValues = {
+  password: "",
   newPassword: "",
   confirmPassword: "",
 }
@@ -197,7 +198,9 @@ export function useProfileSettings() {
       setChangingPassword(true)
       setErrorMessage(null)
       try {
-        await changeMyPassword(parsed.data)
+        // backend expects { password, newPassword }
+        const payload = { password: parsed.data.password, newPassword: parsed.data.newPassword }
+        await changeMyPassword(payload as any)
         setPasswordForm(defaultPasswordForm)
         toast.success("Password diganti", {
           description: "Password baru telah aktif.",

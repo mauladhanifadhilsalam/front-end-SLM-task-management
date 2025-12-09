@@ -17,8 +17,9 @@ export type ProfileField = keyof ProfileFormValues
 
 export const changePasswordSchema = z
   .object({
+    password: z.string().min(1, { message: "Password lama harus diisi." }),
     newPassword: passwordRule,
-    confirmPassword: passwordRule,
+    confirmPassword: z.string(),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
     message: "Konfirmasi password tidak sama.",
