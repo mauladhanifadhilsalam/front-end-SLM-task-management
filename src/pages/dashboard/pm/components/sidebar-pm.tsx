@@ -52,7 +52,7 @@ const data = {
       icon: IconFolder,
     },
     {
-      title: "Ticket Issue",
+      title: "Issue",
       url: "/project-manager/dashboard/ticket-issue",
       icon: IconTicket,
     },

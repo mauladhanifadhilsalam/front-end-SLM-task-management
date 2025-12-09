@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { AppSidebarDev } from "@/components/app-sidebardev";
+import { AppSidebarDev } from "@/pages/dashboard/dev/components/app-sidebardev";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { DeveloperProjectsList } from "@/features/DevProject/components/projects-list";

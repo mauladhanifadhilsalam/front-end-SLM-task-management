@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useNavigate } from "react-router-dom"
 
-import { AppSidebarDev } from "@/components/app-sidebardev"
+import { AppSidebarDev } from "@/pages/dashboard/dev/components/app-sidebardev"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { useCreateTicketIssueForm } from "@/features/ticket/hooks/use-create-ticket-issue-form"

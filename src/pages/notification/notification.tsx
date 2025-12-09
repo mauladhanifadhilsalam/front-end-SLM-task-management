@@ -4,7 +4,7 @@ import * as React from "react"
 import axios from "axios"
 import { useNavigate } from "react-router-dom"
 
-import { AppSidebarDev } from "@/components/app-sidebardev"
+import { AppSidebarDev } from "@/pages/dashboard/dev/components/app-sidebardev"
 import { AppSidebarPm } from "../dashboard/pm/components/sidebar-pm"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
