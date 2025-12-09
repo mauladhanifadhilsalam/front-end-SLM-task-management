@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { useNavigate } from "react-router-dom"
+import { toast } from "sonner"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
@@ -9,6 +10,7 @@ import { useAdminProjects } from "@/features/projects/hooks/use-admin-projects"
 import { ProjectsToolbar } from "@/features/projects/components/projects-toolbar"
 import { ProjectsTable } from "@/features/projects/components/projects-table"
 import { ProjectsEmptyState, ProjectsSearchEmptyState } from "../../../../features/projects/components/projecs-empty-state"
+import { downloadProjectReport } from "@/services/project.service"
 export default function AdminProjects() {
   const navigate = useNavigate()
 
@@ -26,11 +28,44 @@ export default function AdminProjects() {
     deleteProject,
   } = useAdminProjects()
 
+  const [downloadingReport, setDownloadingReport] = React.useState(false)
+
   const hasData = filteredProjects.length > 0
 
   const handleCreateProject = () => {
     navigate("/admin/dashboard/projects/create")
   }
+
+  const handleDownloadReport = React.useCallback(async () => {
+    if (downloadingReport) return
+
+    setDownloadingReport(true)
+    try {
+      const { blob, fileName } = await downloadProjectReport()
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement("a")
+      link.href = url
+      link.download = fileName
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+
+      toast.success("Laporan berhasil diunduh", {
+        description: "File Excel laporan proyek siap digunakan.",
+      })
+    } catch (e: any) {
+      const msg =
+        e?.message ||
+        e?.response?.data?.message ||
+        "Gagal mengunduh laporan proyek."
+      toast.error("Gagal mengunduh laporan", {
+        description: msg,
+      })
+    } finally {
+      setDownloadingReport(false)
+    }
+  }, [downloadingReport])
 
   return (
     <div>
@@ -66,6 +101,8 @@ export default function AdminProjects() {
               onStatusFilterChange={setStatusFilter}
               onToggleColumn={toggleColumn}
               onCreateProject={handleCreateProject}
+              onDownloadReport={handleDownloadReport}
+              downloadDisabled={downloadingReport}
             />
 
             <ProjectsTable
