@@ -9,6 +9,8 @@ import {
   IconUsers,
   IconPaperclip,
 } from "@tabler/icons-react"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -261,9 +263,11 @@ export const TicketsCardsBoard: React.FC<Props> = ({
 
                 <div className="space-y-2 mt-2">
                   {ticket.description && (
-                    <p className="line-clamp-3 text-xs text-muted-foreground">
-                      {ticket.description}
-                    </p>
+                    <div className="markdown-body prose prose-xs max-w-none line-clamp-2 text-muted-foreground [&>*]:my-1 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {ticket.description}
+                      </ReactMarkdown>
+                    </div>
                   )}
 
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">

@@ -172,6 +172,7 @@ input[type="password"] {
 .markdown-body {
   background-color: transparent !important;
   color: hsl(var(--foreground)) !important;
+  font-size: 14px;
 }
 
 

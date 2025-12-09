@@ -57,7 +57,7 @@ const data = {
       icon: IconFolder,
     },
     {
-      title: "Ticket Issue",
+      title: "Issue",
       url: "/developer-dashboard/ticket-issue",
       icon: IconTicket,
     },
