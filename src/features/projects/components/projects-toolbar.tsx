@@ -40,6 +40,7 @@ type Props = {
   onCreateProject: () => void
   onDownloadReport?: () => void
   downloadDisabled?: boolean
+  showColumnToggle?: boolean
 }
 
 const COLUMN_LABELS: Record<keyof ProjectColumns, string> = {
@@ -64,6 +65,7 @@ export const ProjectsToolbar: React.FC<Props> = ({
   onCreateProject,
   onDownloadReport,
   downloadDisabled = false,
+  showColumnToggle = true,
 }) => {
   const handleStatusChange = (value: string) => {
     onStatusFilterChange(value as StatusFilter)
@@ -92,36 +94,38 @@ export const ProjectsToolbar: React.FC<Props> = ({
       </div>
 
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex items-center justify-center gap-2 sm:w-auto"
-            >
-              <IconLayoutGrid className="h-4 w-4" />
-              Kolom
-              <IconChevronDown className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="min-w-40">
-            {(Object.keys(columns) as (keyof ProjectColumns)[]).map((key) => (
-              <DropdownMenuCheckboxItem
-                key={key}
-                checked={columns[key]}
-                onCheckedChange={(v) => onToggleColumn(key, v)}
+        {showColumnToggle && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex items-center justify-center gap-2 sm:w-auto"
               >
-                {COLUMN_LABELS[key]}
-              </DropdownMenuCheckboxItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+                <IconLayoutGrid className="h-4 w-4" />
+                Kolom
+                <IconChevronDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-40">
+              {(Object.keys(columns) as (keyof ProjectColumns)[]).map((key) => (
+                <DropdownMenuCheckboxItem
+                  key={key}
+                  checked={columns[key]}
+                  onCheckedChange={(v) => onToggleColumn(key, v)}
+                >
+                  {COLUMN_LABELS[key]}
+                </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
 
         {onDownloadReport && (
           <Button
-            variant="outline"
+            variant="default"
             size="sm"
-            className="flex items-center justify-center gap-2 w-full sm:w-auto"
+            className="flex items-center justify-center gap-2 w-full sm:w-auto bg-green-600 hover:bg-green-500 text-white border-transparent"
             onClick={onDownloadReport}
             disabled={downloadDisabled}
           >

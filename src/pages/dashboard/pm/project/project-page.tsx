@@ -107,6 +107,7 @@ export default function AdminProjects() {
               onCreateProject={handleCreateProject}
               onDownloadReport={handleDownloadReport}
               downloadDisabled={downloadingReport}
+              showColumnToggle={false}
             />
 
             <ProjectsCardsList
