@@ -53,16 +53,6 @@ export function DeveloperProjectCard({ assignment }: DeveloperProjectCardProps) 
             Lihat Task
           </Button>
         </Link>
-        
-        <Link to={`/developer-dashboard/issues/${assignment.projectId}`}>
-          <Button
-            variant="secondary"
-            className="w-full mt-2 flex items-center gap-2"
-          >
-            <IconTicket className="h-4 w-4" />
-            Lihat Issue
-          </Button>
-        </Link>
       </CardContent>
     </Card>
   );

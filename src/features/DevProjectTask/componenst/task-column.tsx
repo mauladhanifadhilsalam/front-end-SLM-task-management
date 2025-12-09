@@ -1,32 +1,35 @@
-import { useDroppable } from "@dnd-kit/core";
+import { useDroppable } from "@dnd-kit/core"
+import { cn } from "@/lib/utils"
 
 interface TaskColumnProps {
-  status: string;
-  children: React.ReactNode;
+  status: string
+  children: React.ReactNode
+  className?: string
+  bodyClassName?: string
+  maxHeight?: string
 }
 
-export const TaskColumn = ({ status, children }: TaskColumnProps) => {
+export const TaskColumn = ({ status, children, className, bodyClassName, maxHeight }: TaskColumnProps) => {
   const { setNodeRef, isOver } = useDroppable({
     id: status,
     data: { type: "column", status },
-  });
+  })
 
   return (
     <div
       ref={setNodeRef}
-      className={`
-        min-h-[200px] rounded-xl p-3 space-y-3 border 
-        transition duration-150 
-        ${isOver ? "border-primary bg-accent/30" : "border-border bg-card"}
-        overflow-y-auto scrollbar-hide
-      `}
+      className={cn(
+        "min-h-[200px] rounded-xl border transition duration-150 overflow-y-auto scrollbar-hide p-3",
+        isOver ? "border-primary bg-accent/30" : "border-border bg-card",
+        className,
+      )}
       style={{
-        maxHeight: "calc(100vh - 280px)",
+        maxHeight: maxHeight ?? "calc(100vh - 280px)",
         scrollbarWidth: "none",
         msOverflowStyle: "none",
       }}
     >
-      {children}
+      <div className={cn("space-y-3", bodyClassName)}>{children}</div>
     </div>
-  );
-};
+  )
+}

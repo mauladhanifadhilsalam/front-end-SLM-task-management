@@ -143,56 +143,68 @@ export const KanbanBoard = ({
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex flex-col gap-5 p-4">
-          {statusOrder.map((status) => {
-            const meta = STATUS_META[status]
-            const items = groups[status]
+        <div className="-mx-4 overflow-x-auto overflow-y-hidden px-4 pb-4">
+          <div className="flex min-w-full snap-x snap-mandatory gap-3">
+            {statusOrder.map((status) => {
+              const meta = STATUS_META[status]
+              const items = groups[status]
 
-            return (
-              <div
-                key={status}
-                className="flex-shrink-0 space-y-3 rounded-2xl border border-border/60 bg-card/80 p-3 shadow-sm"
-              >
-                <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/70 px-3 py-2">
-                  <div className="space-y-0.5">
-                    <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">{meta.label}</p>
-                    <h2 className="text-sm font-semibold text-foreground">{formatStatus(status)}</h2>
-                  </div>
+              return (
+                <div
+                  key={status}
+                  className="w-[88vw] max-w-[420px] flex-shrink-0 snap-start"
+                >
+                  <div className="flex items-center justify-between gap-3 rounded-2xl border border-border/70 bg-muted/70 px-3 py-2 shadow-sm">
+                    <div className="space-y-0.5">
+                      <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">{meta.label}</p>
+                      <h2 className="text-sm font-semibold text-foreground">{formatStatus(status)}</h2>
+                    </div>
 
-                  <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold shadow-sm ${meta.badge}`}>
-                    {items.length} task
-                  </span>
-                </div>
-
-                <SortableContext items={items.map((t) => String(t.id))} strategy={verticalListSortingStrategy}>
-                  <div className={`rounded-2xl border ${meta.border} bg-card/80 p-3 space-y-3`}>
-                    {items.length > 0 &&
-                      items.map((ticket) => (
-                        <SortableTaskCard
-                          key={ticket.id}
-                          ticket={ticket}
-                          detailHref={
-                            buildDetailLink
-                              ? buildDetailLink(ticket)
-                              : `/developer-dashboard/projects/${ticket.projectId}/tasks/${ticket.id}`
-                          }
-                          onEdit={onEditTask}
-                          onDelete={onDeleteTask}
-                        />
-                      ))}
-
-                    <button
-                      type="button"
-                      onClick={() => handleAddTask(status)}
-                      className="flex h-10 w-full items-center justify-center rounded-full border border-dashed border-border/70 bg-muted/50 text-lg font-semibold text-muted-foreground transition hover:border-primary/50 hover:text-foreground"
+                    <span
+                      className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold shadow-sm ${meta.badge}`}
                     >
-                      +
-                    </button>
+                      {items.length} task
+                    </span>
                   </div>
-                </SortableContext>
-              </div>
-            )
-          })}
+
+                  <SortableContext items={items.map((t) => String(t.id))} strategy={verticalListSortingStrategy}>
+                    <TaskColumn
+                      status={status}
+                      className={`mt-2 border ${meta.border} bg-card/90 shadow-sm`}
+                      bodyClassName="space-y-3"
+                      maxHeight="calc(100vh - 260px)"
+                    >
+                      {items.length > 0 ? (
+                        items.map((ticket) => (
+                          <SortableTaskCard
+                            key={ticket.id}
+                            ticket={ticket}
+                            detailHref={
+                              buildDetailLink
+                                ? buildDetailLink(ticket)
+                                : `/developer-dashboard/projects/${ticket.projectId}/tasks/${ticket.id}`
+                            }
+                            onEdit={onEditTask}
+                            onDelete={onDeleteTask}
+                          />
+                        ))
+                      ) : (
+                        <p className="text-center text-xs text-muted-foreground">Belum ada task</p>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => handleAddTask(status)}
+                        className="flex h-11 w-full items-center justify-center rounded-xl border border-dashed border-border/70 bg-muted/60 text-sm font-semibold text-muted-foreground transition hover:border-primary/60 hover:text-foreground"
+                      >
+                        Tambah Task
+                      </button>
+                    </TaskColumn>
+                  </SortableContext>
+                </div>
+              )
+            })}
+          </div>
         </div>
 
         <DragOverlay>{activeTicket && <DragOverlayCard ticket={activeTicket} />}</DragOverlay>
