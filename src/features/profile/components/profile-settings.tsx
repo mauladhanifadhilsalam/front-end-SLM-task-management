@@ -58,6 +58,7 @@ export function ProfileSettings() {
   } = useProfileSettings()
 
   const [showNewPassword, setShowNewPassword] = React.useState(false)
+  const [showOldPassword, setShowOldPassword] = React.useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false)
   const [activeSection, setActiveSection] = React.useState<"profile" | "appearance">("profile")
   const [selectedTheme, setSelectedTheme] = React.useState<"light" | "dark">("light")
@@ -180,6 +181,40 @@ export function ProfileSettings() {
                 </CardHeader>
                 <CardContent>
                   <form className="space-y-3" onSubmit={submitPassword} noValidate>
+                    <div className="space-y-2">
+                      <Label htmlFor="password">Password lama</Label>
+                      <div className="relative">
+                        <Input
+                          id="password"
+                          type={showOldPassword ? "text" : "password"}
+                          value={passwordForm.password}
+                          onChange={(e) => handlePasswordChange("password", e.target.value)}
+                          onBlur={() => handlePasswordBlur("password")}
+                          disabled={changingPassword}
+                          aria-invalid={!!passwordErrors.password}
+                          className={cn(
+                            passwordErrors.password &&
+                              "border-destructive focus-visible:ring-destructive/40",
+                          )}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowOldPassword((prev) => !prev)}
+                          className="absolute inset-y-0 right-3 flex items-center text-muted-foreground hover:text-foreground"
+                        >
+                          {showOldPassword ? (
+                            <IconEyeOff className="h-4 w-4" />
+                          ) : (
+                            <IconEye className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
+                      {passwordErrors.password && (
+                        <p className="text-xs text-destructive">{passwordErrors.password}</p>
+                      )}
+
+                    </div>
+
                     <div className="space-y-2">
                       <Label htmlFor="newPassword">Password baru</Label>
                       <div className="relative">
