@@ -1,7 +1,7 @@
 // src/pages/tickets/components/TicketComments.tsx
 import * as React from "react";
 import axios from "axios";
-import Swal from "sweetalert2";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,6 +14,16 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { IconDotsVertical, IconPencil, IconTrash } from "@tabler/icons-react";
 
 const API_BASE = import.meta.env.VITE_API_BASE;
@@ -121,6 +131,7 @@ export default function TicketComments({
     const [editingId, setEditingId] = React.useState<number | null>(null);
     const [editingValue, setEditingValue] = React.useState("");
     const [savingId, setSavingId] = React.useState<number | null>(null);
+    const [deleteConfirm, setDeleteConfirm] = React.useState<{ open: boolean; id: number; ownerId: number } | null>(null);
 
     const fetchComments = React.useCallback(async () => {
         setLoading(true);
@@ -174,11 +185,15 @@ export default function TicketComments({
     const handleAdd = async () => {
         const msg = newMessage.trim();
         if (!msg) {
-        Swal.fire("Komentar kosong", "Tulis sesuatu di komentar", "info");
+        toast.warning("Komentar kosong", {
+            description: "Tulis sesuatu di komentar",
+        });
         return;
         }
         if (meId == null) {
-        Swal.fire("Belum login", "User ID tidak ditemukan di localStorage.", "info");
+        toast.error("Belum login", {
+            description: "User ID tidak ditemukan di localStorage.",
+        });
         return;
         }
 
@@ -217,7 +232,10 @@ export default function TicketComments({
             )
         );
         } catch (err: any) {
-        Swal.fire("Gagal", err?.message || "Tidak bisa kirim komentar", "error");
+        const errorMsg = err?.response?.data?.message || err?.message || "Tidak bisa kirim komentar";
+        toast.error("Gagal mengirim komentar", {
+            description: errorMsg,
+        });
         setComments((prev) => prev.filter((c) => c.id !== tempId));
         } finally {
         setPosting(false);
@@ -227,28 +245,14 @@ export default function TicketComments({
     const handleDelete = async (id: number, ownerId: number) => {
         const isAdmin = meRole === "ADMIN";
         const isOwner = meId != null && Number(meId) === Number(ownerId);
-        if (!isAdmin && !isOwner) return;
-
-        const confirm = await Swal.fire({
-        title: "Hapus komentar?",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Ya, hapus",
-        cancelButtonText: "Batal",
+        if (!isAdmin && !isOwner) {
+        toast.error("Tidak punya akses", {
+            description: "Hanya admin atau pemilik komentar yang bisa menghapus.",
         });
-        if (!confirm.isConfirmed) return;
-
-        setDeleting(id);
-        try {
-        await axios.delete(`${API_BASE}/comments/${id}`, { headers: tokenHeader });
-        setComments((prev) => prev.filter((c) => c.id !== id));
-        Swal.fire("Terhapus", "Komentar berhasil dihapus.", "success");
-        } catch (err: any) {
-        Swal.fire("Gagal", err?.message || "Tidak bisa menghapus komentar", "error");
-        fetchComments();
-        } finally {
-        setDeleting(null);
+        return;
         }
+
+        setDeleteConfirm({ open: true, id, ownerId });
     };
 
     const startEdit = (c: TicketComment) => {
@@ -267,7 +271,9 @@ export default function TicketComments({
     const saveEdit = async (c: TicketComment) => {
         const msg = editingValue.trim();
         if (!msg) {
-        Swal.fire("Komentar kosong", "Isi komentar sebelum menyimpan.", "info");
+        toast.warning("Komentar kosong", {
+            description: "Isi komentar sebelum menyimpan.",
+        });
         return;
         }
         setSavingId(c.id);
@@ -294,13 +300,37 @@ export default function TicketComments({
         cancelEdit();
         } catch (err: any) {
         setComments((prev) => prev.map((x) => (x.id === c.id ? { ...x, message: prevMsg } : x)));
-        Swal.fire("Gagal", err?.message || "Tidak bisa menyimpan perubahan", "error");
+        const errorMsg = err?.response?.data?.message || err?.message || "Tidak bisa menyimpan perubahan";
+        toast.error("Gagal menyimpan perubahan", {
+            description: errorMsg,
+        });
         } finally {
         setSavingId(null);
         }
     };
     const handleCancelAdd = () => {
     setNewMessage("");
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteConfirm) return;
+        const { id } = deleteConfirm;
+
+        setDeleting(id);
+        setDeleteConfirm(null);
+        try {
+        await axios.delete(`${API_BASE}/comments/${id}`, { headers: tokenHeader });
+        setComments((prev) => prev.filter((c) => c.id !== id));
+        toast.success("Komentar berhasil dihapus");
+        } catch (err: any) {
+        const errorMsg = err?.response?.data?.message || err?.message || "Tidak bisa menghapus komentar";
+        toast.error("Gagal menghapus komentar", {
+            description: errorMsg,
+        });
+        fetchComments();
+        } finally {
+        setDeleting(null);
+        }
     };
 
     const isIssue = type?.toUpperCase() === "ISSUE";
@@ -428,6 +458,25 @@ export default function TicketComments({
             );
             })}
         </div>
+        <AlertDialog open={deleteConfirm?.open ?? false} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
+            <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Hapus komentar?</AlertDialogTitle>
+                <AlertDialogDescription>
+                Aksi ini tidak dapat dibatalkan. Komentar akan dihapus secara permanen.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>Batal</AlertDialogCancel>
+                <AlertDialogAction
+                onClick={confirmDelete}
+                className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+                >
+                Ya, hapus
+                </AlertDialogAction>
+            </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
         </div>
     );
 }
