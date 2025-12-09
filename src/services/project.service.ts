@@ -62,6 +62,25 @@ const normalizeProject = (raw: any): Project => {
   }
 }
 
+const parseFileNameFromDisposition = (
+  disposition?: string | null,
+): string | null => {
+  if (!disposition) return null
+
+  const match = disposition.match(
+    /filename\\*=UTF-8''([^;]+)|filename=\"?([^\";]+)\"?/i,
+  )
+
+  const encoded = match?.[1] || match?.[2]
+  if (!encoded) return null
+
+  try {
+    return decodeURIComponent(encoded)
+  } catch {
+    return encoded
+  }
+}
+
 export const fetchProjects = async (): Promise<Project[]> => {
   const res = await axios.get(`${API_BASE}/projects`, {
     headers: getAuthHeaders(),
@@ -75,6 +94,26 @@ export const deleteProjectById = async (id: number): Promise<void> => {
   await axios.delete(`${API_BASE}/projects/${id}`, {
     headers: getAuthHeaders(),
   })
+}
+
+export const downloadProjectReport = async (): Promise<{
+  blob: Blob
+  fileName: string
+}> => {
+  const res = await axios.get<Blob>(`${API_BASE}/projects/report`, {
+    headers: getAuthHeaders(),
+    responseType: "blob",
+  })
+
+  const disposition =
+    (res.headers?.["content-disposition"] as string | undefined) ?? ""
+  const parsedName =
+    parseFileNameFromDisposition(disposition) ?? "projects-report.xlsx"
+
+  return {
+    blob: res.data,
+    fileName: parsedName,
+  }
 }
 
 export const getProjectOwners = async (): Promise<ProjectOwnerLite[]> => {

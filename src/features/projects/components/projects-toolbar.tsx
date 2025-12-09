@@ -19,6 +19,7 @@ import {
 import {
   IconLayoutGrid,
   IconChevronDown,
+  IconDownload,
   IconPlus,
 } from "@tabler/icons-react"
 import {
@@ -37,6 +38,8 @@ type Props = {
     value: boolean | "indeterminate",
   ) => void
   onCreateProject: () => void
+  onDownloadReport?: () => void
+  downloadDisabled?: boolean
 }
 
 const COLUMN_LABELS: Record<keyof ProjectColumns, string> = {
@@ -59,6 +62,8 @@ export const ProjectsToolbar: React.FC<Props> = ({
   onStatusFilterChange,
   onToggleColumn,
   onCreateProject,
+  onDownloadReport,
+  downloadDisabled = false,
 }) => {
   const handleStatusChange = (value: string) => {
     onStatusFilterChange(value as StatusFilter)
@@ -111,6 +116,19 @@ export const ProjectsToolbar: React.FC<Props> = ({
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
+
+        {onDownloadReport && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center justify-center gap-2 w-full sm:w-auto"
+            onClick={onDownloadReport}
+            disabled={downloadDisabled}
+          >
+            <IconDownload className="h-4 w-4" />
+            Download Excel
+          </Button>
+        )}
 
         <Button onClick={onCreateProject} className="w-full sm:w-auto">
           <IconPlus className="mr-2 h-4 w-4" />
