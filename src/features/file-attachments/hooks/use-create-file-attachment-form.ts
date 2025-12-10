@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { useNavigate } from "react-router-dom"
+import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import {
   fileAttachmentSchema,
@@ -13,6 +14,7 @@ import {
   uploadFileAttachment,
   type AttachmentTicketOption,
 } from "@/services/file-attachment.service"
+import { attachmentKeys } from "@/lib/query-keys"
 
 export type FileAttachmentFieldErrors = Partial<
   Record<FileAttachmentField, string>
@@ -32,6 +34,7 @@ export const ACCEPT_FILE_TYPES = ALLOWED_TYPES.join(",")
 
 export const useCreateFileAttachmentForm = () => {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
   const [ticketOptions, setTicketOptions] = React.useState<
     AttachmentTicketOption[]
@@ -185,6 +188,8 @@ export const useCreateFileAttachmentForm = () => {
       await uploadFileAttachment(parsed.data.ticketId, parsed.data.file, (p) =>
         setProgress(p),
       )
+
+      queryClient.invalidateQueries({ queryKey: attachmentKeys.list() })
 
       toast.success("Attachment uploaded", {
         description: "Attachment berhasil diunggah.",
