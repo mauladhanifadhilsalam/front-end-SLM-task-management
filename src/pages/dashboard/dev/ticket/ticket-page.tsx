@@ -8,8 +8,10 @@ import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { TicketSummaryCharts } from "@/pages/dashboard/pm/ticket/ticket-summary-charts"
 import { TicketsCardsBoard } from "@/features/ticket/components/tickets-cards-issue-board"
+import { useUserAssignedIssues } from "@/features/ticket/hooks/use-user-assigned-issues"
+import { useUserReportedIssues } from "@/features/ticket/hooks/use-user-reported-issues"
+import type { AdminTicket } from "@/types/ticket-type"
 import { getCurrentUserId } from "@/utils/get-current-user"
-import { useAdminTickets } from "@/features/ticket/hooks/use-admin-tickets"
 import { IconPlus, IconSearch } from "@tabler/icons-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -17,48 +19,40 @@ import { Button } from "@/components/ui/button"
 export default function DevTicketsPage() {
   const navigate = useNavigate()
 
-  const {
-    tickets,
-    loading,
-    error,
-    q,
-    cols: _cols,
-    setSearch,
-    toggleColumn: _toggleColumn,
-    formatDate,
-    deleteTicket,
-    hasFilter,
-  } = useAdminTickets()
-
   const currentUserId = getCurrentUserId()
+  const [search, setSearch] = React.useState("")
 
-  const reportedTickets = React.useMemo(
-    () =>
-      tickets.filter(
-        (t) =>
-          String(t.type).toUpperCase() === "ISSUE" &&
-          Number(t.requesterId) === currentUserId,
-      ),
-    [tickets, currentUserId],
-  )
+  const {
+    tickets: assignedTickets,
+    loading: assignedLoading,
+    error: assignedError,
+  } = useUserAssignedIssues(currentUserId, search)
 
-  const assignedTickets = React.useMemo(
-    () =>
-      tickets.filter((t) => {
-        if (String(t.type).toUpperCase() !== "ISSUE") return false
+  const {
+    tickets: reportedTickets,
+    loading: reportedLoading,
+    error: reportedError,
+    deleteTicket: deleteReportedTicket,
+  } = useUserReportedIssues(currentUserId, search)
 
-        const isReportedByYou = Number(t.requesterId) === currentUserId
+  const hasFilter = search.trim().length > 0
 
-        const ids = Array.isArray(t.assigneeIds)
-          ? t.assigneeIds.map((i: any) => Number(i))
-          : []
+  const formatDate = React.useCallback((iso?: string) => {
+    if (!iso) return "-"
+    const d = new Date(iso)
+    return d.toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    })
+  }, [])
 
-        const isAssignedToYou = ids.includes(currentUserId)
-
-        return isAssignedToYou && !isReportedByYou
-      }),
-    [tickets, currentUserId],
-  )
+  const summaryTickets = React.useMemo(() => {
+    const byId = new Map<number, AdminTicket>()
+    assignedTickets.forEach((ticket) => byId.set(ticket.id, ticket))
+    reportedTickets.forEach((ticket) => byId.set(ticket.id, ticket))
+    return Array.from(byId.values())
+  }, [assignedTickets, reportedTickets])
 
   const handleCreateIssue = React.useCallback(() => {
     navigate("/developer-dashboard/ticket-issue/create")
@@ -66,9 +60,9 @@ export default function DevTicketsPage() {
 
   const handleDelete = React.useCallback(
     (id: number) => {
-      deleteTicket(id)
+      deleteReportedTicket(id)
     },
-    [deleteTicket],
+    [deleteReportedTicket],
   )
 
   const handleAddAttachment = (id: number) => {
@@ -102,7 +96,7 @@ export default function DevTicketsPage() {
                   <div className="relative flex-1">
                     <IconSearch className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
-                      value={q}
+                      value={search}
                       onChange={(e) => setSearch(e.target.value)}
                       placeholder="Search issues..."
                       className="h-9 pl-8 text-xs"
@@ -117,14 +111,14 @@ export default function DevTicketsPage() {
               </div>
 
               <div className="px-7">
-                <TicketSummaryCharts tickets={tickets} />
+                <TicketSummaryCharts tickets={summaryTickets} />
               </div>
 
               <TicketsCardsBoard
                 title="Issues assigned to you"
                 tickets={assignedTickets}
-                loading={loading}
-                error={error}
+                loading={assignedLoading}
+                error={assignedError}
                 hasFilter={hasFilter}
                 formatDate={formatDate}
                 onView={(id) =>
@@ -144,8 +138,8 @@ export default function DevTicketsPage() {
                 subtitle="Issue yang kamu buat / kamu laporkan ke tim."
                 emptyMessage="Belum ada issue yang kamu report."
                 tickets={reportedTickets}
-                loading={loading}
-                error={error}
+                loading={reportedLoading}
+                error={reportedError}
                 onDelete={handleDelete}
                 formatDate={formatDate}
                 hasFilter={hasFilter}

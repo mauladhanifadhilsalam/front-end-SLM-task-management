@@ -9,7 +9,7 @@ import {
   type TicketListParams,
 } from "@/services/ticket.service"
 
-export function usePmAssignedIssues(
+export function useUserAssignedIssues(
   currentUserId: number,
   search?: string,
 ) {

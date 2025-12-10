@@ -8,8 +8,8 @@ import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { TicketSummaryCharts } from "./ticket-summary-charts"
 import { TicketsCardsBoard } from "@/features/ticket/components/tickets-cards-issue-board"
-import { usePmAssignedIssues } from "@/features/ticket/hooks/use-pm-assigned-issues"
-import { usePmReportedIssues } from "@/features/ticket/hooks/use-pm-reported-issues"
+import { useUserAssignedIssues } from "@/features/ticket/hooks/use-user-assigned-issues"
+import { useUserReportedIssues } from "@/features/ticket/hooks/use-user-reported-issues"
 import type { AdminTicket } from "@/types/ticket-type"
 import { getCurrentUserId } from "@/utils/get-current-user"
 import { IconPlus, IconSearch } from "@tabler/icons-react"
@@ -26,14 +26,14 @@ export default function TicketsPage() {
     tickets: assignedTickets,
     loading: assignedLoading,
     error: assignedError,
-  } = usePmAssignedIssues(currentUserId, search)
+  } = useUserAssignedIssues(currentUserId, search)
 
   const {
     tickets: reportedTickets,
     loading: reportedLoading,
     error: reportedError,
     deleteTicket: deleteReportedTicket,
-  } = usePmReportedIssues(currentUserId, search)
+  } = useUserReportedIssues(currentUserId, search)
 
   const hasFilter = search.trim().length > 0
 

@@ -12,7 +12,7 @@ import {
 } from "@/services/ticket.service"
 import type { AdminTicket } from "@/types/ticket-type"
 
-export function usePmReportedIssues(
+export function useUserReportedIssues(
   currentUserId: number,
   search?: string,
 ) {
