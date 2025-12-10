@@ -32,7 +32,10 @@ import {
   type Ticket,
   type User,
 } from "@/schemas/ticket-assignee.schema"
-import { createTicketAssignees } from "@/services/ticket-assignee.service"
+import {
+  createTicketAssignees,
+  deleteTicketAssignee,
+} from "@/services/ticket-assignee.service"
 
 // --- helpers ---------------------------------------------------
 
@@ -65,9 +68,9 @@ export function AssignTicketDialog({
   const [projects, setProjects] = React.useState<Project[]>([])
   const [tickets, setTickets] = React.useState<Ticket[]>([])
   const [projectUsers, setProjectUsers] = React.useState<User[]>([])
-  const [existingAssigneeIds, setExistingAssigneeIds] = React.useState<number[]>(
-    [],
-  )
+  const [existingAssignees, setExistingAssignees] = React.useState<
+    { assignmentId: number; user: User }[]
+  >([])
 
   const [projectId, setProjectId] = React.useState<number | undefined>(
     initialProjectId,
@@ -77,6 +80,9 @@ export function AssignTicketDialog({
   )
   const [search, setSearch] = React.useState("")
   const [selectedUserIds, setSelectedUserIds] = React.useState<number[]>([])
+  const [removedAssigneeIds, setRemovedAssigneeIds] = React.useState<number[]>(
+    [],
+  )
 
   const [loading, setLoading] = React.useState(false)
   const [loadingProjects, setLoadingProjects] = React.useState(false)
@@ -88,6 +94,7 @@ export function AssignTicketDialog({
     if (!open) {
       setSearch("")
       setSelectedUserIds([])
+      setRemovedAssigneeIds([])
       setError(null)
       return
     }
@@ -190,7 +197,8 @@ export function AssignTicketDialog({
 
   React.useEffect(() => {
     if (!open || !ticketId) {
-      setExistingAssigneeIds([])
+      setExistingAssignees([])
+      setRemovedAssigneeIds([])
       return
     }
 
@@ -203,17 +211,26 @@ export function AssignTicketDialog({
         const payload = res?.data?.data ?? res?.data
         try {
           const validated = ticketSchema.parse(payload)
-          const ids =
-            (validated.assignees ?? []).map((a: any) => a.user?.id) ?? []
-          setExistingAssigneeIds(ids.filter(Boolean) as number[])
+          const list =
+            (validated.assignees ?? []).map((a: any) => ({
+              assignmentId: Number(a.id),
+              user: a.user,
+            })) ?? []
+          setExistingAssignees(list)
+          setRemovedAssigneeIds([])
         } catch {
           const raw = payload ?? {}
-          const ids =
-            (raw?.assignees ?? []).map((a: any) => a.user?.id) ?? []
-          setExistingAssigneeIds(ids.filter(Boolean) as number[])
+          const list =
+            (raw?.assignees ?? []).map((a: any) => ({
+              assignmentId: Number(a.id),
+              user: a.user,
+            })) ?? []
+          setExistingAssignees(list.filter((x: any) => x.assignmentId && x.user))
+          setRemovedAssigneeIds([])
         }
       } catch {
-        setExistingAssigneeIds([])
+        setExistingAssignees([])
+        setRemovedAssigneeIds([])
       }
     }
 
@@ -221,7 +238,18 @@ export function AssignTicketDialog({
   }, [open, ticketId])
 
   const toggleUser = (userId: number) => {
-    if (existingAssigneeIds.includes(userId)) return
+    const existing = existingAssignees.find(
+      (a) => Number(a.user.id) === Number(userId),
+    )
+
+    if (existing) {
+      setRemovedAssigneeIds((prev) =>
+        prev.includes(existing.assignmentId)
+          ? prev.filter((id) => id !== existing.assignmentId)
+          : [...prev, existing.assignmentId],
+      )
+      return
+    }
 
     setSelectedUserIds((prev) =>
       prev.includes(userId)
@@ -250,23 +278,38 @@ export function AssignTicketDialog({
       return
     }
     if (selectedUserIds.length === 0) {
-      toast.error("Tidak ada user yang dipilih", {
-        description: "Pilih minimal satu user untuk di-assign.",
-      })
-      return
+      const willRemove = removedAssigneeIds.length > 0
+      if (!willRemove) {
+        toast.error("Tidak ada perubahan assignee", {
+          description: "Pilih atau hapus minimal satu user.",
+        })
+        return
+      }
     }
+
+    const toRemove = existingAssignees.filter((a) =>
+      removedAssigneeIds.includes(a.assignmentId),
+    )
+    const toAdd = selectedUserIds
 
     try {
       setLoading(true)
       setError(null)
 
-      await createTicketAssignees(ticketId, selectedUserIds)
+      for (const assignee of toRemove) {
+        await deleteTicketAssignee(assignee.assignmentId)
+      }
 
-      toast.success("Ticket berhasil di-assign")
+      if (toAdd.length > 0) {
+        await createTicketAssignees(ticketId, toAdd)
+      }
+
+      toast.success("Perubahan assignee tersimpan")
 
       onAssigned?.()
       onOpenChange(false)
       setSelectedUserIds([])
+      setRemovedAssigneeIds([])
     } catch (err: any) {
       const msg =
         err?.response?.data?.message || err?.message || "Gagal assign ticket."
@@ -385,9 +428,14 @@ export function AssignTicketDialog({
               <p className="text-xs font-medium">
                 Assignees <span className="text-destructive">*</span>
               </p>
-              <p className="text-[10px] text-muted-foreground">
-                {selectedUserIds.length} user dipilih
-              </p>
+              <div className="text-[10px] text-muted-foreground flex items-center gap-2">
+                <span>{selectedUserIds.length} akan ditambahkan</span>
+                {removedAssigneeIds.length > 0 && (
+                  <span className="text-destructive">
+                    {removedAssigneeIds.length} akan dihapus
+                  </span>
+                )}
+              </div>
             </div>
 
             <Input
@@ -415,21 +463,29 @@ export function AssignTicketDialog({
 
                   {projectId &&
                     filteredUsers.map((u) => {
-                      const alreadyAssigned = existingAssigneeIds.includes(u.id)
-                      const checked =
-                        selectedUserIds.includes(u.id) || alreadyAssigned
+                      const existing = existingAssignees.find(
+                        (a) => Number(a.user.id) === Number(u.id),
+                      )
+                      const willRemove = existing
+                        ? removedAssigneeIds.includes(existing.assignmentId)
+                        : false
+                      const checked = existing
+                        ? !willRemove
+                        : selectedUserIds.includes(u.id)
 
                       return (
                         <button
                           key={u.id}
                           type="button"
                           onClick={() => {
-                            if (!alreadyAssigned) toggleUser(u.id)
+                            toggleUser(u.id)
                           }}
                           className={[
                             "flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left text-xs",
-                            alreadyAssigned
-                              ? "cursor-default bg-muted/40 opacity-60"
+                            existing
+                              ? willRemove
+                                ? "cursor-pointer bg-destructive/5 hover:bg-destructive/10"
+                                : "cursor-pointer bg-muted/30 hover:bg-muted/50"
                               : "cursor-pointer hover:bg-muted/60",
                           ].join(" ")}
                         >
@@ -441,10 +497,24 @@ export function AssignTicketDialog({
                           />
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
-                              <span className="font-medium">{u.fullName}</span>
-                              {alreadyAssigned && (
+                              <span
+                                className={[
+                                  "font-medium",
+                                  existing && willRemove
+                                    ? "line-through text-destructive"
+                                    : "",
+                                ].join(" ")}
+                              >
+                                {u.fullName}
+                              </span>
+                              {existing && !willRemove && (
                                 <span className="rounded-full bg-blue-100 px-2 py-[1px] text-[9px] text-blue-600">
-                                  Already assigned
+                                  Assigned
+                                </span>
+                              )}
+                              {existing && willRemove && (
+                                <span className="rounded-full bg-destructive/10 px-2 py-[1px] text-[9px] text-destructive border border-destructive/30">
+                                  Akan dihapus
                                 </span>
                               )}
                             </div>
