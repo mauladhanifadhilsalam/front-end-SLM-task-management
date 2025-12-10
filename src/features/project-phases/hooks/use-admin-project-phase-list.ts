@@ -1,12 +1,23 @@
 "use client"
 
 import * as React from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { Phase } from "@/types/project-phases.type";
 import type { ProjectStatus } from "@/types/project.type";
-import { fetchProjectPhases, deleteProjectPhase } from "@/services/project-phase.service";
+import {
+  fetchProjectPhasesWithPagination,
+  deleteProjectPhase,
+  type ProjectPhaseListParams,
+  type ProjectPhaseListResult,
+} from "@/services/project-phase.service";
 import { projectPhaseKeys } from "@/lib/query-keys";
+import { usePagination } from "@/hooks/use-pagination";
 
 export type PhaseColumnState = {
   id: boolean;
@@ -35,14 +46,49 @@ export const useAdminProjectPhaseList = () => {
   const [error, setError] = React.useState("");
   const [query, setQuery] = React.useState("");
   const [cols, setCols] = React.useState<PhaseColumnState>(defaultColumns);
+  const {
+    page,
+    pageSize,
+    onPageChange,
+    onPageSizeChange,
+    setPage,
+  } = usePagination();
+
+  const filters = React.useMemo<ProjectPhaseListParams>(() => {
+    const params: ProjectPhaseListParams = {
+      page,
+      pageSize,
+    };
+    const trimmed = query.trim();
+    if (trimmed) params.search = trimmed;
+    return params;
+  }, [query, page, pageSize]);
+
+  const queryKey = React.useMemo(
+    () => projectPhaseKeys.list(filters),
+    [filters],
+  )
 
   const phasesQuery = useQuery({
-    queryKey: projectPhaseKeys.list(),
-    queryFn: fetchProjectPhases,
+    queryKey,
+    queryFn: () => fetchProjectPhasesWithPagination(filters),
     staleTime: 60 * 1000,
+    placeholderData: keepPreviousData,
   });
 
-  const phases = phasesQuery.data ?? [];
+  const phases = React.useMemo(() => {
+    const list = phasesQuery.data?.phases ?? [];
+    return list.slice().sort((a, b) => a.id - b.id);
+  }, [phasesQuery.data?.phases]);
+
+  const pagination = phasesQuery.data?.pagination ?? {
+    total: 0,
+    page,
+    pageSize,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPrevPage: false,
+  };
 
   React.useEffect(() => {
     if (phasesQuery.error) {
@@ -55,17 +101,6 @@ export const useAdminProjectPhaseList = () => {
       setError("");
     }
   }, [phasesQuery.error, phasesQuery.isSuccess]);
-
-  const filteredPhases = React.useMemo(() => {
-    const q = query.toLowerCase().trim();
-    if (!q) return phases;
-
-    return phases.filter((phase) => {
-      const phaseName = phase.name.toLowerCase();
-      const projectName = phase.project?.name?.toLowerCase() ?? "";
-      return phaseName.includes(q) || projectName.includes(q);
-    });
-  }, [phases, query]);
 
   const colSpan = React.useMemo(
     () => Object.values(cols).filter(Boolean).length || 8,
@@ -82,24 +117,34 @@ export const useAdminProjectPhaseList = () => {
   const deleteMutation = useMutation({
     mutationFn: deleteProjectPhase,
     onMutate: async (id: number) => {
-      await queryClient.cancelQueries({ queryKey: projectPhaseKeys.list() });
+      await queryClient.cancelQueries({ queryKey });
       const previous =
-        queryClient.getQueryData<Phase[]>(projectPhaseKeys.list()) ?? [];
+        queryClient.getQueryData<ProjectPhaseListResult>(queryKey);
 
-      queryClient.setQueryData<Phase[]>(
-        projectPhaseKeys.list(),
-        (current = []) => current.filter((phase) => phase.id !== id),
+      queryClient.setQueryData<ProjectPhaseListResult>(
+        queryKey,
+        (current) => {
+          if (!current) return current;
+          return {
+            ...current,
+            phases: current.phases.filter((phase) => phase.id !== id),
+            pagination: {
+              ...current.pagination,
+              total: Math.max(0, current.pagination.total - 1),
+            },
+          };
+        },
       );
 
       return { previous };
     },
     onError: (_err, _id, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(projectPhaseKeys.list(), context.previous);
+        queryClient.setQueryData(queryKey, context.previous);
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: projectPhaseKeys.list() });
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 
@@ -131,16 +176,23 @@ export const useAdminProjectPhaseList = () => {
 
   return {
     phases,
-    filteredPhases,
     loading: phasesQuery.isLoading,
     error,
     query,
-    setQuery,
+    setQuery: (value: string) => {
+      setQuery(value);
+      setPage(1);
+    },
     cols,
     colSpan,
     toggleColumn,
     deletePhase,
     reload: phasesQuery.refetch,
     getStatusVariant,
+    pagination,
+    page,
+    pageSize,
+    setPage: (value: number) => onPageChange(value, pagination.totalPages),
+    setPageSize: onPageSizeChange,
   };
 };

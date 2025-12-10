@@ -39,7 +39,7 @@ type Props = {
 type ColumnKey = "startDate" | "endDate" | "status" | "progress"
 
 const statusMeta: Record<
-  string,
+  ProjectStatus,
   { label: string; className: string }
 > = {
   IN_PROGRESS: {
@@ -61,11 +61,6 @@ const statusMeta: Record<
     label: "On Hold",
     className:
       "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-500/15 dark:text-slate-100",
-  },
-  CANCELLED: {
-    label: "Cancelled",
-    className:
-      "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/15 dark:text-rose-50",
   },
 }
 

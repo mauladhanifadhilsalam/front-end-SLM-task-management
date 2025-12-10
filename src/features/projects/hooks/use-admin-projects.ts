@@ -1,12 +1,23 @@
 "use client"
 
 import * as React from "react"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query"
 import { toast } from "sonner"
 
-import { fetchProjects, deleteProjectById } from "@/services/project.service"
+import {
+  fetchProjectsWithPagination,
+  deleteProjectById,
+  type ProjectListParams,
+  type ProjectListResult,
+} from "@/services/project.service"
 import { Project, ProjectStatus } from "@/types/project.type"
 import { projectKeys } from "@/lib/query-keys"
+import { usePagination } from "@/hooks/use-pagination"
 
 export type ProjectColumns = {
   id: boolean
@@ -40,11 +51,37 @@ export const useAdminProjects = () => {
   const [search, setSearch] = React.useState("")
   const [statusFilter, setStatusFilter] = React.useState<StatusFilter>("all")
   const [columns, setColumns] = React.useState<ProjectColumns>(initialColumns)
+  const {
+    page,
+    pageSize,
+    onPageChange,
+    onPageSizeChange,
+    setPage,
+  } = usePagination()
 
-  const projectsQuery = useQuery({
-    queryKey: projectKeys.list(),
-    queryFn: fetchProjects,
+  const filters = React.useMemo(() => {
+    const params: ProjectListParams = {
+      page,
+      pageSize,
+    }
+    const trimmed = search.trim()
+    if (trimmed) {
+      params.search = trimmed
+    }
+    if (statusFilter !== "all") {
+      params.status = statusFilter
+    }
+
+    return params
+  }, [search, statusFilter, page, pageSize])
+
+  const queryKey = React.useMemo(() => projectKeys.list(filters), [filters])
+
+  const projectsQuery = useQuery<ProjectListResult>({
+    queryKey,
+    queryFn: () => fetchProjectsWithPagination(filters),
     staleTime: 60 * 1000,
+    placeholderData: keepPreviousData,
   })
 
   React.useEffect(() => {
@@ -59,33 +96,19 @@ export const useAdminProjects = () => {
     }
   }, [projectsQuery.error, projectsQuery.isSuccess])
 
-  const projects = (projectsQuery.data ?? []) as Project[]
+  const projects = React.useMemo(() => {
+    const list = projectsQuery.data?.projects ?? []
+    return list.slice().sort((a, b) => a.id - b.id)
+  }, [projectsQuery.data?.projects])
 
-  const filteredProjects = React.useMemo(() => {
-    const ql = search.trim().toLowerCase()
-
-    const filtered = projects.filter((p) => {
-      if (statusFilter !== "all" && p.status !== statusFilter) {
-        return false
-      }
-
-      if (!ql) return true
-
-      const name = p.name.toLowerCase()
-      const notes = p.notes.toLowerCase()
-      const ownerName = p.owner?.name?.toLowerCase?.() ?? ""
-      const categories = p.categories.join(", ").toLowerCase()
-
-      return (
-        name.includes(ql) ||
-        notes.includes(ql) ||
-        ownerName.includes(ql) ||
-        categories.includes(ql)
-      )
-    })
-
-    return filtered.sort((a, b) => a.id - b.id)
-  }, [projects, search, statusFilter])
+  const pagination = projectsQuery.data?.pagination ?? {
+    total: 0,
+    page,
+    pageSize,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPrevPage: false,
+  }
 
   const colSpan = React.useMemo(
     () => Object.values(columns).filter(Boolean).length || 1,
@@ -105,24 +128,34 @@ export const useAdminProjects = () => {
   const deleteMutation = useMutation({
     mutationFn: deleteProjectById,
     onMutate: async (id: number) => {
-      await queryClient.cancelQueries({ queryKey: projectKeys.list() })
+      await queryClient.cancelQueries({ queryKey })
       const previous =
-        queryClient.getQueryData<Project[]>(projectKeys.list()) ?? []
+        queryClient.getQueryData<ProjectListResult>(queryKey)
 
-      queryClient.setQueryData<Project[]>(
-        projectKeys.list(),
-        (current = []) => current.filter((p) => p.id !== id),
+      queryClient.setQueryData<ProjectListResult>(
+        queryKey,
+        (current) => {
+          if (!current) return current
+          return {
+            ...current,
+            projects: current.projects.filter((p) => p.id !== id),
+            pagination: {
+              ...current.pagination,
+              total: Math.max(0, current.pagination.total - 1),
+            },
+          }
+        },
       )
 
       return { previous }
     },
     onError: (_err, _id, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(projectKeys.list(), context.previous)
+        queryClient.setQueryData(queryKey, context.previous)
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: projectKeys.list() })
+      queryClient.invalidateQueries({ queryKey })
     },
   })
 
@@ -145,17 +178,27 @@ export const useAdminProjects = () => {
 
   return {
     projects,
-    filteredProjects,
     loading: projectsQuery.isLoading,
     error,
     search,
     statusFilter,
     columns,
     colSpan,
-    setSearch,
-    setStatusFilter,
+    setSearch: (value: string) => {
+      setSearch(value)
+      setPage(1)
+    },
+    setStatusFilter: (value: StatusFilter) => {
+      setStatusFilter(value)
+      setPage(1)
+    },
     toggleColumn,
     deleteProject,
+    pagination,
+    page,
+    pageSize,
+    setPage: (value: number) => onPageChange(value, pagination.totalPages),
+    setPageSize: onPageSizeChange,
     reload: projectsQuery.refetch,
   }
 }

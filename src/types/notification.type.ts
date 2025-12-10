@@ -1,16 +1,10 @@
-export type Role = "ADMIN" | "PROJECT_MANAGER" | "DEVELOPER" | "USER" | string
+export type Role = "ADMIN" | "PROJECT_MANAGER" | "DEVELOPER"
 
-export type NotificationState = "READ" | "UNREAD" | string
+export type NotificationState = "UNREAD" | "READ"
 
-export type NotificationTargetType =
-  | "COMMENT"
-  | "TICKET"
-  | "SYSTEM"
-  | "STATUS"
-  | "PROJECT"
-  | string
+export type NotificationTargetType = "PROJECT" | "TICKET" | "COMMENT"
 
-export type NotifyStatusType = "PENDING" | "SENT" | "FAILED" | string | null
+export type NotifyStatusType = "SENT" | "PENDING" | "FAILED"
 
 export type Recipient = {
   id: number

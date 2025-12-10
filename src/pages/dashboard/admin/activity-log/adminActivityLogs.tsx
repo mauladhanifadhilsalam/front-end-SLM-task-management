@@ -11,7 +11,6 @@ import { DeleteActivityLogDialog } from "@/features/activity-logs/components/del
 
 const AdminActivityLogsPage: React.FC = () => {
   const {
-    logs,
     loading,
     error,
     search,
@@ -21,12 +20,17 @@ const AdminActivityLogsPage: React.FC = () => {
     isDeleting,
     filteredLogs,
     visibleColCount,
-    loadLogs,
+    refetch,
     handleSearchChange,
     handleToggleColumn,
     openDeleteDialog,
     closeDeleteDialog,
     handleDeleteLog,
+    pagination,
+    page,
+    pageSize,
+    setPage,
+    setPageSize,
   } = useActivityLogs()
 
   return (
@@ -65,17 +69,21 @@ const AdminActivityLogsPage: React.FC = () => {
                   cols={cols}
                   onSearchChange={handleSearchChange}
                   onToggleColumn={handleToggleColumn}
-                  onRefresh={loadLogs}
+                  onRefresh={refetch}
                 />
 
                 <ActivityLogsTable
-                  logs={logs}
                   filteredLogs={filteredLogs}
                   loading={loading}
                   error={error}
                   cols={cols}
                   visibleColCount={visibleColCount}
                   onDeleteClick={openDeleteDialog}
+                  pagination={pagination}
+                  page={page}
+                  pageSize={pageSize}
+                  onPageChange={setPage}
+                  onPageSizeChange={setPageSize}
                 />
               </div>
             </div>

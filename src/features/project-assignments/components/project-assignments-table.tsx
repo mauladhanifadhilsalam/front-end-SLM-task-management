@@ -21,10 +21,11 @@ import type { ProjectAssignment } from "@/types/project-assignment.type"
 import type {
   ProjectAssignmentColumns,
 } from "@/features/project-assignments/hooks/use-admin-project-assignments"
+import type { PaginationMeta } from "@/types/pagination"
+import { TablePaginationControls } from "@/components/table-pagination-controls"
 
 type Props = {
   assignments: ProjectAssignment[]
-  filteredAssignments: ProjectAssignment[]
   loading: boolean
   error: string
   search: string
@@ -33,11 +34,15 @@ type Props = {
   setColumns: React.Dispatch<React.SetStateAction<ProjectAssignmentColumns>>
   onCreateClick: () => void
   onRequestDelete: (id: number) => void
+  pagination: PaginationMeta
+  page: number
+  pageSize: number
+  onPageChange: (page: number) => void
+  onPageSizeChange: (size: number) => void
 }
 
 export const ProjectAssignmentsTable: React.FC<Props> = ({
   assignments,
-  filteredAssignments,
   loading,
   error,
   search,
@@ -46,6 +51,11 @@ export const ProjectAssignmentsTable: React.FC<Props> = ({
   setColumns,
   onCreateClick,
   onRequestDelete,
+  pagination,
+  page,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
 }) => {
   const hasFilter = search.trim() !== ""
 
@@ -169,7 +179,7 @@ export const ProjectAssignmentsTable: React.FC<Props> = ({
                 </td>
               </tr>
             ) : (
-              filteredAssignments.map((a) => (
+              assignments.map((a) => (
                 <tr
                   key={a.id}
                   className="border-t text-center"
@@ -219,7 +229,7 @@ export const ProjectAssignmentsTable: React.FC<Props> = ({
           </tbody>
         </table>
 
-        {!loading && filteredAssignments.length === 0 && (
+        {!loading && assignments.length === 0 && (
           hasFilter ? (
             <Card className="border-t bg-background">
               <div className="flex items-center gap-3 border-b p-4">
@@ -311,6 +321,15 @@ export const ProjectAssignmentsTable: React.FC<Props> = ({
           )
         )}
       </div>
+
+      <TablePaginationControls
+        total={pagination.total}
+        page={page}
+        pageSize={pageSize}
+        onPageChange={onPageChange}
+        onPageSizeChange={onPageSizeChange}
+        label="assignments"
+      />
     </div>
   )
 }

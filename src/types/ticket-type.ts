@@ -1,4 +1,4 @@
-export type TicketType = "TASK" | "ISSUE" | "BUG"
+export type TicketType = "TASK" | "ISSUE"
 export type TicketPriority = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL"
 export type TicketStatus =
   | "NEW"

@@ -1,11 +1,18 @@
 "use client"
 
 import * as React from "react"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query"
 import { toast } from "sonner"
 import {
-  fetchProjectOwners,
+  fetchProjectOwnersWithPagination,
   deleteProjectOwnerById,
+  type ProjectOwnerListParams,
+  type ProjectOwnerListResult,
 } from "@/services/project-owner.service"
 import { ProjectOwner } from "@/types/project-owner.type"
 import { projectOwnerKeys } from "@/lib/query-keys"
@@ -33,14 +40,38 @@ export const useAdminProjectOwners = () => {
     address: true,
     actions: true,
   })
+  const [page, setPage] = React.useState(1)
+  const [pageSize, setPageSize] = React.useState(10)
 
-  const ownersQuery = useQuery({
-    queryKey: projectOwnerKeys.list(),
-    queryFn: fetchProjectOwners,
+  const filters = React.useMemo<ProjectOwnerListParams>(() => {
+    const trimmed = search.trim()
+    return {
+      page,
+      pageSize,
+      ...(trimmed ? { search: trimmed } : {}),
+    }
+  }, [search, page, pageSize])
+
+  const queryKey = React.useMemo(
+    () => projectOwnerKeys.list(filters),
+    [filters],
+  )
+
+  const ownersQuery = useQuery<ProjectOwnerListResult>({
+    queryKey,
+    queryFn: () => fetchProjectOwnersWithPagination(filters),
     staleTime: 60 * 1000,
+    placeholderData: keepPreviousData,
   })
-
-  const owners = ownersQuery.data ?? []
+  const owners = ownersQuery.data?.owners ?? []
+  const pagination = ownersQuery.data?.pagination ?? {
+    total: 0,
+    page,
+    pageSize,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPrevPage: false,
+  }
 
   React.useEffect(() => {
     if (ownersQuery.error) {
@@ -53,17 +84,6 @@ export const useAdminProjectOwners = () => {
       setError("")
     }
   }, [ownersQuery.error, ownersQuery.isSuccess])
-
-  const filteredOwners = React.useMemo(() => {
-    const s = search.trim().toLowerCase()
-    if (!s) return owners
-    return owners.filter(
-      (o) =>
-        String(o.name ?? "").toLowerCase().includes(s) ||
-        String(o.email ?? "").toLowerCase().includes(s) ||
-        String(o.company ?? "").toLowerCase().includes(s),
-    )
-  }, [owners, search])
 
   const colSpan = React.useMemo(
     () => Object.values(columns).filter(Boolean).length || 7,
@@ -84,29 +104,42 @@ export const useAdminProjectOwners = () => {
     mutationFn: deleteProjectOwnerById,
     onMutate: async (id: number) => {
       await queryClient.cancelQueries({
-        queryKey: projectOwnerKeys.list(),
+        queryKey,
       })
       const previous =
-        queryClient.getQueryData<ProjectOwner[]>(
-          projectOwnerKeys.list(),
-        ) ?? []
+        queryClient.getQueryData<ProjectOwnerListResult>(queryKey)
 
-      queryClient.setQueryData<ProjectOwner[]>(
-        projectOwnerKeys.list(),
-        (current = []) => current.filter((o) => o.id !== id),
+      queryClient.setQueryData<ProjectOwnerListResult>(
+        queryKey,
+        (current) => {
+          if (!current) return current
+          return {
+            ...current,
+            owners: current.owners.filter((o) => o.id !== id),
+            pagination: {
+              ...current.pagination,
+              total: Math.max(0, current.pagination.total - 1),
+            },
+          }
+        },
       )
 
       return { previous }
     },
     onError: (_err, _id, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(projectOwnerKeys.list(), context.previous)
+        queryClient.setQueryData(queryKey, context.previous)
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: projectOwnerKeys.list() })
+      queryClient.invalidateQueries({ queryKey })
     },
   })
+
+  const handleSearchChange = React.useCallback((value: string) => {
+    setSearch(value)
+    setPage(1)
+  }, [])
 
   const deleteOwner = React.useCallback(
     async (id: number) => {
@@ -131,14 +164,18 @@ export const useAdminProjectOwners = () => {
 
   return {
     owners,
-    filteredOwners,
     loading: ownersQuery.isLoading,
     error,
     search,
-    setSearch,
+    setSearch: handleSearchChange,
     columns,
     colSpan,
     toggleColumn,
     deleteOwner,
+    pagination,
+    page,
+    pageSize,
+    setPage,
+    setPageSize,
   }
 }

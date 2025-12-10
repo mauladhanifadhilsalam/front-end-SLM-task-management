@@ -18,7 +18,7 @@ export const ProjectStatusBadge: React.FC<ProjectStatusBadgeProps> = ({
         return <Badge variant="secondary">Sedang Berjalan</Badge>
     }
 
-    if (status === "DONE" || status === "COMPLETED") {
+    if (status === "DONE") {
         return <Badge variant="success">Selesai</Badge>
     }
 

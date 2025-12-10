@@ -22,6 +22,11 @@ export default function AdminTicketsPage() {
     formatDate,
     deleteTicket,
     hasFilter,
+    pagination,
+    page,
+    pageSize,
+    setPage,
+    setPageSize,
   } = useAdminTickets()
 
   return (
@@ -53,6 +58,11 @@ export default function AdminTicketsPage() {
                 }
                 formatDate={formatDate}
                 hasFilter={hasFilter}
+                pagination={pagination}
+                page={page}
+                pageSize={pageSize}
+                onPageChange={setPage}
+                onPageSizeChange={setPageSize}
               />
             </div>
           </div>

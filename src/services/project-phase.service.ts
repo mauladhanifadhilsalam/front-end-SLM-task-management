@@ -9,6 +9,12 @@ import {
   unwrapApiData,
 } from "@/utils/api-response.util"
 import { api } from "@/lib/api"
+import { cleanQueryParams } from "@/utils/query-param.util"
+import {
+  defaultPaginationMeta,
+  normalizePagination,
+  type PaginationMeta,
+} from "@/types/pagination"
 
 
 export type EditProjectPhaseForm = ProjectPhaseForm & {
@@ -73,10 +79,43 @@ export const syncProjectPhases = async (
   }
 }
 
-export const fetchProjectPhases = async (): Promise<Phase[]> => {
-  const { data } = await api.get(`/project-phases`);
+export type ProjectPhaseListParams = {
+  projectId?: number
+  startAfter?: string
+  endBefore?: string
+  activeOnly?: boolean
+  sortOrder?: "asc" | "desc"
+  search?: string
+  page?: number
+  pageSize?: number
+}
 
-  return extractArrayFromApi<Phase>(data, ["phases"]);
+export type ProjectPhaseListResult = {
+  phases: Phase[]
+  pagination: PaginationMeta
+}
+
+export const fetchProjectPhasesWithPagination = async (
+  params?: ProjectPhaseListParams,
+): Promise<ProjectPhaseListResult> => {
+  const { data } = await api.get(`/project-phases`, {
+    params: cleanQueryParams(params),
+  });
+
+  return {
+    phases: extractArrayFromApi<Phase>(data, ["phases"]),
+    pagination: normalizePagination(
+      (data as any)?.pagination,
+      defaultPaginationMeta,
+    ),
+  }
+};
+
+export const fetchProjectPhases = async (
+  params?: ProjectPhaseListParams,
+): Promise<Phase[]> => {
+  const { phases } = await fetchProjectPhasesWithPagination(params)
+  return phases
 };
 
 export const createProjectPhase = async (

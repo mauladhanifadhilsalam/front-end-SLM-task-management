@@ -1,12 +1,19 @@
 "use client"
 
 import * as React from "react"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query"
 import { toast } from "sonner"
 import {
-  fetchNotifications,
+  fetchNotificationsWithPagination,
   deleteNotificationById,
   resendNotificationEmail,
+  type NotificationListParams,
+  type NotificationListResult,
 } from "@/services/notification.service"
 import type {
   Notification,
@@ -15,6 +22,7 @@ import type {
   NotificationTargetType,
 } from "@/types/notification.type"
 import { notificationKeys } from "@/lib/query-keys"
+import { usePagination } from "@/hooks/use-pagination"
 
 type ColState = {
   id: boolean
@@ -33,7 +41,16 @@ type ColState = {
 export const useAdminNotifications = () => {
   const queryClient = useQueryClient()
   const [search, setSearch] = React.useState("")
-  const [stateFilter, setStateFilter] = React.useState<string>("all")
+  const [stateFilter, setStateFilter] = React.useState<
+    NotificationState | "all"
+  >("all")
+  const {
+    page,
+    pageSize,
+    onPageChange,
+    onPageSizeChange,
+    setPage,
+  } = usePagination()
 
   const [cols, setCols] = React.useState<ColState>({
     id: true,
@@ -53,13 +70,49 @@ export const useAdminNotifications = () => {
   const [deletingId, setDeletingId] = React.useState<number | null>(null)
   const [deleting, setDeleting] = React.useState(false)
 
+  const filters = React.useMemo<NotificationListParams>(() => {
+    const params: NotificationListParams = {
+      page,
+      pageSize,
+    }
+    const trimmed = search.trim()
+    if (trimmed) params.search = trimmed
+    if (stateFilter !== "all") params.state = stateFilter
+    return params
+  }, [search, stateFilter, page, pageSize])
+
+  const queryKey = React.useMemo(
+    () => notificationKeys.adminList(filters),
+    [filters],
+  )
+
   const notificationsQuery = useQuery({
-    queryKey: notificationKeys.adminList(),
-    queryFn: fetchNotifications,
+    queryKey,
+    queryFn: () => fetchNotificationsWithPagination(filters),
     staleTime: 30 * 1000,
+    placeholderData: keepPreviousData,
   })
 
-  const notifications = notificationsQuery.data ?? []
+  const notifications = React.useMemo(() => {
+    const list = notificationsQuery.data?.notifications ?? []
+    return list
+      .slice()
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() -
+          new Date(a.createdAt).getTime(),
+      )
+  }, [notificationsQuery.data?.notifications])
+
+  const pagination = notificationsQuery.data?.pagination ?? {
+    total: 0,
+    page,
+    pageSize,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPrevPage: false,
+  }
+
   const loading = notificationsQuery.isLoading
   const errorMessage = notificationsQuery.error
     ? notificationsQuery.error instanceof Error
@@ -73,58 +126,40 @@ export const useAdminNotifications = () => {
     }
   }, [errorMessage])
 
-  const filteredNotifications = React.useMemo(() => {
-    const ql = search.trim().toLowerCase()
-
-    const filtered = notifications.filter((n) => {
-      if (stateFilter !== "all" && n.state !== stateFilter) return false
-      if (!ql) return true
-
-      return (
-        n.message.toLowerCase().includes(ql) ||
-        (n.subject ?? "").toLowerCase().includes(ql) ||
-        n.targetType.toLowerCase().includes(ql) ||
-        String(n.targetId).includes(ql) ||
-        n.recipient?.fullName?.toLowerCase().includes(ql) ||
-        n.recipient?.email?.toLowerCase().includes(ql) ||
-        (n.emailFrom ?? "").toLowerCase().includes(ql) ||
-        (n.emailReplyTo ?? "").toLowerCase().includes(ql)
-      )
-    })
-
-    return filtered.sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-    )
-  }, [notifications, search, stateFilter])
-
   const deleteMutation = useMutation({
     mutationFn: deleteNotificationById,
     onMutate: async (id: number) => {
-      await queryClient.cancelQueries({ queryKey: notificationKeys.adminList() })
+      await queryClient.cancelQueries({ queryKey })
       const previous =
-        queryClient.getQueryData<Notification[]>(
-          notificationKeys.adminList(),
-        ) ?? []
+        queryClient.getQueryData<NotificationListResult>(queryKey)
 
-      queryClient.setQueryData<Notification[]>(
-        notificationKeys.adminList(),
-        (current = []) => current.filter((n) => n.id !== id),
+      queryClient.setQueryData<NotificationListResult>(
+        queryKey,
+        (current) => {
+          if (!current) return current
+          return {
+            ...current,
+            notifications: current.notifications.filter(
+              (n) => n.id !== id,
+            ),
+            pagination: {
+              ...current.pagination,
+              total: Math.max(0, current.pagination.total - 1),
+            },
+          }
+        },
       )
 
       return { previous }
     },
     onError: (_err, _id, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(
-          notificationKeys.adminList(),
-          context.previous,
-        )
+        queryClient.setQueryData(queryKey, context.previous)
       }
     },
     onSettled: () => {
       queryClient.invalidateQueries({
-        queryKey: notificationKeys.adminList(),
+        queryKey,
       })
     },
   })
@@ -132,10 +167,17 @@ export const useAdminNotifications = () => {
   const resendMutation = useMutation({
     mutationFn: resendNotificationEmail,
     onSuccess: (updated) => {
-      queryClient.setQueryData<Notification[]>(
-        notificationKeys.adminList(),
-        (current = []) =>
-          current.map((n) => (n.id === updated.id ? { ...n, ...updated } : n)),
+      queryClient.setQueryData<NotificationListResult>(
+        queryKey,
+        (current) => {
+          if (!current) return current
+          return {
+            ...current,
+            notifications: current.notifications.map((n) =>
+              n.id === updated.id ? { ...n, ...updated } : n,
+            ),
+          }
+        },
       )
     },
   })
@@ -178,8 +220,10 @@ export const useAdminNotifications = () => {
   const targetLabel = (type: NotificationTargetType, id: number) =>
     `${type} #${id}`
 
-  const toggleColumn = (key: keyof ColState, value: boolean | "indeterminate") =>
-    setCols((c) => ({ ...c, [key]: !!value }))
+  const toggleColumn = (
+    key: keyof ColState,
+    value: boolean | "indeterminate",
+  ) => setCols((c) => ({ ...c, [key]: !!value }))
 
   const openDeleteDialog = (id: number) => {
     setDeletingId(id)
@@ -231,12 +275,17 @@ export const useAdminNotifications = () => {
     loading,
     error: errorMessage,
     search,
-    setSearch,
+    setSearch: (value: string) => {
+      setSearch(value)
+      setPage(1)
+    },
     stateFilter,
-    setStateFilter,
+    setStateFilter: (value: NotificationState | "all") => {
+      setStateFilter(value)
+      setPage(1)
+    },
     cols,
     toggleColumn,
-    filteredNotifications,
     formatDate,
     stateBadgeVariant,
     stateLabel,
@@ -249,5 +298,10 @@ export const useAdminNotifications = () => {
     closeDeleteDialog,
     confirmDelete,
     handleResend,
+    pagination,
+    page,
+    pageSize,
+    setPage: (value: number) => onPageChange(value, pagination.totalPages),
+    setPageSize: onPageSizeChange,
   }
 }

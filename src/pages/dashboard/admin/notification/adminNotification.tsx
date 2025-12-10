@@ -17,7 +17,7 @@ export default function AdminNotificationPage() {
     toggleColumn,
     loading,
     error,
-    filteredNotifications,
+    notifications,
     formatDate,
     stateBadgeVariant,
     stateLabel,
@@ -30,6 +30,11 @@ export default function AdminNotificationPage() {
     closeDeleteDialog,
     confirmDelete,
     handleResend,
+    pagination,
+    page,
+    pageSize,
+    setPage,
+    setPageSize,
   } = useAdminNotifications()
 
   return (
@@ -53,7 +58,12 @@ export default function AdminNotificationPage() {
           onToggleColumn={toggleColumn}
           loading={loading}
           error={error}
-          notifications={filteredNotifications}
+          notifications={notifications}
+          pagination={pagination}
+          page={page}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
           formatDate={formatDate}
           stateBadgeVariant={stateBadgeVariant}
           stateLabel={stateLabel}

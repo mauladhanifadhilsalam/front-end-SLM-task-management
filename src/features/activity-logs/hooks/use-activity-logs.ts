@@ -1,21 +1,20 @@
 import * as React from "react"
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query"
 import { toast } from "sonner"
 import type { ActivityLog, ActivityLogColumns } from "@/types/activity-log.type"
 import {
-  fetchActivityLogs,
+  fetchActivityLogsWithPagination,
   deleteActivityLog,
+  type ActivityLogListParams,
+  type ActivityLogListResult,
 } from "@/services/activity-log.service"
-
-type UseActivityLogsState = {
-  logs: ActivityLog[]
-  loading: boolean
-  error: string
-  search: string
-  cols: ActivityLogColumns
-  isDeleteDialogOpen: boolean
-  logToDelete: ActivityLog | null
-  isDeleting: boolean
-}
+import { activityLogKeys } from "@/lib/query-keys"
+import { usePagination } from "@/hooks/use-pagination"
 
 const defaultColumns: ActivityLogColumns = {
   id: true,
@@ -30,12 +29,17 @@ const defaultColumns: ActivityLogColumns = {
 }
 
 export const useActivityLogs = () => {
-  const [logs, setLogs] = React.useState<ActivityLog[]>([])
-  const [loading, setLoading] = React.useState(true)
-  const [error, setError] = React.useState("")
+  const queryClient = useQueryClient()
   const [search, setSearch] = React.useState("")
   const [cols, setCols] =
     React.useState<ActivityLogColumns>(defaultColumns)
+  const {
+    page,
+    pageSize,
+    onPageChange,
+    onPageSizeChange,
+    setPage,
+  } = usePagination()
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] =
     React.useState(false)
@@ -43,31 +47,87 @@ export const useActivityLogs = () => {
     React.useState<ActivityLog | null>(null)
   const [isDeleting, setIsDeleting] = React.useState(false)
 
-  const loadLogs = React.useCallback(async () => {
-    setLoading(true)
-    setError("")
-
-    try {
-      const list = await fetchActivityLogs()
-      setLogs(list)
-    } catch (e: any) {
-      const msg =
-        e?.response?.data?.message || "Gagal memuat data."
-      setError(msg)
-      toast.error("Gagal memuat activity logs", {
-        description: msg,
-      })
-    } finally {
-      setLoading(false)
+  const filters = React.useMemo<ActivityLogListParams>(() => {
+    const params: ActivityLogListParams = {
+      page,
+      pageSize,
     }
-  }, [])
+    const trimmed = search.trim()
+    if (trimmed) params.search = trimmed
+    return params
+  }, [search, page, pageSize])
+
+  const queryKey = React.useMemo(
+    () => activityLogKeys.list(filters),
+    [filters],
+  )
+
+  const logsQuery = useQuery({
+    queryKey,
+    queryFn: () => fetchActivityLogsWithPagination(filters),
+    staleTime: 30 * 1000,
+    placeholderData: keepPreviousData,
+  })
+
+  const logs = logsQuery.data?.logs ?? []
+  const pagination = logsQuery.data?.pagination ?? {
+    total: 0,
+    page,
+    pageSize,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPrevPage: false,
+  }
+  const loading = logsQuery.isLoading
+  const error = logsQuery.error
+    ? logsQuery.error instanceof Error
+      ? logsQuery.error.message
+      : "Gagal memuat data."
+    : ""
 
   React.useEffect(() => {
-    loadLogs()
-  }, [loadLogs])
+    if (error) {
+      toast.error("Gagal memuat activity logs", { description: error })
+    }
+  }, [error])
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteActivityLog,
+    onMutate: async (id: number) => {
+      await queryClient.cancelQueries({ queryKey })
+      const previous =
+        queryClient.getQueryData<ActivityLogListResult>(queryKey)
+
+      queryClient.setQueryData<ActivityLogListResult>(
+        queryKey,
+        (current) => {
+          if (!current) return current
+          return {
+            ...current,
+            logs: current.logs.filter((log) => log.id !== id),
+            pagination: {
+              ...current.pagination,
+              total: Math.max(0, current.pagination.total - 1),
+            },
+          }
+        },
+      )
+
+      return { previous }
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKey, context.previous)
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey })
+    },
+  })
 
   const handleSearchChange = (value: string) => {
     setSearch(value)
+    setPage(1)
   }
 
   const handleToggleColumn = (key: keyof ActivityLogColumns) => {
@@ -92,51 +152,25 @@ export const useActivityLogs = () => {
     if (!logToDelete) return
 
     setIsDeleting(true)
-    setError("")
-    const prev = logs
-    setLogs((p) => p.filter((l) => l.id !== logToDelete.id))
 
     try {
-      await deleteActivityLog(logToDelete.id)
+      await deleteMutation.mutateAsync(logToDelete.id)
 
       toast.success("Log berhasil dihapus", {
-        description: `ID: ${logToDelete.id} • ${logToDelete.action}`,
+        description: `ID: ${logToDelete.id} ? ${logToDelete.action}`,
       })
 
       setIsDeleteDialogOpen(false)
       setLogToDelete(null)
     } catch (e: any) {
-      setLogs(prev)
-      const msg =
-        e?.response?.data?.message || "Gagal menghapus log."
-      setError(msg)
-      toast.error("Gagal menghapus log", {
-        description: msg,
-      })
+      const msg = e?.response?.data?.message || "Gagal menghapus log."
+      toast.error("Gagal menghapus log", { description: msg })
     } finally {
       setIsDeleting(false)
     }
   }
 
-  const filteredLogs = React.useMemo(() => {
-    const q = search.toLowerCase()
-    if (!q) return logs
-    return logs.filter((log) => {
-      const action = log.action.toLowerCase()
-      const targetType = log.targetType.toLowerCase()
-      const fullName = log.user.fullName.toLowerCase()
-      const email = log.user.email.toLowerCase()
-      const role = log.user.role.toLowerCase()
-
-      return (
-        action.includes(q) ||
-        targetType.includes(q) ||
-        fullName.includes(q) ||
-        email.includes(q) ||
-        role.includes(q)
-      )
-    })
-  }, [logs, search])
+  const filteredLogs = React.useMemo(() => logs, [logs])
 
   const visibleColCount = React.useMemo(
     () => Object.values(cols).filter(Boolean).length,
@@ -154,11 +188,16 @@ export const useActivityLogs = () => {
     isDeleting,
     filteredLogs,
     visibleColCount,
-    loadLogs,
+    pagination,
+    page,
+    pageSize,
+    refetch: logsQuery.refetch,
     handleSearchChange,
     handleToggleColumn,
     openDeleteDialog,
     closeDeleteDialog,
     handleDeleteLog,
+    setPage: (value: number) => onPageChange(value, pagination.totalPages),
+    setPageSize: onPageSizeChange,
   }
 }

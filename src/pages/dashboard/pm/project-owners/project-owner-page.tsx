@@ -17,7 +17,7 @@ export default function ProjectOwnerPage() {
   const navigate = useNavigate()
 
   const {
-    filteredOwners,
+    owners,
     loading,
     error,
     search,
@@ -26,9 +26,14 @@ export default function ProjectOwnerPage() {
     colSpan,
     toggleColumn,
     deleteOwner,
+    pagination,
+    page,
+    pageSize,
+    setPage,
+    setPageSize,
   } = useAdminProjectOwners()
 
-  const hasData = filteredOwners.length > 0
+  const hasData = owners.length > 0
 
   const handleAddOwner = () => {
     navigate("/project-manager/dashboard/project-owners/create")
@@ -73,12 +78,17 @@ export default function ProjectOwnerPage() {
                   />
 
                   <ProjectOwnersTable
-                    owners={filteredOwners}
+                    owners={owners}
                     loading={loading}
                     error={error}
                     columns={columns}
                     colSpan={colSpan}
                     onDeleteOwner={deleteOwner}
+                    pagination={pagination}
+                    page={page}
+                    pageSize={pageSize}
+                    onPageChange={setPage}
+                    onPageSizeChange={setPageSize}
                   />
 
                   {!loading && !error && !hasData && (

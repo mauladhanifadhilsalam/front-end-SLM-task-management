@@ -18,7 +18,6 @@ export default function AdminProjects() {
 
   const {
     projects,
-    filteredProjects,
     loading,
     error,
     search,
@@ -28,11 +27,16 @@ export default function AdminProjects() {
     setStatusFilter,
     toggleColumn,
     deleteProject,
+    setPageSize,
   } = useAdminProjects()
 
   const [downloadingReport, setDownloadingReport] = React.useState(false)
 
-  const hasData = filteredProjects.length > 0
+  const hasData = projects.length > 0
+
+  React.useEffect(() => {
+    setPageSize(50)
+  }, [setPageSize])
 
   const handleCreateProject = () => {
     navigate("/project-manager/dashboard/projects/create")
@@ -111,7 +115,7 @@ export default function AdminProjects() {
             />
 
             <ProjectsCardsList
-                projects={filteredProjects}
+                projects={projects}
                 loading={loading}
                 error={error}
                 onDelete={deleteProject}

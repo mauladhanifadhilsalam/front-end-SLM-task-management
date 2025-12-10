@@ -15,6 +15,8 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { TablePaginationControls } from "@/components/table-pagination-controls"
+import type { PaginationMeta } from "@/types/pagination"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -47,6 +49,11 @@ type Props = {
   onCreate: () => void
   formatDate: (iso?: string) => string
   hasFilter: boolean
+  pagination: PaginationMeta
+  page: number
+  pageSize: number
+  onPageChange: (page: number) => void
+  onPageSizeChange: (size: number) => void
 }
 
 const statusVariant = (
@@ -107,6 +114,11 @@ export function TicketsTable({
   onCreate,
   formatDate,
   hasFilter,
+  pagination,
+  page,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
 }: Props) {
   return (
     <div className="px-4 lg:px-6">
@@ -410,6 +422,15 @@ export function TicketsTable({
           )
         )}
       </div>
+
+      <TablePaginationControls
+        total={pagination.total}
+        page={page}
+        pageSize={pageSize}
+        onPageChange={onPageChange}
+        onPageSizeChange={onPageSizeChange}
+        label="tickets"
+      />
     </div>
   )
 }

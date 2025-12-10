@@ -67,8 +67,8 @@ const getStatusVariant = (status: Project["status"]) => {
       return { label: "IN PROGRESS", variant: "default" as const }
     case "ON_HOLD":
       return { label: "ON HOLD", variant: "secondary" as const }
-    case "COMPLETED":
-      return { label: "COMPLETED", variant: "default" as const }
+    case "DONE":
+      return { label: "DONE", variant: "default" as const }
     default:
       return { label: String(status ?? "Unknown"), variant: "outline" as const }
   }

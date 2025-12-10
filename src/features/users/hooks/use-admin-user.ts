@@ -1,11 +1,23 @@
 import * as React from "react"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query"
 import { toast } from "sonner"
-import { User, Role } from "@/types/user.types"
-import { fetchUsers, deleteUserById } from "@/services/user.service"
+import { Role } from "@/types/user.types"
+import {
+  fetchUsersWithPagination,
+  deleteUserById,
+  type UserListParams,
+  type FetchUsersResult,
+  emptyUserPagination,
+} from "@/services/user.service"
 import { userKeys } from "@/lib/query-keys"
 
-type RoleFilter = Role | "all"
+type ManagedRole = Extract<Role, "PROJECT_MANAGER" | "DEVELOPER">
+export type RoleFilter = ManagedRole | "all"
 
 export type UserTableColumns = {
     id: boolean
@@ -21,6 +33,8 @@ export const useAdminUsers = () => {
     const [error, setError] = React.useState("")
     const [search, setSearch] = React.useState("")
     const [roleFilter, setRoleFilter] = React.useState<RoleFilter>("all")
+    const [page, setPage] = React.useState(1)
+    const [pageSize, setPageSize] = React.useState(10)
     const [columns, setColumns] = React.useState<UserTableColumns>({
         id: true,
         fullName: true,
@@ -30,10 +44,30 @@ export const useAdminUsers = () => {
         actions: true,
 })
 
-const usersQuery = useQuery({
-    queryKey: userKeys.list(),
-    queryFn: fetchUsers,
+const filters = React.useMemo(() => {
+  const params: UserListParams = {
+    page,
+    pageSize,
+  }
+
+  const trimmedSearch = search.trim()
+  if (trimmedSearch) {
+    params.search = trimmedSearch
+  }
+  if (roleFilter !== "all") {
+    params.role = roleFilter
+  }
+
+  return params
+}, [search, roleFilter, page, pageSize])
+
+const queryKey = React.useMemo(() => userKeys.list(filters), [filters])
+
+const usersQuery = useQuery<FetchUsersResult>({
+    queryKey,
+    queryFn: () => fetchUsersWithPagination(filters),
     staleTime: 30 * 1000,
+    placeholderData: keepPreviousData,
 })
 
 React.useEffect(() => {
@@ -48,29 +82,64 @@ React.useEffect(() => {
     }
 }, [usersQuery.error, usersQuery.isSuccess])
 
-const users = usersQuery.data ?? []
+const users = usersQuery.data?.users ?? []
+const pagination = usersQuery.data?.pagination ?? emptyUserPagination
+
+const handleSearchChange = React.useCallback((value: string) => {
+  setSearch(value)
+  setPage(1)
+}, [])
+
+const handleRoleFilterChange = React.useCallback((value: RoleFilter) => {
+  setRoleFilter(value)
+  setPage(1)
+}, [])
+
+const handlePageChange = React.useCallback(
+  (nextPage: number) => {
+    const safeTotalPages = pagination.totalPages || 1
+    const clamped = Math.max(1, Math.min(nextPage, safeTotalPages))
+    setPage(clamped)
+  },
+  [pagination.totalPages],
+)
+
+const handlePageSizeChange = React.useCallback((nextSize: number) => {
+  setPageSize(nextSize)
+  setPage(1)
+}, [])
 
 const deleteMutation = useMutation({
     mutationFn: deleteUserById,
     onMutate: async (id: number) => {
-        await queryClient.cancelQueries({ queryKey: userKeys.list() })
+        await queryClient.cancelQueries({ queryKey })
         const previous =
-            queryClient.getQueryData<User[]>(userKeys.list()) ?? []
+            queryClient.getQueryData<FetchUsersResult>(queryKey)
 
-        queryClient.setQueryData<User[]>(
-            userKeys.list(),
-            (current = []) => current.filter((u) => u.id !== id),
+        queryClient.setQueryData<FetchUsersResult>(
+            queryKey,
+            (current) => {
+                if (!current) return current
+                return {
+                    ...current,
+                    users: current.users.filter((u) => u.id !== id),
+                    pagination: {
+                        ...current.pagination,
+                        total: Math.max(0, current.pagination.total - 1),
+                    },
+                }
+            },
         )
 
         return { previous }
     },
     onError: (_err, _id, context) => {
         if (context?.previous) {
-            queryClient.setQueryData(userKeys.list(), context.previous)
+            queryClient.setQueryData(queryKey, context.previous)
         }
     },
     onSettled: () => {
-        queryClient.invalidateQueries({ queryKey: userKeys.list() })
+        queryClient.invalidateQueries({ queryKey })
     },
 })
 
@@ -92,20 +161,7 @@ const handleDeleteUser = React.useCallback(
     [deleteMutation],
 )
 
-const filteredUsers = React.useMemo(() => {
-    const q = search.trim().toLowerCase()
-
-    return users.filter((u) => {
-        if (roleFilter !== "all" && u.role !== roleFilter) return false
-        if (!q) return true
-        return (
-            u.fullName.toLowerCase().includes(q) ||
-            u.email.toLowerCase().includes(q)
-        )
-        })
-    }, [users, search, roleFilter])
-
-    const toggleColumn = React.useCallback(
+const toggleColumn = React.useCallback(
         (key: keyof UserTableColumns, value: boolean | "indeterminate") => {
         setColumns((current) => ({
             ...current,
@@ -117,13 +173,17 @@ const filteredUsers = React.useMemo(() => {
 
 return {
         users,
-        filteredUsers,
         loading: usersQuery.isLoading,
         error,
         search,
-        setSearch,
+        setSearch: handleSearchChange,
         roleFilter,
-        setRoleFilter,
+        setRoleFilter: handleRoleFilterChange,
+        pagination,
+        page,
+        pageSize,
+        setPage: handlePageChange,
+        setPageSize: handlePageSizeChange,
         columns,
         toggleColumn,
         handleDeleteUser,

@@ -3,19 +3,25 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { IconTrash } from "@tabler/icons-react"
+import type { PaginationMeta } from "@/types/pagination"
+import { TablePaginationControls } from "@/components/table-pagination-controls"
 import type {
   ActivityLog,
   ActivityLogColumns,
 } from "@/types/activity-log.type"
 
 type Props = {
-  logs: ActivityLog[]
   filteredLogs: ActivityLog[]
   loading: boolean
   error: string
   cols: ActivityLogColumns
   visibleColCount: number
   onDeleteClick: (log: ActivityLog) => void
+  pagination: PaginationMeta
+  page: number
+  pageSize: number
+  onPageChange: (page: number) => void
+  onPageSizeChange: (size: number) => void
 }
 
 const formatDate = (iso: string) =>
@@ -37,19 +43,23 @@ const getActionVariant = (action: string) => {
 }
 
 export const ActivityLogsTable: React.FC<Props> = ({
-  logs,
   filteredLogs,
   loading,
   error,
   cols,
   visibleColCount,
   onDeleteClick,
+  pagination,
+  page,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
 }) => {
   const colSpan = visibleColCount || 1
 
   return (
     <div className="px-4 lg:px-6">
-      <Card className="rounded-md border overflow-x-auto">
+      <div className="overflow-x-auto rounded border">
         <table className="min-w-full divide-y divide-border text-sm">
           <thead className="bg-muted/50">
             <tr className="text-left">
@@ -229,7 +239,15 @@ export const ActivityLogsTable: React.FC<Props> = ({
             )}
           </tbody>
         </table>
-      </Card>
+        <TablePaginationControls
+          total={pagination.total}
+          page={page}
+          pageSize={pageSize}
+          onPageChange={onPageChange}
+          onPageSizeChange={onPageSizeChange}
+          label="activity logs"
+        />
+      </div>
     </div>
   )
 }

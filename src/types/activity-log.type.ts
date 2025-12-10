@@ -1,3 +1,14 @@
+export type ActivityTargetType =
+  | "USER"
+  | "PROJECT"
+  | "TICKET"
+  | "COMMENT"
+  | "ATTACHMENT"
+  | "NOTIFICATION"
+  | "PROJECT_PHASE"
+  | "PROJECT_ASSIGNMENT"
+  | "PROJECT_OWNER"
+
 export type ActivityLogUser = {
   id: number
   fullName: string
@@ -9,7 +20,7 @@ export type ActivityLog = {
   id: number
   userId: number
   action: string
-  targetType: string
+  targetType: ActivityTargetType
   targetId: number
   details: Record<string, unknown>
   occurredAt: string

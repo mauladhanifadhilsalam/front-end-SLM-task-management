@@ -17,6 +17,8 @@ import type { Phase } from "@/types/project-phases.type";
 import type { PhaseColumnState } from "../hooks/use-admin-project-phase-list";
 import { formatDate } from "@/utils/format-date-time";
 import type { ProjectStatus } from "@/types/project.type";
+import type { PaginationMeta } from "@/types/pagination";
+import { TablePaginationControls } from "@/components/table-pagination-controls";
 
 type Props = {
   phases: Phase[];
@@ -26,6 +28,11 @@ type Props = {
   colSpan: number;
   onDeletePhase: (id: number) => void;
   getStatusVariant: (status?: ProjectStatus | null) => "default" | "secondary" | "outline";
+  pagination: PaginationMeta;
+  page: number;
+  pageSize: number;
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (size: number) => void;
 };
 
 export const AdminProjectPhaseTable: React.FC<Props> = ({
@@ -36,56 +43,13 @@ export const AdminProjectPhaseTable: React.FC<Props> = ({
   colSpan,
   onDeletePhase,
   getStatusVariant,
+  pagination,
+  page,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
 }) => {
-  if (loading) {
-    return (
-      <table className="min-w-full divide-y divide-border">
-        <tbody>
-          <tr>
-            <td colSpan={colSpan} className="px-4 py-6 text-center">
-              Loading...
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    );
-  }
-
-  if (error) {
-    return (
-      <table className="min-w-full divide-y divide-border">
-        <tbody>
-          <tr>
-            <td
-              colSpan={colSpan}
-              className="px-4 py-6 text-center text-red-600"
-            >
-              {error}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    );
-  }
-
-  if (phases.length === 0) {
-    return (
-      <table className="min-w-full divide-y divide-border">
-        <tbody>
-          <tr>
-            <td
-              colSpan={colSpan}
-              className="px-4 py-6 text-center text-muted-foreground"
-            >
-              No phases found
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    );
-  }
-
-  return (
+  const table = (
     <table className="min-w-full divide-y divide-border">
       <thead className="bg-muted/50">
         <tr className="text-center">
@@ -232,5 +196,46 @@ export const AdminProjectPhaseTable: React.FC<Props> = ({
         ))}
       </tbody>
     </table>
+  );
+
+  if (loading || error || phases.length === 0) {
+    const message = loading
+      ? "Loading..."
+      : error
+        ? error
+        : "No phases found";
+
+    const messageClass = error ? "text-red-600" : "text-muted-foreground";
+
+    return (
+      <div className="overflow-x-auto rounded-md border">
+        <table className="min-w-full divide-y divide-border">
+          <tbody>
+            <tr>
+              <td
+                colSpan={colSpan}
+                className={`px-4 py-6 text-center ${loading ? "" : messageClass}`.trim()}
+              >
+                {message}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-x-auto rounded-md border">
+      {table}
+      <TablePaginationControls
+        total={pagination.total}
+        page={page}
+        pageSize={pageSize}
+        onPageChange={onPageChange}
+        onPageSizeChange={onPageSizeChange}
+        label="phases"
+      />
+    </div>
   );
 };

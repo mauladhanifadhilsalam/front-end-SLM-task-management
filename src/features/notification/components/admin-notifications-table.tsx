@@ -26,7 +26,9 @@ import {
   IconTrash,
   IconReload,
 } from "@tabler/icons-react"
-import type { Notification } from "@/types/notification.type"
+import type { Notification, NotificationState } from "@/types/notification.type"
+import type { PaginationMeta } from "@/types/pagination"
+import { TablePaginationControls } from "@/components/table-pagination-controls"
 
 type ColState = {
   id: boolean
@@ -45,13 +47,18 @@ type ColState = {
 type Props = {
   search: string
   onSearchChange: (value: string) => void
-  stateFilter: string
-  onStateFilterChange: (value: string) => void
+  stateFilter: NotificationState | "all"
+  onStateFilterChange: (value: NotificationState | "all") => void
   cols: ColState
   onToggleColumn: (key: keyof ColState, value: boolean | "indeterminate") => void
   loading: boolean
   error: string
   notifications: Notification[]
+  pagination: PaginationMeta
+  page: number
+  pageSize: number
+  onPageChange: (page: number) => void
+  onPageSizeChange: (size: number) => void
   formatDate: (value: string | null) => string
   stateBadgeVariant: (
     state: Notification["state"],
@@ -81,6 +88,11 @@ export const AdminNotificationsTable: React.FC<Props> = ({
   loading,
   error,
   notifications,
+  pagination,
+  page,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
   formatDate,
   stateBadgeVariant,
   stateLabel,
@@ -116,7 +128,12 @@ export const AdminNotificationsTable: React.FC<Props> = ({
               onChange={(e) => onSearchChange(e.target.value)}
               className="w-full sm:w-80"
             />
-            <Select value={stateFilter} onValueChange={onStateFilterChange}>
+            <Select
+              value={stateFilter}
+              onValueChange={(value) =>
+                onStateFilterChange(value as NotificationState | "all")
+              }
+            >
               <SelectTrigger className="w-full sm:w-48">
                 <SelectValue placeholder="Filter status baca" />
               </SelectTrigger>
@@ -338,6 +355,14 @@ export const AdminNotificationsTable: React.FC<Props> = ({
                 ))}
               </tbody>
             </table>
+            <TablePaginationControls
+              total={pagination.total}
+              page={page}
+              pageSize={pageSize}
+              onPageChange={onPageChange}
+              onPageSizeChange={onPageSizeChange}
+              label="notifications"
+            />
           </div>
         )}
 
