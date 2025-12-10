@@ -1,7 +1,7 @@
 import axios from "axios"
 import type { TicketLite, AdminTicket, TicketDetail } from "@/types/ticket-type"
-import { getAuthHeaders } from "@/utils/auth-header.util"
 import type { EditTicketAssigneeTicket } from "@/types/ticket-assignee.type"
+import { getAuthHeaders } from "@/utils/auth-header.util"
 import {
   extractArrayFromApi,
   unwrapApiData,
@@ -79,25 +79,13 @@ export async function fetchTicketByIdAssignee(
   return unwrapApiData<EditTicketAssigneeTicket>(res.data)
 }
 
-export async function updateTicketStatusAndPriority(
-  id: number | string,
-  payload: { status: string; priority: string },
-): Promise<void> {
-  await axios.patch(`${API_BASE}/tickets/${id}`, payload, {
-    headers: {
-      ...getAuthHeaders(),
-      "Content-Type": "application/json",
-    },
-  })
-}
-
 export async function deleteTicket(id: number | string): Promise<void> {
   await axios.delete(`${API_BASE}/tickets/${id}`, {
     headers: getAuthHeaders(),
   })
 }
 
-// ✅ map Ticket API → AdminTicket (sekarang termasuk assigneeIds)
+
 const mapTicket = (raw: RawTicket): AdminTicket => {
   const assigneeIds =
     Array.isArray(raw.assignees)

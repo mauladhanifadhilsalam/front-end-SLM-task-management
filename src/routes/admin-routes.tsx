@@ -36,7 +36,6 @@ import ViewComments from "../pages/dashboard/admin/comments/viewComments"
 import TicketAssignee from "../pages/dashboard/admin/ticketAssignee/adminTicketAssignee"
 import CreateTicketAssigneePage from "../pages/dashboard/admin/ticketAssignee/createTicketAssignee"
 import ViewTicketAssignee from "../pages/dashboard/admin/ticketAssignee/viewTicketAssignee"
-import EditTicketAssignee from "../pages/dashboard/admin/ticketAssignee/editTicketAssignee"
 
 import AdminFileAttachments from "../pages/dashboard/admin/fileAttachment/adminFileAttachment"
 import CreateFileAttachment from "../pages/dashboard/admin/fileAttachment/createFileAttachment"
@@ -294,14 +293,6 @@ export const adminRoutes = (
       element={
         <ProtectedRoute allowedRoles={["admin"]}>
           <ViewTicketAssignee />
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin/dashboard/ticket-assignees/edit/:id"
-      element={
-        <ProtectedRoute allowedRoles={["admin"]}>
-          <EditTicketAssignee />
         </ProtectedRoute>
       }
     />

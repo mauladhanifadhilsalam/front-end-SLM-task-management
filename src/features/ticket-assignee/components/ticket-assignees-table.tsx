@@ -13,11 +13,7 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog"
-import {
-  IconEdit,
-  IconEye,
-  IconTrash,
-} from "@tabler/icons-react"
+import { IconEye, IconTrash } from "@tabler/icons-react"
 import type {
   TicketAssignee,
   TicketAssigneeColumns,
@@ -242,13 +238,6 @@ export const TicketAssigneesTable: React.FC<Props> = ({
                       >
                         <IconEye className="h-4 w-4" />
                       </Link>
-                      <Link
-                        to={`/admin/dashboard/ticket-assignees/edit/${a.ticket.id}`}
-                        className="cursor-pointer"
-                      >
-                        <IconEdit className="h-4 w-4" />
-                      </Link>
-
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <button
