@@ -1,8 +1,12 @@
+"use client"
+
 import * as React from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { Phase } from "@/types/project-phases.type";
 import type { ProjectStatus } from "@/types/project.type";
 import { fetchProjectPhases, deleteProjectPhase } from "@/services/project-phase.service";
+import { projectPhaseKeys } from "@/lib/query-keys";
 
 export type PhaseColumnState = {
   id: boolean;
@@ -27,30 +31,30 @@ const defaultColumns: PhaseColumnState = {
 };
 
 export const useAdminProjectPhaseList = () => {
-  const [phases, setPhases] = React.useState<Phase[]>([]);
-  const [loading, setLoading] = React.useState(true);
+  const queryClient = useQueryClient();
   const [error, setError] = React.useState("");
   const [query, setQuery] = React.useState("");
   const [cols, setCols] = React.useState<PhaseColumnState>(defaultColumns);
 
-  const loadPhases = React.useCallback(async () => {
-    setLoading(true);
-    setError("");
+  const phasesQuery = useQuery({
+    queryKey: projectPhaseKeys.list(),
+    queryFn: fetchProjectPhases,
+    staleTime: 60 * 1000,
+  });
 
-    try {
-      const data = await fetchProjectPhases();
-      setPhases(data);
-    } catch (e: any) {
-      const msg = e?.response?.data?.message || "Failed to load project phases";
-      setError(msg);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const phases = phasesQuery.data ?? [];
 
   React.useEffect(() => {
-    loadPhases();
-  }, [loadPhases]);
+    if (phasesQuery.error) {
+      const msg =
+        phasesQuery.error instanceof Error
+          ? phasesQuery.error.message
+          : "Failed to load project phases";
+      setError(msg);
+    } else if (phasesQuery.isSuccess) {
+      setError("");
+    }
+  }, [phasesQuery.error, phasesQuery.isSuccess]);
 
   const filteredPhases = React.useMemo(() => {
     const q = query.toLowerCase().trim();
@@ -75,20 +79,40 @@ export const useAdminProjectPhaseList = () => {
     }));
   };
 
+  const deleteMutation = useMutation({
+    mutationFn: deleteProjectPhase,
+    onMutate: async (id: number) => {
+      await queryClient.cancelQueries({ queryKey: projectPhaseKeys.list() });
+      const previous =
+        queryClient.getQueryData<Phase[]>(projectPhaseKeys.list()) ?? [];
+
+      queryClient.setQueryData<Phase[]>(
+        projectPhaseKeys.list(),
+        (current = []) => current.filter((phase) => phase.id !== id),
+      );
+
+      return { previous };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(projectPhaseKeys.list(), context.previous);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: projectPhaseKeys.list() });
+    },
+  });
+
   const deletePhase = async (id: number) => {
     const target = phases.find((phase) => phase.id === id);
-    const snapshot = phases;
-
-    setPhases((prev) => prev.filter((phase) => phase.id !== id));
 
     try {
-      await deleteProjectPhase(id);
+      await deleteMutation.mutateAsync(id);
 
       toast.success("Phase deleted", {
         description: `Phase "${target?.name ?? `#${id}`}" has been deleted.`,
       });
     } catch (err: any) {
-      setPhases(snapshot);
       const msg = err?.response?.data?.message || "Failed to delete phase";
       setError(msg);
       toast.error("Failed to delete phase", {
@@ -108,7 +132,7 @@ export const useAdminProjectPhaseList = () => {
   return {
     phases,
     filteredPhases,
-    loading,
+    loading: phasesQuery.isLoading,
     error,
     query,
     setQuery,
@@ -116,7 +140,7 @@ export const useAdminProjectPhaseList = () => {
     colSpan,
     toggleColumn,
     deletePhase,
-    reload: loadPhases,
+    reload: phasesQuery.refetch,
     getStatusVariant,
   };
 };

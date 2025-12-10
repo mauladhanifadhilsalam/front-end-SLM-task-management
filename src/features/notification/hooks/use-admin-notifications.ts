@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import {
   fetchNotifications,
@@ -13,6 +14,7 @@ import type {
   NotifyStatusType,
   NotificationTargetType,
 } from "@/types/notification.type"
+import { notificationKeys } from "@/lib/query-keys"
 
 type ColState = {
   id: boolean
@@ -29,10 +31,7 @@ type ColState = {
 }
 
 export const useAdminNotifications = () => {
-  const [notifications, setNotifications] = React.useState<Notification[]>([])
-  const [loading, setLoading] = React.useState(true)
-  const [error, setError] = React.useState("")
-
+  const queryClient = useQueryClient()
   const [search, setSearch] = React.useState("")
   const [stateFilter, setStateFilter] = React.useState<string>("all")
 
@@ -54,24 +53,25 @@ export const useAdminNotifications = () => {
   const [deletingId, setDeletingId] = React.useState<number | null>(null)
   const [deleting, setDeleting] = React.useState(false)
 
-  React.useEffect(() => {
-    const loadNotifications = async () => {
-      try {
-        setLoading(true)
-        setError("")
-        const data = await fetchNotifications()
-        setNotifications(data)
-      } catch (e: any) {
-        const msg = e?.response?.data?.message || "Gagal memuat data notifikasi"
-        setError(msg)
-        toast.error("Gagal memuat notifikasi", { description: msg })
-      } finally {
-        setLoading(false)
-      }
-    }
+  const notificationsQuery = useQuery({
+    queryKey: notificationKeys.adminList(),
+    queryFn: fetchNotifications,
+    staleTime: 30 * 1000,
+  })
 
-    loadNotifications()
-  }, [])
+  const notifications = notificationsQuery.data ?? []
+  const loading = notificationsQuery.isLoading
+  const errorMessage = notificationsQuery.error
+    ? notificationsQuery.error instanceof Error
+      ? notificationsQuery.error.message
+      : "Gagal memuat data notifikasi"
+    : ""
+
+  React.useEffect(() => {
+    if (errorMessage) {
+      toast.error("Gagal memuat notifikasi", { description: errorMessage })
+    }
+  }, [errorMessage])
 
   const filteredNotifications = React.useMemo(() => {
     const ql = search.trim().toLowerCase()
@@ -97,6 +97,48 @@ export const useAdminNotifications = () => {
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     )
   }, [notifications, search, stateFilter])
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteNotificationById,
+    onMutate: async (id: number) => {
+      await queryClient.cancelQueries({ queryKey: notificationKeys.adminList() })
+      const previous =
+        queryClient.getQueryData<Notification[]>(
+          notificationKeys.adminList(),
+        ) ?? []
+
+      queryClient.setQueryData<Notification[]>(
+        notificationKeys.adminList(),
+        (current = []) => current.filter((n) => n.id !== id),
+      )
+
+      return { previous }
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(
+          notificationKeys.adminList(),
+          context.previous,
+        )
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: notificationKeys.adminList(),
+      })
+    },
+  })
+
+  const resendMutation = useMutation({
+    mutationFn: resendNotificationEmail,
+    onSuccess: (updated) => {
+      queryClient.setQueryData<Notification[]>(
+        notificationKeys.adminList(),
+        (current = []) =>
+          current.map((n) => (n.id === updated.id ? { ...n, ...updated } : n)),
+      )
+    },
+  })
 
   const formatDate = (value: string | null) => {
     if (!value) return "-"
@@ -152,21 +194,16 @@ export const useAdminNotifications = () => {
 
   const confirmDelete = async () => {
     if (!deletingId) return
-
-    const prev = notifications
     const target = notifications.find((n) => n.id === deletingId)
 
     setDeleting(true)
-    setNotifications((current) => current.filter((n) => n.id !== deletingId))
-
     try {
-      await deleteNotificationById(deletingId)
+      await deleteMutation.mutateAsync(deletingId)
 
       toast.success(`Notifikasi #${deletingId} berhasil dihapus`, {
         description: target?.subject || target?.message?.slice(0, 80),
       })
     } catch (e: any) {
-      setNotifications(prev)
       const msg = e?.response?.data?.message || "Gagal menghapus notifikasi"
       toast.error("Gagal menghapus notifikasi", { description: msg })
     } finally {
@@ -178,12 +215,7 @@ export const useAdminNotifications = () => {
 
   const handleResend = async (notification: Notification) => {
     try {
-      const updated = await resendNotificationEmail(notification.id)
-
-      setNotifications((current) =>
-        current.map((n) => (n.id === updated.id ? { ...n, ...updated } : n)),
-      )
-
+      const updated = await resendMutation.mutateAsync(notification.id)
       toast.success("Email notifikasi berhasil dikirim ulang", {
         description: updated.subject || updated.message?.slice(0, 80),
       })
@@ -197,7 +229,7 @@ export const useAdminNotifications = () => {
   return {
     notifications,
     loading,
-    error,
+    error: errorMessage,
     search,
     setSearch,
     stateFilter,

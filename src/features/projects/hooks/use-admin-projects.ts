@@ -1,9 +1,12 @@
 "use client"
 
 import * as React from "react"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
+
 import { fetchProjects, deleteProjectById } from "@/services/project.service"
 import { Project, ProjectStatus } from "@/types/project.type"
+import { projectKeys } from "@/lib/query-keys"
 
 export type ProjectColumns = {
   id: boolean
@@ -19,15 +22,6 @@ export type ProjectColumns = {
 
 export type StatusFilter = "all" | ProjectStatus
 
-type State = {
-  projects: Project[]
-  loading: boolean
-  error: string
-  search: string
-  statusFilter: StatusFilter
-  columns: ProjectColumns
-}
-
 const initialColumns: ProjectColumns = {
   id: true,
   name: true,
@@ -40,68 +34,38 @@ const initialColumns: ProjectColumns = {
   actions: true,
 }
 
-const initialState: State = {
-  projects: [],
-  loading: true,
-  error: "",
-  search: "",
-  statusFilter: "all",
-  columns: initialColumns,
-}
-
 export const useAdminProjects = () => {
-  const [state, setState] = React.useState<State>(initialState)
+  const queryClient = useQueryClient()
+  const [error, setError] = React.useState("")
+  const [search, setSearch] = React.useState("")
+  const [statusFilter, setStatusFilter] = React.useState<StatusFilter>("all")
+  const [columns, setColumns] = React.useState<ProjectColumns>(initialColumns)
 
-  const loadProjects = React.useCallback(async () => {
-    setState((prev) => ({ ...prev, loading: true, error: "" }))
-    try {
-      const data = await fetchProjects()
-      setState((prev) => ({
-        ...prev,
-        projects: data,
-        loading: false,
-        error: "",
-      }))
-    } catch (e: any) {
-      const msg = e?.response?.data?.message || "Gagal memuat data proyek"
-      setState((prev) => ({
-        ...prev,
-        loading: false,
-        error: msg,
-      }))
-    }
-  }, [])
+  const projectsQuery = useQuery({
+    queryKey: projectKeys.list(),
+    queryFn: fetchProjects,
+    staleTime: 60 * 1000,
+  })
 
   React.useEffect(() => {
-    loadProjects()
-  }, [loadProjects])
+    if (projectsQuery.error) {
+      const msg =
+        projectsQuery.error instanceof Error
+          ? projectsQuery.error.message
+          : "Gagal memuat data proyek"
+      setError(msg)
+    } else if (projectsQuery.isSuccess) {
+      setError("")
+    }
+  }, [projectsQuery.error, projectsQuery.isSuccess])
 
-  const setSearch = React.useCallback((value: string) => {
-    setState((prev) => ({ ...prev, search: value }))
-  }, [])
-
-  const setStatusFilter = React.useCallback((value: StatusFilter) => {
-    setState((prev) => ({ ...prev, statusFilter: value }))
-  }, [])
-
-  const toggleColumn = React.useCallback(
-    (key: keyof ProjectColumns, value: boolean | "indeterminate") => {
-      setState((prev) => ({
-        ...prev,
-        columns: {
-          ...prev.columns,
-          [key]: Boolean(value),
-        },
-      }))
-    },
-    [],
-  )
+  const projects = (projectsQuery.data ?? []) as Project[]
 
   const filteredProjects = React.useMemo(() => {
-    const ql = state.search.trim().toLowerCase()
+    const ql = search.trim().toLowerCase()
 
-    const filtered = state.projects.filter((p) => {
-      if (state.statusFilter !== "all" && p.status !== state.statusFilter) {
+    const filtered = projects.filter((p) => {
+      if (statusFilter !== "all" && p.status !== statusFilter) {
         return false
       }
 
@@ -121,53 +85,77 @@ export const useAdminProjects = () => {
     })
 
     return filtered.sort((a, b) => a.id - b.id)
-  }, [state.projects, state.search, state.statusFilter])
+  }, [projects, search, statusFilter])
 
   const colSpan = React.useMemo(
-    () => Object.values(state.columns).filter(Boolean).length || 1,
-    [state.columns],
+    () => Object.values(columns).filter(Boolean).length || 1,
+    [columns],
   )
+
+  const toggleColumn = React.useCallback(
+    (key: keyof ProjectColumns, value: boolean | "indeterminate") => {
+      setColumns((prev) => ({
+        ...prev,
+        [key]: Boolean(value),
+      }))
+    },
+    [],
+  )
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteProjectById,
+    onMutate: async (id: number) => {
+      await queryClient.cancelQueries({ queryKey: projectKeys.list() })
+      const previous =
+        queryClient.getQueryData<Project[]>(projectKeys.list()) ?? []
+
+      queryClient.setQueryData<Project[]>(
+        projectKeys.list(),
+        (current = []) => current.filter((p) => p.id !== id),
+      )
+
+      return { previous }
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(projectKeys.list(), context.previous)
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: projectKeys.list() })
+    },
+  })
 
   const deleteProject = React.useCallback(
     async (id: number) => {
-      const prev = state.projects
-      const project = prev.find((p) => p.id === id)
-
-      setState((current) => ({
-        ...current,
-        projects: current.projects.filter((p) => p.id !== id),
-      }))
-
+      const project = projects.find((p) => p.id === id)
       try {
-        await deleteProjectById(id)
+        await deleteMutation.mutateAsync(id)
         toast.success("Project deleted", {
           description: `Project ${project?.name ?? ""} berhasil dihapus.`,
         })
       } catch (e: any) {
         const msg = e?.response?.data?.message || "Gagal menghapus proyek"
-        setState((current) => ({
-          ...current,
-          projects: prev,
-        }))
+        setError(msg)
         toast.error("Gagal menghapus project", { description: msg })
       }
     },
-    [state.projects],
+    [deleteMutation, projects],
   )
 
   return {
-    projects: state.projects,
+    projects,
     filteredProjects,
-    loading: state.loading,
-    error: state.error,
-    search: state.search,
-    statusFilter: state.statusFilter,
-    columns: state.columns,
+    loading: projectsQuery.isLoading,
+    error,
+    search,
+    statusFilter,
+    columns,
     colSpan,
     setSearch,
     setStatusFilter,
     toggleColumn,
     deleteProject,
-    reload: loadProjects,
+    reload: projectsQuery.refetch,
   }
 }

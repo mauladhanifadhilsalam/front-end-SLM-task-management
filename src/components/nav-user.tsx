@@ -1,10 +1,9 @@
 //nav-user
-import React, { useEffect, useState } from "react"
-import axios from "axios"
+import React from "react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
+import { useQuery } from "@tanstack/react-query"
 import {
-  IconCreditCard,
   IconDotsVertical,
   IconLogout,
   IconNotification,
@@ -44,39 +43,20 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { logout } from "@/services/auth"
+import { fetchMyProfile } from "@/services/profile.service"
+import { profileKeys } from "@/lib/query-keys"
 
-const API_BASE = import.meta.env.VITE_API_BASE
+const DEFAULT_AVATAR = "/default-avatar.png"
 
 export function NavUser() {
   const { isMobile } = useSidebar()
   const navigate = useNavigate()
 
-  const [user, setUser] = useState<{ fullName: string; email: string }>({
-    fullName: "",
-    email: "",
+  const { data: profile } = useQuery({
+    queryKey: profileKeys.me(),
+    queryFn: fetchMyProfile,
+    staleTime: 5 * 60 * 1000,
   })
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const token = localStorage.getItem("token")
-        const res = await axios.get(`${API_BASE}/auth/profile`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        const data = res?.data?.data ?? res?.data ?? {}
-        setUser({
-          fullName: data.fullName ?? "",
-          email: data.email ?? "",
-        })
-      } catch (err) {
-        console.error("Failed to fetch profile:", err)
-      }
-    }
-
-    fetchProfile()
-  }, [])
 
   const handleLogout = async () => {
     try {
@@ -105,6 +85,9 @@ export function NavUser() {
     }
   }
 
+  const fullName = profile?.fullName ?? ""
+  const email = profile?.email ?? ""
+  const avatarInitial = fullName ? fullName[0].toUpperCase() : "U"
 
   return (
     <SidebarMenu>
@@ -116,15 +99,15 @@ export function NavUser() {
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg grayscale">
-                <AvatarImage src="/default-avatar.png" alt={user.fullName} />
+                <AvatarImage src={DEFAULT_AVATAR} alt={fullName} />
                 <AvatarFallback className="rounded-lg">
-                  {user.fullName ? user.fullName[0].toUpperCase() : "U"}
+                  {avatarInitial}
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.fullName}</span>
+                <span className="truncate font-medium">{fullName}</span>
                 <span className="text-muted-foreground truncate text-xs">
-                  {user.email}
+                  {email}
                 </span>
               </div>
               <IconDotsVertical className="ml-auto size-4" />
@@ -140,15 +123,15 @@ export function NavUser() {
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src="/default-avatar.png" alt={user.fullName} />
+                  <AvatarImage src={DEFAULT_AVATAR} alt={fullName} />
                   <AvatarFallback className="rounded-lg">
-                    {user.fullName ? user.fullName[0].toUpperCase() : "U"}
+                    {avatarInitial}
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.fullName}</span>
+                  <span className="truncate font-medium">{fullName}</span>
                   <span className="text-muted-foreground truncate text-xs">
-                    {user.email}
+                    {email}
                   </span>
                 </div>
               </div>
@@ -175,23 +158,18 @@ export function NavUser() {
                 <IconUserCircle />
                 Account
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={goToNotifications}
-              >
+              <DropdownMenuItem onClick={goToNotifications}>
                 <IconNotification />
                 Notifications
               </DropdownMenuItem>
-
             </DropdownMenuGroup>
 
             <DropdownMenuSeparator />
 
-            {/* 🔻 Logout dengan AlertDialog */}
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <DropdownMenuItem
                   className="cursor-pointer text-red-600 focus:text-red-600"
-                  // biar gak trigger default select behavior tambahan
                   onSelect={(e) => e.preventDefault()}
                 >
                   <IconLogout className="mr-2 h-4 w-4" />
@@ -203,8 +181,8 @@ export function NavUser() {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Logout dari akun?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Anda akan keluar dari sesi saat ini. 
-                    Anda bisa login kembali kapan saja menggunakan akun yang sama.
+                    Anda akan keluar dari sesi saat ini. Anda bisa login kembali
+                    kapan saja menggunakan akun yang sama.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

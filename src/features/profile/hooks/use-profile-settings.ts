@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { useTheme } from "@/components/theme-provider"
 import {
@@ -20,6 +21,7 @@ import {
   updateMyProfile,
 } from "@/services/profile.service"
 import type { UserProfile } from "@/types/user.types"
+import { profileKeys } from "@/lib/query-keys"
 
 type ProfileFieldErrors = Partial<Record<ProfileField, string>>
 type PasswordFieldErrors = Partial<Record<ChangePasswordField, string>>
@@ -45,7 +47,6 @@ export function useProfileSettings() {
   const [passwordForm, setPasswordForm] =
     React.useState<ChangePasswordValues>(defaultPasswordForm)
 
-  const [loadingProfile, setLoadingProfile] = React.useState(true)
   const [savingProfile, setSavingProfile] = React.useState(false)
   const [changingPassword, setChangingPassword] = React.useState(false)
 
@@ -57,32 +58,44 @@ export function useProfileSettings() {
 
   const { theme, setTheme } = useTheme()
 
-  const loadProfile = React.useCallback(async () => {
-    setLoadingProfile(true)
-    setErrorMessage(null)
-    try {
-      const data = await fetchMyProfile()
-      setProfile(data)
-      setProfileForm({
-        fullName: data.fullName ?? "",
-        email: data.email ?? "",
-        phone: data.phone ?? "",
-        avatarUrl: data.avatarUrl ?? "",
-        timezone: data.timezone ?? "",
-      })
-    } catch (err: any) {
-      const msg =
-        err?.response?.data?.message || err?.message || "Gagal memuat profil."
-      setErrorMessage(msg)
-      toast.error("Gagal memuat profil", { description: msg })
-    } finally {
-      setLoadingProfile(false)
-    }
-  }, [])
+  const queryClient = useQueryClient()
+
+  const profileQuery = useQuery({
+    queryKey: profileKeys.me(),
+    queryFn: fetchMyProfile,
+    staleTime: 5 * 60 * 1000,
+  })
+
+  const loadingProfile = profileQuery.isLoading || profileQuery.isFetching
 
   React.useEffect(() => {
-    loadProfile()
-  }, [loadProfile])
+    if (profileQuery.data) {
+      setProfile(profileQuery.data)
+      setProfileForm({
+        fullName: profileQuery.data.fullName ?? "",
+        email: profileQuery.data.email ?? "",
+        phone: profileQuery.data.phone ?? "",
+        avatarUrl: profileQuery.data.avatarUrl ?? "",
+        timezone: profileQuery.data.timezone ?? "",
+      })
+    }
+  }, [profileQuery.data])
+
+  React.useEffect(() => {
+    if (profileQuery.error) {
+      const msg =
+        profileQuery.error instanceof Error
+          ? profileQuery.error.message
+          : "Gagal memuat profil."
+      setErrorMessage(msg)
+      toast.error("Gagal memuat profil", { description: msg })
+    }
+  }, [profileQuery.error])
+
+  const loadProfile = React.useCallback(() => {
+    setErrorMessage(null)
+    return profileQuery.refetch()
+  }, [profileQuery])
 
   const validateProfileField = React.useCallback(
     (field: ProfileField, value: string) => {
@@ -163,6 +176,7 @@ export function useProfileSettings() {
           avatarUrl: updated.avatarUrl ?? parsed.data.avatarUrl ?? "",
           timezone: updated.timezone ?? parsed.data.timezone ?? "",
         })
+        queryClient.setQueryData(profileKeys.me(), updated)
 
         toast.success("Profil diperbarui", {
           description: "Perubahan profil kamu sudah disimpan.",

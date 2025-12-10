@@ -1,23 +1,19 @@
-import axios from "axios"
 import type {
   AdminComment,
   CreateCommentPayload,
   EditCommentPayload,
 } from "@/types/comment.type"
-import { getAuthHeaders } from "@/utils/auth-header.util"
 import {
   extractArrayFromApi,
   unwrapApiData,
 } from "@/utils/api-response.util"
-const API_BASE = import.meta.env.VITE_API_BASE as string
+import { api } from "@/lib/api"
 
 
 export const fetchComments = async (): Promise<AdminComment[]> => {
-  const res = await axios.get(`${API_BASE}/comments`, {
-    headers: getAuthHeaders(),
-  })
+  const { data } = await api.get("/comments")
 
-  const candidate = extractArrayFromApi(res.data, ["comments"])
+  const candidate = extractArrayFromApi(data, ["comments"])
 
   const list: AdminComment[] = candidate.map((c: any): AdminComment => ({
     id: Number(c.id),
@@ -59,20 +55,13 @@ export const fetchComments = async (): Promise<AdminComment[]> => {
 }
 
 export const deleteComment = async (id: number): Promise<void> => {
-  await axios.delete(`${API_BASE}/comments/${id}`, {
-    headers: getAuthHeaders(),
-  })
+  await api.delete(`/comments/${id}`)
 }
 
 export const createComment = async (
   payload: CreateCommentPayload,
 ): Promise<void> => {
-  await axios.post(`${API_BASE}/comments`, payload, {
-    headers: {
-      "Content-Type": "application/json",
-      ...getAuthHeaders(),
-    },
-  })
+  await api.post("/comments", payload)
 }
 
 const mapRawComment = (c: any): AdminComment => ({
@@ -105,21 +94,14 @@ const mapRawComment = (c: any): AdminComment => ({
 })
 
 export const fetchCommentById = async (id: number): Promise<AdminComment> => {
-  const res = await axios.get(`${API_BASE}/comments/${id}`, {
-    headers: getAuthHeaders(),
-  })
-  const data = unwrapApiData(res.data)
-  return mapRawComment(data ?? {})
+  const { data } = await api.get(`/comments/${id}`)
+  const parsed = unwrapApiData(data)
+  return mapRawComment(parsed ?? {})
 }
 
 export const updateComment = async (
   id: number,
   payload: EditCommentPayload,
 ): Promise<void> => {
-  await axios.patch(`${API_BASE}/comments/${id}`, payload, {
-    headers: {
-      "Content-Type": "application/json",
-      ...getAuthHeaders(),
-    },
-  })
+  await api.patch(`/comments/${id}`, payload)
 }

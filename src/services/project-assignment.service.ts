@@ -1,17 +1,9 @@
-import axios from "axios"
 import type {
   ProjectAssignment,
   CreateProjectAssignmentPayload,
 } from "@/types/project-assignment.type"
 import { extractArrayFromApi } from "@/utils/api-response.util"
-
-const API_BASE = import.meta.env.VITE_API_BASE
-
-const getAuthHeaders = () => {
-  const token = localStorage.getItem("token")
-  if (!token) return undefined
-  return { Authorization: `Bearer ${token}` }
-}
+import { api } from "@/lib/api"
 
 const normalizeProjectAssignment = (a: any): ProjectAssignment => {
   return {
@@ -40,11 +32,9 @@ const normalizeProjectAssignment = (a: any): ProjectAssignment => {
 }
 
 export const fetchProjectAssignments = async (): Promise<ProjectAssignment[]> => {
-    const res = await axios.get(`${API_BASE}/project-assignments`, {
-        headers: getAuthHeaders(),
-    })
+    const { data } = await api.get(`/project-assignments`)
 
-    const raw: any[] = extractArrayFromApi(res.data, [
+    const raw: any[] = extractArrayFromApi(data, [
         "projectAssignments",
         "assignments",
     ])
@@ -54,9 +44,7 @@ export const fetchProjectAssignments = async (): Promise<ProjectAssignment[]> =>
 export const deleteProjectAssignmentById = async (
     id: number,
     ): Promise<void> => {
-    await axios.delete(`${API_BASE}/project-assignments/${id}`, {
-        headers: getAuthHeaders(),
-    })
+    await api.delete(`/project-assignments/${id}`)
 }
 
 export const createProjectAssignment = async (
@@ -64,7 +52,5 @@ export const createProjectAssignment = async (
 ): Promise<void> => {
 
 
-    await axios.post(`${API_BASE}/project-assignments`, payload, {
-        headers: getAuthHeaders(),
-    })
+    await api.post(`/project-assignments`, payload)
 }

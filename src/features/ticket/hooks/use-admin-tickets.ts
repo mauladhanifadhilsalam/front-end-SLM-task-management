@@ -1,9 +1,11 @@
 "use client"
 
 import * as React from "react"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import type { AdminTicket, AdminTicketColumns } from "@/types/ticket-type"
 import { fetchAdminTickets, deleteTicket } from "@/services/ticket.service"
+import { ticketKeys } from "@/lib/query-keys"
 
 const defaultColumns: AdminTicketColumns = {
   id: true,
@@ -19,31 +21,31 @@ const defaultColumns: AdminTicketColumns = {
 }
 
 export function useAdminTickets() {
-  const [tickets, setTickets] = React.useState<AdminTicket[]>([])
-  const [loading, setLoading] = React.useState(true)
+  const queryClient = useQueryClient()
   const [error, setError] = React.useState("")
   const [q, setQ] = React.useState("")
   const [cols, setCols] = React.useState<AdminTicketColumns>(defaultColumns)
 
-  const loadTickets = React.useCallback(async () => {
-    setLoading(true)
-    setError("")
-
-    try {
-      const data = await fetchAdminTickets()
-      setTickets(data)
-    } catch (e: any) {
-      const msg = e?.response?.data?.message || "Gagal memuat data tickets"
-      setError(msg)
-      toast.error("Gagal memuat data tickets", { description: msg })
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+  const ticketsQuery = useQuery({
+    queryKey: ticketKeys.list(),
+    queryFn: fetchAdminTickets,
+    staleTime: 30 * 1000,
+  })
 
   React.useEffect(() => {
-    loadTickets()
-  }, [loadTickets])
+    if (ticketsQuery.error) {
+      const msg =
+        ticketsQuery.error instanceof Error
+          ? ticketsQuery.error.message
+          : "Gagal memuat data tickets"
+      setError(msg)
+      toast.error("Gagal memuat data tickets", { description: msg })
+    } else if (ticketsQuery.isSuccess) {
+      setError("")
+    }
+  }, [ticketsQuery.error, ticketsQuery.isSuccess])
+
+  const tickets = ticketsQuery.data ?? []
 
   const formatDate = React.useCallback((iso?: string) => {
     if (!iso) return "-"
@@ -76,18 +78,38 @@ export function useAdminTickets() {
     setCols((prev) => ({ ...prev, [key]: value }))
   }
 
+  const deleteMutation = useMutation({
+    mutationFn: deleteTicket,
+    onMutate: async (id: number) => {
+      await queryClient.cancelQueries({ queryKey: ticketKeys.list() })
+      const previous =
+        queryClient.getQueryData<AdminTicket[]>(ticketKeys.list()) ?? []
+
+      queryClient.setQueryData<AdminTicket[]>(
+        ticketKeys.list(),
+        (current = []) => current.filter((t) => t.id !== id),
+      )
+
+      return { previous }
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(ticketKeys.list(), context.previous)
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ticketKeys.list() })
+    },
+  })
+
   const handleDelete = async (id: number) => {
     const target = tickets.find((x) => x.id === id)
-    const prev = tickets
-    setTickets((p) => p.filter((x) => x.id !== id))
-
     try {
-      await deleteTicket(id)
+      await deleteMutation.mutateAsync(id)
       toast.success("Ticket terhapus", {
         description: `Ticket “${target?.title ?? `#${id}`}” berhasil dihapus.`,
       })
     } catch (e: any) {
-      setTickets(prev)
       const msg = e?.response?.data?.message || "Gagal menghapus ticket."
       setError(msg)
       toast.error("Gagal menghapus ticket", {
@@ -98,7 +120,7 @@ export function useAdminTickets() {
 
   return {
     tickets: filteredTickets,
-    loading,
+    loading: ticketsQuery.isLoading,
     error,
     q,
     cols,
@@ -107,5 +129,6 @@ export function useAdminTickets() {
     formatDate,
     deleteTicket: handleDelete,
     hasFilter: q.trim().length > 0,
+    refetch: ticketsQuery.refetch,
   }
 }

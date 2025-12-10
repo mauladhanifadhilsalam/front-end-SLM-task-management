@@ -1,7 +1,9 @@
 import * as React from "react"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import type { AdminComment } from "@/types/comment.type"
 import { fetchComments, deleteComment } from "@/services/comments.service"
+import { commentKeys } from "@/lib/query-keys"
 
 export type AdminCommentColumnState = {
   sel: boolean
@@ -24,8 +26,7 @@ const defaultColumns: AdminCommentColumnState = {
 }
 
 export const useAdminCommentList = () => {
-  const [rows, setRows] = React.useState<AdminComment[]>([])
-  const [loading, setLoading] = React.useState(true)
+  const queryClient = useQueryClient()
   const [error, setError] = React.useState("")
 
   const [query, setQuery] = React.useState("")
@@ -40,25 +41,28 @@ export const useAdminCommentList = () => {
     new Set(),
   )
 
-  const loadComments = React.useCallback(async () => {
-    setLoading(true)
-    setError("")
+  const commentsQuery = useQuery({
+    queryKey: commentKeys.adminList(),
+    queryFn: fetchComments,
+    staleTime: 30 * 1000,
+  })
 
-    try {
-      const data = await fetchComments()
-      setRows(data)
-      setSelectedIds(new Set())
-    } catch (e: any) {
-      const msg = e?.response?.data?.message || "Failed to load comments"
-      setError(msg)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+  const rows = commentsQuery.data ?? []
+  const loading = commentsQuery.isLoading
 
   React.useEffect(() => {
-    loadComments()
-  }, [loadComments])
+    if (commentsQuery.error) {
+      const msg =
+        commentsQuery.error instanceof Error
+          ? commentsQuery.error.message
+          : "Failed to load comments"
+      setError(msg)
+      toast.error("Failed to load comments", { description: msg })
+    } else if (commentsQuery.isSuccess) {
+      setError("")
+      setSelectedIds(new Set())
+    }
+  }, [commentsQuery.error, commentsQuery.isSuccess])
 
   const filtered = React.useMemo(() => {
     const q = query.toLowerCase().trim()
@@ -125,11 +129,34 @@ export const useAdminCommentList = () => {
 
   const clearSelection = () => setSelectedIds(new Set())
 
+  const deleteMutation = useMutation({
+    mutationFn: deleteComment,
+    onMutate: async (id: number) => {
+      await queryClient.cancelQueries({ queryKey: commentKeys.adminList() })
+      const previous =
+        queryClient.getQueryData<AdminComment[]>(commentKeys.adminList()) ??
+        []
+
+      queryClient.setQueryData<AdminComment[]>(
+        commentKeys.adminList(),
+        (current = []) => current.filter((c) => c.id !== id),
+      )
+
+      return { previous }
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(commentKeys.adminList(), context.previous)
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: commentKeys.adminList() })
+    },
+  })
+
   const handleDelete = async (id: number) => {
     const target = rows.find((x) => x.id === id)
-    const prev = rows
 
-    setRows((p) => p.filter((x) => x.id !== id))
     setSelectedIds((s) => {
       const next = new Set(s)
       next.delete(id)
@@ -137,7 +164,7 @@ export const useAdminCommentList = () => {
     })
 
     try {
-      await deleteComment(id)
+      await deleteMutation.mutateAsync(id)
       toast.success("Comment deleted", {
         description: target?.message
           ? `“${target.message.slice(0, 60)}${
@@ -146,7 +173,6 @@ export const useAdminCommentList = () => {
           : `Comment #${id} berhasil dihapus.`,
       })
     } catch (err: any) {
-      setRows(prev)
       const msg = err?.response?.data?.message || "Failed to delete comment"
       setError(msg)
       toast.error("Failed to delete comment", {
@@ -181,6 +207,6 @@ export const useAdminCommentList = () => {
     toggleSelectAllOnPage,
     clearSelection,
     handleDelete,
-    reload: loadComments,
+    reload: commentsQuery.refetch,
   }
 }

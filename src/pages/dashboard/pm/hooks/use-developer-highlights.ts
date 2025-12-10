@@ -1,30 +1,29 @@
 "use client"
 
-import * as React from "react"
+import { useMemo } from "react"
+import { useQuery } from "@tanstack/react-query"
+
 import { getPmDeveloperHighlights } from "@/services/pm-overview.service"
 import type { PmDeveloperHighlight } from "@/types/pm-overview.type"
+import { dashboardKeys } from "@/lib/query-keys"
 
 export function useDeveloperHighlights() {
-  const [data, setData] = React.useState<PmDeveloperHighlight[]>([])
-  const [loading, setLoading] = React.useState<boolean>(false)
-  const [error, setError] = React.useState<string | null>(null)
+  const query = useQuery({
+    queryKey: dashboardKeys.pmDeveloperHighlights(),
+    queryFn: getPmDeveloperHighlights,
+    staleTime: 30 * 1000,
+  })
 
-  React.useEffect(() => {
-    async function load() {
-      try {
-        setLoading(true)
-        setError(null)
-        const res = await getPmDeveloperHighlights()
-        setData(res || [])
-      } catch (err: any) {
-        setError(err?.response?.data?.message || "Failed to load developer stats")
-      } finally {
-        setLoading(false)
-      }
-    }
+  const error = useMemo(() => {
+    if (!query.error) return null
+    if (query.error instanceof Error) return query.error.message
+    return "Failed to load developer stats"
+  }, [query.error])
 
-    load()
-  }, [])
-
-  return { data, loading, error }
+  return {
+    data: (query.data ?? []) as PmDeveloperHighlight[],
+    loading: query.isLoading,
+    error,
+    refetch: query.refetch,
+  }
 }

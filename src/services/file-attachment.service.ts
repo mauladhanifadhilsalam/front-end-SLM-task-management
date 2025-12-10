@@ -1,14 +1,8 @@
-import axios from "axios"
 import type { Attachment } from "@/types/file-attachment.type"
 import { extractArrayFromApi } from "@/utils/api-response.util"
+import { api } from "@/lib/api"
 
 const API_BASE = import.meta.env.VITE_API_BASE
-
-const getAuthHeaders = () => {
-  const token = localStorage.getItem("token")
-  if (!token) return undefined
-  return { Authorization: `Bearer ${token}` }
-}
 
 type AttachmentApi = {
   id: number
@@ -55,19 +49,15 @@ const normalizeAttachment = (a: AttachmentApi): Attachment => {
 }
 
 export const fetchFileAttachments = async (): Promise<Attachment[]> => {
-  const res = await axios.get<AttachmentApi[]>(`${API_BASE}/attachments`, {
-    headers: getAuthHeaders(),
-  })
+  const { data } = await api.get<AttachmentApi[]>(`/attachments`)
 
-  return extractArrayFromApi<AttachmentApi>(res.data, [
+  return extractArrayFromApi<AttachmentApi>(data, [
     "attachments",
   ]).map(normalizeAttachment)
 }
 
 export const deleteFileAttachmentById = async (id: number): Promise<void> => {
-  await axios.delete(`${API_BASE}/attachments/${id}`, {
-    headers: getAuthHeaders(),
-  })
+  await api.delete(`/attachments/${id}`)
 }
 
 export type AttachmentTicketOption = {
@@ -84,11 +74,9 @@ type TicketApi = {
 
 export const fetchAttachmentTicketOptions =
   async (): Promise<AttachmentTicketOption[]> => {
-    const res = await axios.get<TicketApi[]>(`${API_BASE}/tickets`, {
-      headers: getAuthHeaders(),
-    })
+    const { data } = await api.get<TicketApi[]>(`/tickets`)
 
-    const tickets = extractArrayFromApi<TicketApi>(res.data, [
+    const tickets = extractArrayFromApi<TicketApi>(data, [
       "tickets",
     ])
     return tickets.map((t) => {
@@ -106,8 +94,7 @@ export const uploadFileAttachment = async (
   fd.append("ticketId", ticketId)
   fd.append("file", file)
 
-  await axios.post(`${API_BASE}/attachments`, fd, {
-    headers: getAuthHeaders(),
+  await api.post(`/attachments`, fd, {
     onUploadProgress: (pe) => {
       if (!pe.total || !onProgress) return
       const pct = Math.round((pe.loaded * 100) / pe.total)

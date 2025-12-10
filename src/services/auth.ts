@@ -1,4 +1,5 @@
 import { api } from "@/lib/api"
+import { queryClient } from "@/lib/query-client"
 import { unwrapApiData } from "@/utils/api-response.util"
 
 export type RoleApi = "admin" | "project_manager" | "developer"
@@ -50,11 +51,12 @@ export async function login(email: string, password: string) {
 }
 
 export async function logout() {
-    try {
-        await api.post("/auth/logout")
-    } finally {
-        localStorage.removeItem("token")
-        localStorage.removeItem("role")
-        localStorage.removeItem("email")
-    }
+  try {
+    await api.post("/auth/logout")
+  } finally {
+    localStorage.removeItem("token")
+    localStorage.removeItem("role")
+    localStorage.removeItem("email")
+    queryClient.clear()
+  }
 }

@@ -1,54 +1,64 @@
-import axios from "axios"
 import type { Notification } from "@/types/notification.type"
 import {
   extractArrayFromApi,
   unwrapApiData,
 } from "@/utils/api-response.util"
-
-const API_BASE = import.meta.env.VITE_API_BASE
-
-const getAuthHeaders = () => {
-  const token = localStorage.getItem("token")
-  if (!token) return undefined
-  return { Authorization: `Bearer ${token}` }
-}
+import { api } from "@/lib/api"
 
 export const fetchNotifications = async (): Promise<Notification[]> => {
-  const res = await axios.get<Notification[]>(`${API_BASE}/notifications`, {
-    headers: getAuthHeaders(),
-  })
+  const { data } = await api.get<Notification[]>("/notifications")
 
-  const data = extractArrayFromApi<Notification>(res.data, [
+  const payload = extractArrayFromApi<Notification>(data, [
     "notifications",
   ])
 
-  return data
+  return payload
 }
 
 export const deleteNotificationById = async (id: number): Promise<void> => {
-  await axios.delete(`${API_BASE}/notifications/${id}`, {
-    headers: getAuthHeaders(),
-  })
+  await api.delete(`/notifications/${id}`)
 }
 
 export const resendNotificationEmail = async (
   id: number,
 ): Promise<Notification> => {
-  const res = await axios.post<Notification>(
-    `${API_BASE}/notifications/${id}/resend`,
+  const { data } = await api.post<Notification>(
+    `/notifications/${id}/resend`,
     {},
-    {
-      headers: getAuthHeaders(),
-    },
   )
 
-  return unwrapApiData<Notification>(res.data)
+  return unwrapApiData<Notification>(data)
 }
 
 export const fetchNotificationById = async (id: number): Promise<Notification> => {
-  const res = await axios.get<Notification>(`${API_BASE}/notifications/${id}`, {
-    headers: getAuthHeaders(),
-  })
+  const { data } = await api.get<Notification>(`/notifications/${id}`)
 
-  return unwrapApiData<Notification>(res.data)
+  return unwrapApiData<Notification>(data)
+}
+
+export const updateNotificationState = async (
+  id: number,
+  state: "READ" | "UNREAD",
+) => {
+  await api.patch(`/notifications/${id}/state`, { state })
+}
+
+const UNREAD_ENDPOINTS: Record<string, string> = {
+  project_manager: "/dashboard/project-manager",
+  developer: "/dashboard/developer",
+}
+
+export const fetchUnreadNotificationsCount = async (): Promise<number> => {
+  const role = localStorage.getItem("role") ?? ""
+  const endpoint = UNREAD_ENDPOINTS[role]
+  if (!endpoint) return 0
+
+  const { data } = await api.get(endpoint)
+  const payload = (data as any)?.data ?? data ?? {}
+  return (
+    payload?.unreadNotificationsCount ??
+    payload?.unread_notifications_count ??
+    payload?.stats?.unreadNotifications ??
+    0
+  )
 }
