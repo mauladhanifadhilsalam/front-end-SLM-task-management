@@ -1,62 +1,101 @@
 "use client"
 
 import * as React from "react"
-import { fetchAdminTickets, deleteTicket } from "@/services/ticket.service"
-import type { AdminTicket } from "@/types/ticket-type"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
-export function usePmReportedIssues(currentUserId: number) {
-  const [tickets, setTickets] = React.useState<AdminTicket[]>([])
-  const [loading, setLoading] = React.useState(true)
-  const [error, setError] = React.useState("")
-  const [q, setSearch] = React.useState("")
+import { ticketKeys } from "@/lib/query-keys"
+import {
+  deleteTicket,
+  fetchAdminTickets,
+  type TicketListParams,
+} from "@/services/ticket.service"
+import type { AdminTicket } from "@/types/ticket-type"
 
-  const load = React.useCallback(async () => {
-    try {
-      setLoading(true)
-      const all = await fetchAdminTickets()
-      const mine = all.filter((t) => t.requesterId === currentUserId)
+export function usePmReportedIssues(
+  currentUserId: number,
+  search?: string,
+) {
+  const queryClient = useQueryClient()
 
-      setTickets(mine)
-    } catch (err: any) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
+  const filters = React.useMemo<TicketListParams | undefined>(() => {
+    if (!currentUserId) return undefined
+    const params: TicketListParams = {
+      type: "ISSUE",
+      requesterId: currentUserId,
     }
-  }, [currentUserId])
 
-  React.useEffect(() => {
-    load()
-  }, [load])
-
-  const handleDelete = async (id: number) => {
-    try {
-      await deleteTicket(id)
-      setTickets(tickets.filter((t) => t.id !== id))
-      toast.success("Ticket deleted")
-    } catch {
-      toast.error("Failed to delete")
+    const trimmed = search?.trim()
+    if (trimmed) {
+      params.search = trimmed
     }
-  }
 
-  const formatDate = (iso?: string) => {
-    if (!iso) return "-"
-    const d = new Date(iso)
-    return d.toLocaleDateString("id-ID", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    })
-  }
+    return params
+  }, [currentUserId, search])
+
+  const queryKey = React.useMemo(() => ticketKeys.list(filters), [filters])
+
+  const ticketsQuery = useQuery({
+    queryKey,
+    queryFn: () => fetchAdminTickets(filters),
+    enabled: Boolean(filters),
+    staleTime: 30 * 1000,
+  })
+
+  const deleteMutation = useMutation<
+    void,
+    unknown,
+    number,
+    { previous?: AdminTicket[] }
+  >({
+    mutationFn: deleteTicket,
+    onMutate: async (id: number) => {
+      await queryClient.cancelQueries({ queryKey })
+      const previous = queryClient.getQueryData<AdminTicket[]>(queryKey)
+
+      queryClient.setQueryData<AdminTicket[]>(queryKey, (current = []) =>
+        current.filter((ticket) => ticket.id !== id),
+      )
+
+      return { previous }
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKey, context.previous)
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey })
+    },
+  })
+
+  const errorMessage = React.useMemo(() => {
+    if (!ticketsQuery.error) return ""
+    if (ticketsQuery.error instanceof Error) {
+      return ticketsQuery.error.message
+    }
+    return "Gagal memuat issue yang kamu laporkan."
+  }, [ticketsQuery.error])
+
+  const handleDelete = React.useCallback(
+    async (id: number) => {
+      try {
+        await deleteMutation.mutateAsync(id)
+        toast.success("Ticket deleted")
+      } catch (err: any) {
+        const message =
+          err?.response?.data?.message ?? "Failed to delete ticket."
+        toast.error("Failed to delete", { description: message })
+      }
+    },
+    [deleteMutation],
+  )
 
   return {
-    tickets,
-    loading,
-    error,
-    q,
-    setSearch,
-    handleDelete,
-    formatDate,
-    hasFilter: false,
+    tickets: ticketsQuery.data ?? [],
+    loading: ticketsQuery.isLoading,
+    error: errorMessage,
+    deleteTicket: handleDelete,
+    refetch: ticketsQuery.refetch,
   }
 }

@@ -1,3 +1,5 @@
+import type { TicketListParams } from "@/services/ticket.service"
+
 export const profileKeys = {
   all: ["profile"] as const,
   me: () => [...profileKeys.all, "me"] as const,
@@ -30,7 +32,10 @@ export const projectKeys = {
 
 export const ticketKeys = {
   all: ["tickets"] as const,
-  list: () => [...ticketKeys.all, "list"] as const,
+  list: (filters?: TicketListParams) =>
+    filters && Object.keys(filters).length > 0
+      ? ([...ticketKeys.all, "list", filters] as const)
+      : ([...ticketKeys.all, "list"] as const),
   detail: (id: number | string) =>
     [...ticketKeys.all, "detail", String(id)] as const,
 };

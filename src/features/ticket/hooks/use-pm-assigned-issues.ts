@@ -1,70 +1,54 @@
 "use client"
 
 import * as React from "react"
-import { fetchAdminTickets, deleteTicket } from "@/services/ticket.service"
-import { toast } from "sonner"
-import type { AdminTicket } from "@/types/ticket-type"
+import { useQuery } from "@tanstack/react-query"
 
-export function usePmAssignedIssues(currentUserId: number) {
-  const [tickets, setTickets] = React.useState<AdminTicket[]>([])
-  const [loading, setLoading] = React.useState(true)
-  const [error, setError] = React.useState("")
-  const [q, setSearch] = React.useState("")
+import { ticketKeys } from "@/lib/query-keys"
+import {
+  fetchAdminTickets,
+  type TicketListParams,
+} from "@/services/ticket.service"
 
-  const load = React.useCallback(async () => {
-    try {
-      setLoading(true)
-      const all = await fetchAdminTickets()
-
-      // 🔥 filter by assigneeIds
-      const assigned = all.filter((t) => {
-        if (!Array.isArray(t.assigneeIds)) return false
-
-        // pastikan convert ke number semua
-        const ids = t.assigneeIds.map((x: any) => Number(x))
-        return ids.includes(currentUserId)
-      })
-
-      setTickets(assigned)
-    } catch (err: any) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
+export function usePmAssignedIssues(
+  currentUserId: number,
+  search?: string,
+) {
+  const filters = React.useMemo<TicketListParams | undefined>(() => {
+    if (!currentUserId) return undefined
+    const params: TicketListParams = {
+      type: "ISSUE",
+      assigneeId: currentUserId,
     }
-  }, [currentUserId])
 
-  React.useEffect(() => {
-    load()
-  }, [load])
-
-  const handleDelete = async (id: number) => {
-    try {
-      await deleteTicket(id)
-      setTickets((prev) => prev.filter((t) => t.id !== id))
-      toast.success("Tiket berhasil dihapus")
-    } catch {
-      toast.error("Gagal menghapus tiket")
+    const trimmed = search?.trim()
+    if (trimmed) {
+      params.search = trimmed
     }
-  }
 
-  const formatDate = (iso?: string) => {
-    if (!iso) return "-"
-    const d = new Date(iso)
-    return d.toLocaleDateString("id-ID", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    })
-  }
+    return params
+  }, [currentUserId, search])
+
+  const queryKey = React.useMemo(() => ticketKeys.list(filters), [filters])
+
+  const ticketsQuery = useQuery({
+    queryKey,
+    queryFn: () => fetchAdminTickets(filters),
+    enabled: Boolean(filters),
+    staleTime: 30 * 1000,
+  })
+
+  const errorMessage = React.useMemo(() => {
+    if (!ticketsQuery.error) return ""
+    if (ticketsQuery.error instanceof Error) {
+      return ticketsQuery.error.message
+    }
+    return "Gagal memuat issue yang ditugaskan."
+  }, [ticketsQuery.error])
 
   return {
-    tickets,
-    loading,
-    error,
-    q,
-    setSearch,
-    hasFilter: false,
-    handleDelete,
-    formatDate,
+    tickets: ticketsQuery.data ?? [],
+    loading: ticketsQuery.isLoading,
+    error: errorMessage,
+    refetch: ticketsQuery.refetch,
   }
 }
