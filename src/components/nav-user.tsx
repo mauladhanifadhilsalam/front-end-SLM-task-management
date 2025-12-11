@@ -55,6 +55,7 @@ export function NavUser() {
     fullName: "",
     email: "",
   })
+  const [role, setRole] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -76,6 +77,7 @@ export function NavUser() {
     }
 
     fetchProfile()
+    setRole(localStorage.getItem("role"))
   }, [])
 
   const handleLogout = async () => {
@@ -94,11 +96,11 @@ export function NavUser() {
   }
 
   const goToNotifications = () => {
-    const role = localStorage.getItem("role")
+    const currentRole = role || localStorage.getItem("role")
 
-    if (role === "project_manager") {
+    if (currentRole === "project_manager") {
       navigate("/project-manager-dashboard/notifications/me")
-    } else if (role === "developer") {
+    } else if (currentRole === "developer") {
       navigate("/developer-dashboard/notifications/me")
     } else {
       toast.error("Role tidak dikenali")
@@ -175,12 +177,12 @@ export function NavUser() {
                 <IconUserCircle />
                 Account
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={goToNotifications}
-              >
-                <IconNotification />
-                Notifications
-              </DropdownMenuItem>
+              {(role === "project_manager" || role === "developer") && (
+                <DropdownMenuItem onClick={goToNotifications}>
+                  <IconNotification />
+                  Notifications
+                </DropdownMenuItem>
+              )}
 
             </DropdownMenuGroup>
 
