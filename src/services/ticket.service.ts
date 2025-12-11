@@ -1,13 +1,10 @@
-import axios from "axios"
+import { api } from "@/lib/api"
 import type { TicketLite, AdminTicket, TicketDetail } from "@/types/ticket-type"
 import type { EditTicketAssigneeTicket } from "@/types/ticket-assignee.type"
-import { getAuthHeaders } from "@/utils/auth-header.util"
 import {
   extractArrayFromApi,
   unwrapApiData,
 } from "@/utils/api-response.util"
-
-const API_BASE = import.meta.env.VITE_API_BASE as string
 
 type RawTicket = {
   id: number
@@ -33,11 +30,10 @@ type RawTicket = {
   updatedAt?: string
   updated_at?: string
   project_name?: string
-
-  // ⬇⬇⬇ dari backend kamu (assignees[].user.id)
   assignees?: {
     id?: number
     assignedAt?: string
+    assigned_at?: string
     user?: {
       id?: number
       fullName?: string
@@ -47,12 +43,35 @@ type RawTicket = {
   }[]
 }
 
-export const fetchTicketsLite = async (): Promise<TicketLite[]> => {
-  const res = await axios.get(`${API_BASE}/tickets`, {
-    headers: getAuthHeaders(),
-  })
+export type TicketListParams = {
+  projectId?: number
+  requesterId?: number
+  assigneeId?: number
+  status?: string
+  priority?: string
+  type?: string
+  search?: string
+  page?: number
+  pageSize?: number
+  sortBy?: "createdAt" | "updatedAt" | "dueDate" | "priority"
+  sortOrder?: "asc" | "desc"
+  dueFrom?: string
+  dueTo?: string
+  updatedSince?: string
+}
 
-  const arr = extractArrayFromApi(res.data, ["tickets"])
+const cleanParams = (params?: TicketListParams) => {
+  if (!params) return undefined
+  const entries = Object.entries(params).filter(
+    ([, value]) => value !== undefined && value !== null && value !== "",
+  )
+  return entries.length > 0 ? Object.fromEntries(entries) : undefined
+}
+
+export const fetchTicketsLite = async (): Promise<TicketLite[]> => {
+  const { data } = await api.get("/tickets")
+
+  const arr = extractArrayFromApi(data, ["tickets"])
 
   const list: TicketLite[] = arr.map((t: any) => ({
     id: Number(t.id),
@@ -72,17 +91,19 @@ export const fetchTicketsLite = async (): Promise<TicketLite[]> => {
 export async function fetchTicketByIdAssignee(
   id: number | string,
 ): Promise<EditTicketAssigneeTicket> {
-  const res = await axios.get(`${API_BASE}/tickets/${id}`, {
-    headers: getAuthHeaders(),
-  })
+  const { data } = await api.get(`/tickets/${id}`)
+  return unwrapApiData<EditTicketAssigneeTicket>(data)
+}
 
-  return unwrapApiData<EditTicketAssigneeTicket>(res.data)
+export async function updateTicketStatusAndPriority(
+  id: number | string,
+  payload: { status: string; priority: string },
+): Promise<void> {
+  await api.patch(`/tickets/${id}`, payload)
 }
 
 export async function deleteTicket(id: number | string): Promise<void> {
-  await axios.delete(`${API_BASE}/tickets/${id}`, {
-    headers: getAuthHeaders(),
-  })
+  await api.delete(`/tickets/${id}`)
 }
 
 
@@ -96,7 +117,6 @@ const mapTicket = (raw: RawTicket): AdminTicket => {
 
   return {
     assigneeIds,
-
     id: Number(raw.id),
     projectId: Number(
       raw.projectId ?? raw.project_id ?? raw.project?.id ?? 0,
@@ -144,12 +164,9 @@ export async function fetchTicketFormOptions(
   requesters: TicketFormRequesterOption[]
 }> {
   const { includeRequesters = true } = params
-  const headers = getAuthHeaders()
 
-  const projectPromise = axios.get(`${API_BASE}/projects`, { headers })
-  const requesterPromise = includeRequesters
-    ? axios.get(`${API_BASE}/users`, { headers })
-    : null
+  const projectPromise = api.get("/projects")
+  const requesterPromise = includeRequesters ? api.get("/users") : null
 
   const projRes = await projectPromise
   const projRaw: any[] = extractArrayFromApi(projRes.data, ["projects"])
@@ -174,49 +191,36 @@ export async function fetchTicketFormOptions(
   return { projects, requesters }
 }
 
-export const fetchAdminTickets = async (): Promise<AdminTicket[]> => {
-  const res = await axios.get(`${API_BASE}/tickets`, {
-    headers: getAuthHeaders(),
+export const fetchAdminTickets = async (
+  params?: TicketListParams,
+): Promise<AdminTicket[]> => {
+  const { data } = await api.get("/tickets", {
+    params: cleanParams(params),
   })
 
-  const raw: RawTicket[] = extractArrayFromApi<RawTicket>(res.data, [
-    "tickets",
-  ])
+  const raw: RawTicket[] = extractArrayFromApi<RawTicket>(data, ["tickets"])
 
   return raw.map(mapTicket)
 }
 
 export async function createTicket(payload: any): Promise<any> {
-  const res = await axios.post(`${API_BASE}/tickets`, payload, {
-    headers: {
-      ...getAuthHeaders(),
-      "Content-Type": "application/json",
-    },
-  })
-
-  return unwrapApiData(res.data)
+  const { data } = await api.post("/tickets", payload)
+  return unwrapApiData(data)
 }
 
 export async function updateTicket(
   id: number | string,
   payload: any,
 ): Promise<void> {
-  await axios.patch(`${API_BASE}/tickets/${id}`, payload, {
-    headers: {
-      ...getAuthHeaders(),
-      "Content-Type": "application/json",
-    },
-  })
+  await api.patch(`/tickets/${id}`, payload)
 }
 
 export async function fetchTicketById(
   id: number | string,
 ): Promise<TicketDetail> {
-  const res = await axios.get(`${API_BASE}/tickets/${id}`, {
-    headers: getAuthHeaders(),
-  })
+  const { data } = await api.get(`/tickets/${id}`)
 
-  const t = unwrapApiData<RawTicket>(res.data)
+  const t = unwrapApiData<RawTicket>(data)
   const normalizedAssignees: TicketDetail["assignees"] = Array.isArray(
     t.assignees,
   )

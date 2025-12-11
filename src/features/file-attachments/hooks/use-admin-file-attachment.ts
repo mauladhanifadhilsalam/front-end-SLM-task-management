@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import type { Attachment } from "@/types/file-attachment.type"
 import {
@@ -8,6 +9,7 @@ import {
   deleteFileAttachmentById,
 } from "@/services/file-attachment.service"
 import { getAttachmentFileSrc } from "@/utils/attachment-utils"
+import { attachmentKeys } from "@/lib/query-keys"
 
 type UseAdminFileAttachmentsResult = {
   attachments: Attachment[]
@@ -23,8 +25,7 @@ type UseAdminFileAttachmentsResult = {
 
 export const useAdminFileAttachments =
   (): UseAdminFileAttachmentsResult => {
-    const [attachments, setAttachments] = React.useState<Attachment[]>([])
-    const [loading, setLoading] = React.useState(false)
+    const queryClient = useQueryClient()
     const [error, setError] = React.useState<string | null>(null)
 
     const [previewOpen, setPreviewOpen] = React.useState(false)
@@ -32,22 +33,21 @@ export const useAdminFileAttachments =
       null,
     )
 
-    React.useEffect(() => {
-      const load = async () => {
-        try {
-          setLoading(true)
-          setError(null)
-          const data = await fetchFileAttachments()
-          setAttachments(data)
-        } catch (err) {
-          setError("Gagal memuat daftar attachment.")
-        } finally {
-          setLoading(false)
-        }
-      }
+    const attachmentsQuery = useQuery({
+      queryKey: attachmentKeys.list(),
+      queryFn: fetchFileAttachments,
+      staleTime: 60 * 1000,
+    })
 
-      load()
-    }, [])
+    const attachments = attachmentsQuery.data ?? []
+
+    React.useEffect(() => {
+      if (attachmentsQuery.error) {
+        setError("Gagal memuat daftar attachment.")
+      } else if (attachmentsQuery.isSuccess) {
+        setError(null)
+      }
+    }, [attachmentsQuery.error, attachmentsQuery.isSuccess])
 
     const openPreview = (att: Attachment) => {
       setPreviewItem(att)
@@ -59,14 +59,40 @@ export const useAdminFileAttachments =
       setPreviewOpen(false)
     }
 
+    const deleteMutation = useMutation({
+      mutationFn: deleteFileAttachmentById,
+      onMutate: async (id: number) => {
+        await queryClient.cancelQueries({ queryKey: attachmentKeys.list() })
+        const previous =
+          queryClient.getQueryData<Attachment[]>(
+            attachmentKeys.list(),
+          ) ?? []
+
+        queryClient.setQueryData<Attachment[]>(
+          attachmentKeys.list(),
+          (current = []) => current.filter((a) => a.id !== id),
+        )
+
+        return { previous }
+      },
+      onError: (_err, _id, context) => {
+        if (context?.previous) {
+          queryClient.setQueryData(
+            attachmentKeys.list(),
+            context.previous,
+          )
+        }
+      },
+      onSettled: () => {
+        queryClient.invalidateQueries({ queryKey: attachmentKeys.list() })
+      },
+    })
+
     const handleDelete = async (id: number) => {
       const target = attachments.find((a) => a.id === id)
-      const prev = attachments
-
-      setAttachments((p) => p.filter((a) => a.id !== id))
 
       try {
-        await deleteFileAttachmentById(id)
+        await deleteMutation.mutateAsync(id)
 
         toast.success("Attachment dihapus", {
           description: target?.fileName
@@ -74,7 +100,6 @@ export const useAdminFileAttachments =
             : "File berhasil dihapus.",
         })
       } catch (err) {
-        setAttachments(prev)
         const msg = "Gagal menghapus attachment."
         setError(msg)
         toast.error("Gagal menghapus attachment", {
@@ -102,7 +127,7 @@ export const useAdminFileAttachments =
 
     return {
       attachments,
-      loading,
+      loading: attachmentsQuery.isLoading,
       error,
       previewOpen,
       previewItem,

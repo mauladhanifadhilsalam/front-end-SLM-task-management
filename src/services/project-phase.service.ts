@@ -1,16 +1,14 @@
-import axios from "axios"
 import { ProjectPhaseForm } from "@/types/project.type"
 import {
   Phase,
   CreateProjectPhasePayload,
   EditProjectPhasePayload,
 } from "@/types/project-phases.type"
-import { getAuthHeaders } from "@/utils/auth-header.util";
 import {
   extractArrayFromApi,
   unwrapApiData,
 } from "@/utils/api-response.util"
-const API_BASE = import.meta.env.VITE_API_BASE
+import { api } from "@/lib/api"
 
 
 export type EditProjectPhaseForm = ProjectPhaseForm & {
@@ -18,9 +16,7 @@ export type EditProjectPhaseForm = ProjectPhaseForm & {
 }
 
 export const deleteProjectPhase = async (id: number): Promise<void> => {
-  await axios.delete(`${API_BASE}/project-phases/${id}`, {
-    headers: getAuthHeaders(),
-  })
+  await api.delete(`/project-phases/${id}`)
 }
 
 export type UpsertPhasePayload = {
@@ -36,13 +32,9 @@ export const upsertProjectPhase = async (
 ): Promise<void> => {
   const { id, ...body } = payload
   if (id) {
-    await axios.patch(`${API_BASE}/project-phases/${id}`, body, {
-      headers: getAuthHeaders(),
-    })
+    await api.patch(`/project-phases/${id}`, body)
   } else {
-    await axios.post(`${API_BASE}/project-phases`, body, {
-      headers: getAuthHeaders(),
-    })
+    await api.post(`/project-phases`, body)
   }
 }
 
@@ -52,13 +44,9 @@ export const syncProjectPhases = async (
   phases: EditProjectPhaseForm[],
   deletedPhaseIds: number[],
 ): Promise<void> => {
-  const headers = getAuthHeaders()
-
   for (const delId of deletedPhaseIds) {
     try {
-      await axios.delete(`${API_BASE}/project-phases/${delId}`, {
-        headers,
-      })
+      await api.delete(`/project-phases/${delId}`)
     } catch (err) {
 
       console.error(`Failed to delete phase ${delId}`, err)
@@ -78,52 +66,34 @@ export const syncProjectPhases = async (
     }
 
     if (phase.id) {
-      await axios.patch(`${API_BASE}/project-phases/${phase.id}`, body, {
-        headers,
-      })
+      await api.patch(`/project-phases/${phase.id}`, body)
     } else {
-      await axios.post(`${API_BASE}/project-phases`, body, {
-        headers,
-      })
+      await api.post(`/project-phases`, body)
     }
   }
 }
 
 export const fetchProjectPhases = async (): Promise<Phase[]> => {
-  const res = await axios.get(`${API_BASE}/project-phases`, {
-    headers: getAuthHeaders(),
-  });
+  const { data } = await api.get(`/project-phases`);
 
-  return extractArrayFromApi<Phase>(res.data, ["phases"]);
+  return extractArrayFromApi<Phase>(data, ["phases"]);
 };
 
 export const createProjectPhase = async (
   payload: CreateProjectPhasePayload,
 ): Promise<void> => {
-  await axios.post(`${API_BASE}/project-phases`, payload, {
-    headers: {
-      "Content-Type": "application/json",
-      ...getAuthHeaders(),
-    },
-  });
+  await api.post(`/project-phases`, payload);
 };
 
 export const updateProjectPhase = async (
   id: number,
   payload: EditProjectPhasePayload,
 ): Promise<void> => {
-  await axios.patch(`${API_BASE}/project-phases/${id}`, payload, {
-    headers: {
-      "Content-Type": "application/json",
-      ...getAuthHeaders(),
-    },
-  });
+  await api.patch(`/project-phases/${id}`, payload);
 };
 
 export const fetchProjectPhaseById = async (id: number): Promise<Phase> => {
-  const res = await axios.get(`${API_BASE}/project-phases/${id}`, {
-    headers: getAuthHeaders(),
-  });
+  const { data } = await api.get(`/project-phases/${id}`);
 
-  return unwrapApiData<Phase>(res.data);
+  return unwrapApiData<Phase>(data);
 };

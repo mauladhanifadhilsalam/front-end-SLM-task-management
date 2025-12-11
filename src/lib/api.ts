@@ -5,6 +5,7 @@ import axios, {
   type InternalAxiosRequestConfig,
   type AxiosRequestHeaders,
 } from "axios";
+import { queryClient } from "./query-client";
 
 const API_BASE = import.meta.env.VITE_API_BASE as string;
 
@@ -22,6 +23,7 @@ const clearStoredAuth = () => {
   localStorage.removeItem("token");
   localStorage.removeItem("role");
   localStorage.removeItem("email");
+  queryClient.clear();
 };
 
 const persistAuthFromResponse = (data: any) => {

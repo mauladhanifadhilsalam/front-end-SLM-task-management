@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import type {
   ProjectAssignment,
@@ -9,6 +10,7 @@ import {
   fetchProjectAssignments,
   deleteProjectAssignmentById,
 } from "@/services/project-assignment.service"
+import { projectAssignmentKeys } from "@/lib/query-keys"
 
 export type ProjectAssignmentColumns = {
   id: boolean
@@ -36,10 +38,7 @@ type UseAdminProjectAssignmentsResult = {
 
 export const useAdminProjectAssignments =
   (): UseAdminProjectAssignmentsResult => {
-    const [assignments, setAssignments] = React.useState<ProjectAssignment[]>(
-      [],
-    )
-    const [loading, setLoading] = React.useState(true)
+    const queryClient = useQueryClient()
     const [error, setError] = React.useState("")
     const [search, setSearch] = React.useState("")
 
@@ -55,27 +54,26 @@ export const useAdminProjectAssignments =
     const [deletingId, setDeletingId] = React.useState<number | null>(null)
     const [deleting, setDeleting] = React.useState(false)
 
-    const loadAssignments = React.useCallback(async () => {
-      setLoading(true)
-      setError("")
+    const assignmentsQuery = useQuery({
+      queryKey: projectAssignmentKeys.list(),
+      queryFn: fetchProjectAssignments,
+      staleTime: 30 * 1000,
+    })
 
-      try {
-        const data = await fetchProjectAssignments()
-        setAssignments(data)
-      } catch (e: any) {
-        const msg =
-          e?.response?.data?.message ||
-          "Gagal memuat data project assignments"
-        setError(msg)
-        toast.error("Gagal memuat data assignments", { description: msg })
-      } finally {
-        setLoading(false)
-      }
-    }, [])
+    const assignments = assignmentsQuery.data ?? []
 
     React.useEffect(() => {
-      loadAssignments()
-    }, [loadAssignments])
+      if (assignmentsQuery.error) {
+        const msg =
+          assignmentsQuery.error instanceof Error
+            ? assignmentsQuery.error.message
+            : "Gagal memuat data project assignments"
+        setError(msg)
+        toast.error("Gagal memuat data assignments", { description: msg })
+      } else if (assignmentsQuery.isSuccess) {
+        setError("")
+      }
+    }, [assignmentsQuery.error, assignmentsQuery.isSuccess])
 
     const filteredAssignments = React.useMemo(() => {
       const s = search.trim().toLowerCase()
@@ -94,6 +92,39 @@ export const useAdminProjectAssignments =
       })
     }, [assignments, search])
 
+    const deleteMutation = useMutation({
+      mutationFn: deleteProjectAssignmentById,
+      onMutate: async (id: number) => {
+        await queryClient.cancelQueries({
+          queryKey: projectAssignmentKeys.list(),
+        })
+        const previous =
+          queryClient.getQueryData<ProjectAssignment[]>(
+            projectAssignmentKeys.list(),
+          ) ?? []
+
+        queryClient.setQueryData<ProjectAssignment[]>(
+          projectAssignmentKeys.list(),
+          (current = []) => current.filter((a) => a.id !== id),
+        )
+
+        return { previous }
+      },
+      onError: (_err, _id, context) => {
+        if (context?.previous) {
+          queryClient.setQueryData(
+            projectAssignmentKeys.list(),
+            context.previous,
+          )
+        }
+      },
+      onSettled: () => {
+        queryClient.invalidateQueries({
+          queryKey: projectAssignmentKeys.list(),
+        })
+      },
+    })
+
     const requestDelete = (id: number) => {
       setDeletingId(id)
       setDeleteDialogOpen(true)
@@ -103,13 +134,11 @@ export const useAdminProjectAssignments =
       if (!deletingId) return
 
       const target = assignments.find((x) => x.id === deletingId)
-      const prev = assignments
 
       setDeleting(true)
-      setAssignments((p) => p.filter((x) => x.id !== deletingId))
 
       try {
-        await deleteProjectAssignmentById(deletingId)
+        await deleteMutation.mutateAsync(deletingId)
 
         toast.success("Assignment berhasil dihapus", {
           description:
@@ -120,7 +149,6 @@ export const useAdminProjectAssignments =
               : undefined,
         })
       } catch (err: any) {
-        setAssignments(prev)
         const msg =
           err?.response?.data?.message || "Gagal menghapus assignment."
         toast.error("Gagal menghapus assignment", { description: msg })
@@ -134,7 +162,7 @@ export const useAdminProjectAssignments =
     return {
       assignments,
       filteredAssignments,
-      loading,
+      loading: assignmentsQuery.isLoading,
       error,
       search,
       setSearch,

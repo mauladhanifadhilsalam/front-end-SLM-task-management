@@ -1,12 +1,14 @@
 "use client"
 
 import * as React from "react"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import {
   fetchProjectOwners,
   deleteProjectOwnerById,
 } from "@/services/project-owner.service"
 import { ProjectOwner } from "@/types/project-owner.type"
+import { projectOwnerKeys } from "@/lib/query-keys"
 
 export type ProjectOwnerColumns = {
   id: boolean
@@ -19,8 +21,7 @@ export type ProjectOwnerColumns = {
 }
 
 export const useAdminProjectOwners = () => {
-  const [owners, setOwners] = React.useState<ProjectOwner[]>([])
-  const [loading, setLoading] = React.useState(true)
+  const queryClient = useQueryClient()
   const [error, setError] = React.useState("")
   const [search, setSearch] = React.useState("")
   const [columns, setColumns] = React.useState<ProjectOwnerColumns>({
@@ -33,24 +34,25 @@ export const useAdminProjectOwners = () => {
     actions: true,
   })
 
-  const loadOwners = React.useCallback(async () => {
-    setLoading(true)
-    setError("")
-    try {
-      const data = await fetchProjectOwners()
-      setOwners(data)
-    } catch (e: any) {
-      const msg =
-        e?.response?.data?.message || "Gagal memuat data project owners"
-      setError(msg)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+  const ownersQuery = useQuery({
+    queryKey: projectOwnerKeys.list(),
+    queryFn: fetchProjectOwners,
+    staleTime: 60 * 1000,
+  })
+
+  const owners = ownersQuery.data ?? []
 
   React.useEffect(() => {
-    loadOwners()
-  }, [loadOwners])
+    if (ownersQuery.error) {
+      const msg =
+        ownersQuery.error instanceof Error
+          ? ownersQuery.error.message
+          : "Gagal memuat data project owners"
+      setError(msg)
+    } else if (ownersQuery.isSuccess) {
+      setError("")
+    }
+  }, [ownersQuery.error, ownersQuery.isSuccess])
 
   const filteredOwners = React.useMemo(() => {
     const s = search.trim().toLowerCase()
@@ -78,35 +80,59 @@ export const useAdminProjectOwners = () => {
     [],
   )
 
+  const deleteMutation = useMutation({
+    mutationFn: deleteProjectOwnerById,
+    onMutate: async (id: number) => {
+      await queryClient.cancelQueries({
+        queryKey: projectOwnerKeys.list(),
+      })
+      const previous =
+        queryClient.getQueryData<ProjectOwner[]>(
+          projectOwnerKeys.list(),
+        ) ?? []
+
+      queryClient.setQueryData<ProjectOwner[]>(
+        projectOwnerKeys.list(),
+        (current = []) => current.filter((o) => o.id !== id),
+      )
+
+      return { previous }
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(projectOwnerKeys.list(), context.previous)
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: projectOwnerKeys.list() })
+    },
+  })
+
   const deleteOwner = React.useCallback(
     async (id: number) => {
       const target = owners.find((o) => o.id === id)
-      const prev = owners
-
-      setOwners((current) => current.filter((o) => o.id !== id))
 
       try {
-        await deleteProjectOwnerById(id)
+        await deleteMutation.mutateAsync(id)
         toast.success("Owner terhapus", {
           description: `${target?.name ?? "Owner"} berhasil dihapus.`,
         })
       } catch (err: any) {
         const msg =
           err?.response?.data?.message || "Gagal menghapus owner."
-        setOwners(prev)
         setError(msg)
         toast.error("Gagal menghapus owner", {
           description: msg,
         })
       }
     },
-    [owners],
+    [deleteMutation, owners],
   )
 
   return {
     owners,
     filteredOwners,
-    loading,
+    loading: ownersQuery.isLoading,
     error,
     search,
     setSearch,

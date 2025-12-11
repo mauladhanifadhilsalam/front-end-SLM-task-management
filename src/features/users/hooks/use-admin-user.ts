@@ -1,7 +1,9 @@
 import * as React from "react"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { toast } from "sonner"
 import { User, Role } from "@/types/user.types"
 import { fetchUsers, deleteUserById } from "@/services/user.service"
-import { toast } from "sonner"
+import { userKeys } from "@/lib/query-keys"
 
 type RoleFilter = Role | "all"
 
@@ -15,8 +17,7 @@ export type UserTableColumns = {
 }
 
 export const useAdminUsers = () => {
-    const [users, setUsers] = React.useState<User[]>([])
-    const [loading, setLoading] = React.useState(true)
+    const queryClient = useQueryClient()
     const [error, setError] = React.useState("")
     const [search, setSearch] = React.useState("")
     const [roleFilter, setRoleFilter] = React.useState<RoleFilter>("all")
@@ -29,45 +30,67 @@ export const useAdminUsers = () => {
         actions: true,
 })
 
-const loadUsers = React.useCallback(async () => {
-    try {
-        setLoading(true)
-        setError("")
-        const data = await fetchUsers()
-        setUsers(data)
-    } catch (e: any) {
-        const msg = e?.response?.data?.message || "Gagal memuat data users"
-        setError(msg)
-    } finally {
-        setLoading(false)
-    }
-}, [])
+const usersQuery = useQuery({
+    queryKey: userKeys.list(),
+    queryFn: fetchUsers,
+    staleTime: 30 * 1000,
+})
 
-    React.useEffect(() => {
-        loadUsers()
-    }, [loadUsers])
+React.useEffect(() => {
+    if (usersQuery.error) {
+        const msg =
+            usersQuery.error instanceof Error
+                ? usersQuery.error.message
+                : "Gagal memuat data users"
+        setError(msg)
+    } else if (usersQuery.isSuccess) {
+        setError("")
+    }
+}, [usersQuery.error, usersQuery.isSuccess])
+
+const users = usersQuery.data ?? []
+
+const deleteMutation = useMutation({
+    mutationFn: deleteUserById,
+    onMutate: async (id: number) => {
+        await queryClient.cancelQueries({ queryKey: userKeys.list() })
+        const previous =
+            queryClient.getQueryData<User[]>(userKeys.list()) ?? []
+
+        queryClient.setQueryData<User[]>(
+            userKeys.list(),
+            (current = []) => current.filter((u) => u.id !== id),
+        )
+
+        return { previous }
+    },
+    onError: (_err, _id, context) => {
+        if (context?.previous) {
+            queryClient.setQueryData(userKeys.list(), context.previous)
+        }
+    },
+    onSettled: () => {
+        queryClient.invalidateQueries({ queryKey: userKeys.list() })
+    },
+})
 
 const handleDeleteUser = React.useCallback(
     async (id: number) => {
-        const previous = users
-        setUsers((current) => current.filter((u) => u.id !== id))
-
         try {
-            await deleteUserById(id)
+            await deleteMutation.mutateAsync(id)
             toast.success("User terhapus", {
-            description: `User #${id} berhasil dihapus.`,
+                description: `User #${id} berhasil dihapus.`,
             })
         } catch (e: any) {
             const msg = e?.response?.data?.message || "Gagal menghapus user"
-            setUsers(previous)
             setError(msg)
             toast.error("Gagal menghapus user", {
-            description: msg,
+                description: msg,
             })
         }
-        },
-        [users],
-    )
+    },
+    [deleteMutation],
+)
 
 const filteredUsers = React.useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -95,7 +118,7 @@ const filteredUsers = React.useMemo(() => {
 return {
         users,
         filteredUsers,
-        loading,
+        loading: usersQuery.isLoading,
         error,
         search,
         setSearch,
@@ -104,5 +127,6 @@ return {
         columns,
         toggleColumn,
         handleDeleteUser,
+        refetch: usersQuery.refetch,
     }
 }

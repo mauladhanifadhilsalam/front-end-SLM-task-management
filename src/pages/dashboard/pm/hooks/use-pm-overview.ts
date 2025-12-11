@@ -1,31 +1,31 @@
 "use client"
 
-import * as React from "react"
+import { useMemo } from "react"
+import { useQuery } from "@tanstack/react-query"
+
 import { getPmOverview } from "@/services/pm-overview.service"
 import type { PmOverview } from "@/types/pm-overview.type"
+import { dashboardKeys } from "@/lib/query-keys"
 
 export function usePmOverview() {
-  const [data, setData] = React.useState<PmOverview | null>(null)
-  const [loading, setLoading] = React.useState<boolean>(false)
-  const [error, setError] = React.useState<string | null>(null)
+  const query = useQuery({
+    queryKey: dashboardKeys.pmOverview(),
+    queryFn: getPmOverview,
+    staleTime: 30 * 1000,
+  })
 
-  React.useEffect(() => {
-    async function load() {
-      try {
-        setLoading(true)
-        setError(null)
-
-        const res = await getPmOverview()
-        setData(res)
-      } catch (err: any) {
-        setError(err?.response?.data?.message || "Failed to load PM overview")
-      } finally {
-        setLoading(false)
-      }
+  const error = useMemo(() => {
+    if (!query.error) return null
+    if (query.error instanceof Error) {
+      return query.error.message
     }
+    return "Failed to load PM overview"
+  }, [query.error])
 
-    load()
-  }, [])
-
-  return { data, loading, error }
+  return {
+    data: (query.data ?? null) as PmOverview | null,
+    loading: query.isLoading,
+    error,
+    refetch: query.refetch,
+  }
 }

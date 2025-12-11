@@ -1,24 +1,13 @@
-import axios from "axios";
 import {
   ProjectOwner,
   CreateProjectOwnerPayload,
   UpdateProjectOwnerPayload,
 } from "@/types/project-owner.type";
-import { array } from "zod";
 import {
   extractArrayFromApi,
   unwrapApiData,
 } from "@/utils/api-response.util";
-
-const API_BASE = import.meta.env.VITE_API_BASE
-
-const getAuthHeaders = () =>{
-    const token = localStorage.getItem('token')
-    if(!token) return undefined
-    return {
-        Authorization: `Bearer ${token}`
-    }
-}
+import { api } from "@/lib/api";
  
 const normalizeProjectOwners = (raw: any[]): ProjectOwner[] => {
     return raw.map((o) => ({
@@ -34,39 +23,28 @@ const normalizeProjectOwners = (raw: any[]): ProjectOwner[] => {
 }
 
 export const fetchProjectOwners = async (): Promise<ProjectOwner[]> => {
-  const res = await axios.get(`${API_BASE}/project-owners`, {
-    headers: getAuthHeaders(),
-  })
+  const { data } = await api.get(`/project-owners`)
 
-  const raw: any[] = extractArrayFromApi(res.data, ["projectOwners"])
+  const raw: any[] = extractArrayFromApi(data, ["projectOwners"])
   return normalizeProjectOwners(raw)
 }
 
 export const deleteProjectOwnerById = async (id: number): Promise<void> => {
-    await axios.delete(`${API_BASE}/project-owners/${id}`, {
-        headers: getAuthHeaders(),
-    })
+    await api.delete(`/project-owners/${id}`)
 }
 
 export const createProjectOwner = async (
   payload: CreateProjectOwnerPayload,
 ): Promise<ProjectOwner | void> => {
-  const res = await axios.post(`${API_BASE}/project-owners`, payload, {
-    headers: {
-      "Content-Type": "application/json",
-      ...getAuthHeaders(),
-    },
-  })
-  return unwrapApiData<ProjectOwner | void>(res.data)
+  const { data } = await api.post(`/project-owners`, payload)
+  return unwrapApiData<ProjectOwner | void>(data)
 }
 
 export const getProjectOwnerById = async (
   id: string | number,
 ): Promise<ProjectOwner> => {
-  const res = await axios.get(`${API_BASE}/project-owners/${id}`, {
-    headers: getAuthHeaders(),
-  })
-  const d: any = unwrapApiData(res.data)
+  const { data } = await api.get(`/project-owners/${id}`)
+  const d: any = unwrapApiData(data)
   return {
     id: Number(d.id),
     name: d?.name ?? "",
@@ -85,10 +63,5 @@ export const updateProjectOwner = async (
   id: string | number,
   payload: UpdateProjectOwnerPayload,
 ): Promise<void> => {
-  await axios.patch(`${API_BASE}/project-owners/${id}`, payload, {
-    headers: {
-      "Content-Type": "application/json",
-      ...getAuthHeaders(),
-    },
-  })
+  await api.patch(`/project-owners/${id}`, payload)
 }

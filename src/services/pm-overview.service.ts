@@ -1,37 +1,18 @@
-import axios from "axios"
 import type {
   PmDeveloperHighlight,
   PmOverview,
 } from "@/types/pm-overview.type"
 import { unwrapApiData } from "@/utils/api-response.util"
-
-const API_BASE = import.meta.env.VITE_API_BASE
+import { api } from "@/lib/api"
 
 export async function getPmOverview(): Promise<PmOverview> {
-  const token = localStorage.getItem("token")
-
-  const res = await axios.get(`${API_BASE}/dashboard/project-manager`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  })
-
-  return unwrapApiData<PmOverview>(res.data)
+  const { data } = await api.get("/dashboard/project-manager")
+  return unwrapApiData<PmOverview>(data)
 }
 
 export async function getPmDeveloperHighlights(): Promise<
   PmDeveloperHighlight[]
 > {
-  const token = localStorage.getItem("token")
-
-  const res = await axios.get(
-    `${API_BASE}/dashboard/project-manager/dev-stat`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    },
-  )
-
-  return unwrapApiData<PmDeveloperHighlight[]>(res.data)
+  const { data } = await api.get("/dashboard/project-manager/dev-stat")
+  return unwrapApiData<PmDeveloperHighlight[]>(data)
 }
