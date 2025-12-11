@@ -4,6 +4,8 @@ import * as React from "react"
 import { Link } from "react-router-dom"
 import { IconEye, IconEdit } from "@tabler/icons-react"
 import { User, Role } from "@/types/user.types"
+import type { PaginationMeta } from "@/types/pagination"
+import { TablePaginationControls } from "@/components/table-pagination-controls"
 import { UserTableColumns } from "../hooks/use-admin-user"
 import { UserDeleteDialog } from "./users-delete-dialog"
 
@@ -13,6 +15,11 @@ type Props = {
   loading: boolean
   error: string
   onDeleteUser: (id: number) => void
+  pagination: PaginationMeta
+  page: number
+  pageSize: number
+  onPageChange: (page: number) => void
+  onPageSizeChange: (size: number) => void
 }
 
 export const UsersTable: React.FC<Props> = ({
@@ -21,6 +28,11 @@ export const UsersTable: React.FC<Props> = ({
   loading,
   error,
   onDeleteUser,
+  pagination,
+  page,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
 }) => {
   const role = (localStorage.getItem("role") || "ADMIN") as Role
   const isPm = role === "PROJECT_MANAGER"
@@ -119,6 +131,15 @@ export const UsersTable: React.FC<Props> = ({
           ))}
         </tbody>
       </table>
+
+      <TablePaginationControls
+        total={pagination.total}
+        page={page}
+        pageSize={pageSize}
+        onPageChange={onPageChange}
+        onPageSizeChange={onPageSizeChange}
+        label="users"
+      />
     </div>
   )
 }

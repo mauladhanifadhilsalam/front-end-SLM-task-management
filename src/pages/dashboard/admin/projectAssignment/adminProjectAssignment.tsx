@@ -23,7 +23,6 @@ export default function AdminProjectAssignments() {
 
   const {
     assignments,
-    filteredAssignments,
     loading,
     error,
     search,
@@ -35,6 +34,11 @@ export default function AdminProjectAssignments() {
     deleting,
     requestDelete,
     confirmDelete,
+    pagination,
+    page,
+    pageSize,
+    onPageChange,
+    onPageSizeChange,
   } = useAdminProjectAssignments()
 
   const handleCreate = () => {
@@ -71,7 +75,6 @@ export default function AdminProjectAssignments() {
 
               <ProjectAssignmentsTable
                 assignments={assignments}
-                filteredAssignments={filteredAssignments}
                 loading={loading}
                 error={error}
                 search={search}
@@ -80,6 +83,11 @@ export default function AdminProjectAssignments() {
                 setColumns={setColumns}
                 onCreateClick={handleCreate}
                 onRequestDelete={requestDelete}
+                pagination={pagination}
+                page={page}
+                pageSize={pageSize}
+                onPageChange={onPageChange}
+                onPageSizeChange={onPageSizeChange}
               />
             </div>
           </div>

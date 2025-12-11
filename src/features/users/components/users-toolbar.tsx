@@ -21,14 +21,13 @@ import {
   IconLayoutGrid,
   IconChevronDown,
 } from "@tabler/icons-react"
-import { Role } from "@/types/user.types"
-import { UserTableColumns } from "../hooks/use-admin-user"
+import { UserTableColumns, type RoleFilter } from "../hooks/use-admin-user"
 
 type Props = {
   search: string
   onSearchChange: (value: string) => void
-  roleFilter: Role | "all"
-  onRoleFilterChange: (value: Role | "all") => void
+  roleFilter: RoleFilter
+  onRoleFilterChange: (value: RoleFilter) => void
   columns: UserTableColumns
   onToggleColumn: (
     key: keyof UserTableColumns,
@@ -67,7 +66,7 @@ export const UsersToolbar: React.FC<Props> = ({
         />
         <Select
           value={roleFilter}
-          onValueChange={(value) => onRoleFilterChange(value as Role | "all")}
+          onValueChange={(value) => onRoleFilterChange(value as RoleFilter)}
         >
           <SelectTrigger className="w-full sm:w-56 md:w-48">
             <SelectValue placeholder="Filter by role" />
@@ -76,7 +75,6 @@ export const UsersToolbar: React.FC<Props> = ({
             <SelectItem value="all">All roles</SelectItem>
             <SelectItem value="PROJECT_MANAGER">Project Manager</SelectItem>
             <SelectItem value="DEVELOPER">Developer</SelectItem>
-            <SelectItem value="ADMIN">Admin</SelectItem>
           </SelectContent>
         </Select>
       </div>

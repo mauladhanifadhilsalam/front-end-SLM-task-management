@@ -5,6 +5,8 @@ import { Link } from "react-router-dom"
 import { IconEye, IconEdit } from "@tabler/icons-react"
 import { Badge } from "@/components/ui/badge"
 import { ProjectOwner } from "@/types/project-owner.type"
+import type { PaginationMeta } from "@/types/pagination"
+import { TablePaginationControls } from "@/components/table-pagination-controls"
 import { ProjectOwnerColumns } from "../hooks/use-admin-project-owners"
 import { ProjectOwnerDeleteDialog } from "./project-owner-delete-dialog"
 
@@ -15,6 +17,11 @@ type Props = {
   columns: ProjectOwnerColumns
   colSpan: number
   onDeleteOwner: (id: number) => void
+  pagination: PaginationMeta
+  page: number
+  pageSize: number
+  onPageChange: (page: number) => void
+  onPageSizeChange: (size: number) => void
 }
 
 export const ProjectOwnersTable: React.FC<Props> = ({
@@ -24,6 +31,11 @@ export const ProjectOwnersTable: React.FC<Props> = ({
   columns,
   colSpan,
   onDeleteOwner,
+  pagination,
+  page,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
 }) => {
   const role = (localStorage.getItem("role") || "").toUpperCase()
   const basePath =
@@ -116,6 +128,15 @@ export const ProjectOwnersTable: React.FC<Props> = ({
           )}
         </tbody>
       </table>
+
+      <TablePaginationControls
+        total={pagination.total}
+        page={page}
+        pageSize={pageSize}
+        onPageChange={onPageChange}
+        onPageSizeChange={onPageSizeChange}
+        label="project owners"
+      />
     </div>
   )
 }

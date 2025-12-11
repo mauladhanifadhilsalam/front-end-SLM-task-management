@@ -21,7 +21,7 @@ export default function AdminProjects() {
   const navigate = useNavigate()
 
   const {
-    filteredProjects,
+    projects,
     loading,
     error,
     search,
@@ -32,11 +32,16 @@ export default function AdminProjects() {
     setStatusFilter,
     toggleColumn,
     deleteProject,
+    pagination,
+    page,
+    pageSize,
+    setPage,
+    setPageSize,
   } = useAdminProjects()
 
   const [downloadingReport, setDownloadingReport] = React.useState(false)
 
-  const hasData = filteredProjects.length > 0
+  const hasData = projects.length > 0
 
   const handleCreateProject = () => {
     navigate("/admin/dashboard/projects/create")
@@ -117,6 +122,7 @@ export default function AdminProjects() {
                   onSearchChange={setSearch}
                   onStatusFilterChange={setStatusFilter}
                   onToggleColumn={toggleColumn}
+                  onAddProject={handleCreateProject}
                   onDownloadReport={handleDownloadReport}
                   downloadDisabled={downloadingReport}
                 />
@@ -124,30 +130,42 @@ export default function AdminProjects() {
                 {/* Table wrapper to avoid horizontal scroll */}
                 <div className="w-full overflow-x-auto">
                   <ProjectsTable
-                    projects={filteredProjects}
+                    projects={projects}
                     loading={loading}
                     error={error}
                     columns={columns}
                     colSpan={colSpan}
                     onDelete={deleteProject}
+                    pagination={pagination}
+                    page={page}
+                    pageSize={pageSize}
+                    onPageChange={setPage}
+                    onPageSizeChange={setPageSize}
                   />
                 </div>
 
                 {/* Empty state */}
-                {!loading && !error && !hasData &&
-                  (search.trim() !== "" ? (
+                {!loading && !error && !hasData && (
+                  search.trim() !== "" ? (
                     <ProjectsSearchEmptyState
-                      query={search}
-                      onClear={() => setSearch("")}
+                    query={search}
+                    onClear={() => setSearch("")}
                       onCreateProject={handleCreateProject}
                     />
                   ) : (
                     <ProjectsEmptyState
                       onCreateProject={handleCreateProject}
                     />
-                  ))}
+                  )
+                )}
               </div>
             </div>
+
+
+
+
+
+
           </div>
         </SidebarInset>
       </SidebarProvider>

@@ -1,9 +1,20 @@
 import * as React from "react"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query"
 import { toast } from "sonner"
 import type { AdminComment } from "@/types/comment.type"
-import { fetchComments, deleteComment } from "@/services/comments.service"
+import {
+  fetchCommentsWithPagination,
+  deleteComment,
+  type CommentListParams,
+  type CommentListResult,
+} from "@/services/comments.service"
 import { commentKeys } from "@/lib/query-keys"
+import { usePagination } from "@/hooks/use-pagination"
 
 export type AdminCommentColumnState = {
   sel: boolean
@@ -34,21 +45,54 @@ export const useAdminCommentList = () => {
     defaultColumns,
   )
 
-  const [page, setPage] = React.useState(1)
-  const [rowsPerPage, setRowsPerPage] = React.useState(10)
+  const {
+    page,
+    pageSize,
+    onPageChange,
+    onPageSizeChange,
+    setPage,
+  } = usePagination()
 
   const [selectedIds, setSelectedIds] = React.useState<Set<number>>(
     new Set(),
   )
 
+  const filters = React.useMemo<CommentListParams>(() => {
+    const params: CommentListParams = {
+      page,
+      pageSize,
+    }
+    const trimmed = query.trim()
+    if (trimmed) params.search = trimmed
+    return params
+  }, [query, page, pageSize])
+
+  const queryKey = React.useMemo(
+    () => commentKeys.adminList(filters),
+    [filters],
+  )
+
   const commentsQuery = useQuery({
-    queryKey: commentKeys.adminList(),
-    queryFn: fetchComments,
+    queryKey,
+    queryFn: () => fetchCommentsWithPagination(filters),
     staleTime: 30 * 1000,
+    placeholderData: keepPreviousData,
   })
 
-  const rows = commentsQuery.data ?? []
+  const rows = React.useMemo(() => {
+    const list = commentsQuery.data?.comments ?? []
+    return list.slice().sort((a, b) => b.id - a.id)
+  }, [commentsQuery.data?.comments])
+
   const loading = commentsQuery.isLoading
+  const pagination = commentsQuery.data?.pagination ?? {
+    total: 0,
+    page,
+    pageSize,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPrevPage: false,
+  }
 
   React.useEffect(() => {
     if (commentsQuery.error) {
@@ -64,45 +108,6 @@ export const useAdminCommentList = () => {
     }
   }, [commentsQuery.error, commentsQuery.isSuccess])
 
-  const filtered = React.useMemo(() => {
-    const q = query.toLowerCase().trim()
-    if (!q) return rows
-
-    return rows.filter((c) => {
-      const ticketId = String(c.ticketId)
-      const ticketTitle = c.ticket?.title?.toLowerCase() ?? ""
-      const projectName = c.ticket?.project?.name?.toLowerCase() ?? ""
-      const message = c.message.toLowerCase()
-      const userName =
-        c.user?.fullName?.toLowerCase() ??
-        c.user?.name?.toLowerCase() ??
-        ""
-      const userEmail = c.user?.email?.toLowerCase() ?? ""
-      const userRole = c.user?.role?.toLowerCase() ?? ""
-
-      return (
-        message.includes(q) ||
-        userName.includes(q) ||
-        userEmail.includes(q) ||
-        userRole.includes(q) ||
-        ticketId.includes(q) ||
-        ticketTitle.includes(q) ||
-        projectName.includes(q)
-      )
-    })
-  }, [rows, query])
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / rowsPerPage))
-
-  React.useEffect(() => {
-    if (page > totalPages) setPage(totalPages)
-    if (page < 1) setPage(1)
-  }, [page, totalPages])
-
-  const pageStart = (page - 1) * rowsPerPage
-  const pageEnd = pageStart + rowsPerPage
-  const pageRows = filtered.slice(pageStart, pageEnd)
-
   const isRowSelected = (id: number) => selectedIds.has(id)
 
   const toggleRow = (id: number) =>
@@ -114,15 +119,15 @@ export const useAdminCommentList = () => {
     })
 
   const currentPageAllSelected =
-    pageRows.length > 0 && pageRows.every((r) => selectedIds.has(r.id))
+    rows.length > 0 && rows.every((r) => selectedIds.has(r.id))
 
   const toggleSelectAllOnPage = () =>
     setSelectedIds((prev) => {
       const next = new Set(prev)
       if (currentPageAllSelected) {
-        pageRows.forEach((r) => next.delete(r.id))
+        rows.forEach((r) => next.delete(r.id))
       } else {
-        pageRows.forEach((r) => next.add(r.id))
+        rows.forEach((r) => next.add(r.id))
       }
       return next
     })
@@ -132,25 +137,34 @@ export const useAdminCommentList = () => {
   const deleteMutation = useMutation({
     mutationFn: deleteComment,
     onMutate: async (id: number) => {
-      await queryClient.cancelQueries({ queryKey: commentKeys.adminList() })
+      await queryClient.cancelQueries({ queryKey })
       const previous =
-        queryClient.getQueryData<AdminComment[]>(commentKeys.adminList()) ??
-        []
+        queryClient.getQueryData<CommentListResult>(queryKey)
 
-      queryClient.setQueryData<AdminComment[]>(
-        commentKeys.adminList(),
-        (current = []) => current.filter((c) => c.id !== id),
+      queryClient.setQueryData<CommentListResult>(
+        queryKey,
+        (current) => {
+          if (!current) return current
+          return {
+            ...current,
+            comments: current.comments.filter((c) => c.id !== id),
+            pagination: {
+              ...current.pagination,
+              total: Math.max(0, current.pagination.total - 1),
+            },
+          }
+        },
       )
 
       return { previous }
     },
     onError: (_err, _id, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(commentKeys.adminList(), context.previous)
+        queryClient.setQueryData(queryKey, context.previous)
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: commentKeys.adminList() })
+      queryClient.invalidateQueries({ queryKey })
     },
   })
 
@@ -181,25 +195,21 @@ export const useAdminCommentList = () => {
     }
   }
 
-  const handleChangeRowsPerPage = (value: number) => {
-    setRowsPerPage(value)
-    setPage(1)
-  }
-
   return {
     rows,
     loading,
     error,
     query,
-    setQuery,
+    setQuery: (value: string) => {
+      setQuery(value)
+      setPage(1)
+    },
     cols,
     setCols,
     page,
-    setPage,
-    rowsPerPage,
-    setRowsPerPage: handleChangeRowsPerPage,
-    totalPages,
-    pageRows,
+    setPage: (value: number) => onPageChange(value, pagination.totalPages),
+    rowsPerPage: pageSize,
+    setRowsPerPage: onPageSizeChange,
     selectedIds,
     isRowSelected,
     toggleRow,
@@ -208,5 +218,7 @@ export const useAdminCommentList = () => {
     clearSelection,
     handleDelete,
     reload: commentsQuery.refetch,
+    pagination,
+    pageSize,
   }
 }

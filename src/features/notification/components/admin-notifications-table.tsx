@@ -26,7 +26,9 @@ import {
   IconTrash,
   IconReload,
 } from "@tabler/icons-react"
-import type { Notification } from "@/types/notification.type"
+import type { Notification, NotificationState } from "@/types/notification.type"
+import type { PaginationMeta } from "@/types/pagination"
+import { TablePaginationControls } from "@/components/table-pagination-controls"
 
 type ColState = {
   id: boolean
@@ -45,13 +47,18 @@ type ColState = {
 type Props = {
   search: string
   onSearchChange: (value: string) => void
-  stateFilter: string
-  onStateFilterChange: (value: string) => void
+  stateFilter: NotificationState | "all"
+  onStateFilterChange: (value: NotificationState | "all") => void
   cols: ColState
   onToggleColumn: (key: keyof ColState, value: boolean | "indeterminate") => void
   loading: boolean
   error: string
   notifications: Notification[]
+  pagination: PaginationMeta
+  page: number
+  pageSize: number
+  onPageChange: (page: number) => void
+  onPageSizeChange: (size: number) => void
   formatDate: (value: string | null) => string
   stateBadgeVariant: (
     state: Notification["state"],
@@ -80,6 +87,11 @@ export const AdminNotificationsTable: React.FC<Props> = ({
   loading,
   error,
   notifications,
+  pagination,
+  page,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
   formatDate,
   stateBadgeVariant,
   stateLabel,
@@ -103,22 +115,27 @@ export const AdminNotificationsTable: React.FC<Props> = ({
                 <h1 className="flex items-center gap-2 text-xl font-semibold md:text-2xl">
                   Daftar Notifikasi
                 </h1>
-                <p className="text-sm text-muted-foreground pt-1">
+                <p className="pt-1 text-sm text-muted-foreground">
                   Lihat semua notifikasi sistem untuk pengguna.
                 </p>
               </div>
             </div>
 
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                 <Input
                   placeholder="Cari pesan, subject, email, target, atau penerima..."
                   value={search}
                   onChange={(e) => onSearchChange(e.target.value)}
-                  className="w-full sm:max-w-xs md:w-80"
+                  className="w-full sm:w-80"
                 />
-                <Select value={stateFilter} onValueChange={onStateFilterChange}>
-                  <SelectTrigger className="w-full sm:w-56 md:w-48">
+                <Select
+                  value={stateFilter}
+                  onValueChange={(value) =>
+                    onStateFilterChange(value as NotificationState | "all")
+                  }
+                >
+                  <SelectTrigger className="w-full sm:w-48">
                     <SelectValue placeholder="Filter status baca" />
                   </SelectTrigger>
                   <SelectContent>
@@ -134,7 +151,7 @@ export const AdminNotificationsTable: React.FC<Props> = ({
                   <DropdownMenuTrigger asChild>
                     <Button
                       size="sm"
-                      className="flex items-center gap-2 cursor-pointer"
+                      className="flex cursor-pointer items-center gap-2"
                     >
                       <IconLayoutGrid className="h-4 w-4" />
                       Columns
@@ -282,19 +299,21 @@ export const AdminNotificationsTable: React.FC<Props> = ({
                         )}
 
                         {cols.createdAt && (
-                          <td className="px-4 py-3">{formatDate(n.createdAt)}</td>
+                          <td className="px-4 py-3">
+                            {formatDate(n.createdAt)}
+                          </td>
                         )}
 
                         {cols.readAt && (
-                          <td className="px-4 py-3">{formatDate(n.readAt)}</td>
+                          <td className="px-4 py-3">
+                            {formatDate(n.readAt)}
+                          </td>
                         )}
 
                         {cols.actions && (
                           <td className="px-4 py-3">
                             <div className="flex items-center justify-center gap-2">
-                              <Link
-                                to={`/admin-dashboard/notifications/view/${n.id}`}
-                              >
+                              <Link to={`/admin-dashboard/notifications/view/${n.id}`}>
                                 <IconEye className="h-4 w-4" />
                               </Link>
                               <button
@@ -320,6 +339,14 @@ export const AdminNotificationsTable: React.FC<Props> = ({
                     ))}
                   </tbody>
                 </table>
+                <TablePaginationControls
+                  total={pagination.total}
+                  page={page}
+                  pageSize={pageSize}
+                  onPageChange={onPageChange}
+                  onPageSizeChange={onPageSizeChange}
+                  label="notifications"
+                />
               </div>
             ) : null}
           </div>

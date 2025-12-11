@@ -4,15 +4,54 @@ import {
   unwrapApiData,
 } from "@/utils/api-response.util"
 import { api } from "@/lib/api"
+import { cleanQueryParams } from "@/utils/query-param.util"
+import {
+  defaultPaginationMeta,
+  normalizePagination,
+  type PaginationMeta,
+} from "@/types/pagination"
 
-export const fetchNotifications = async (): Promise<Notification[]> => {
-  const { data } = await api.get<Notification[]>("/notifications")
+export type NotificationListParams = {
+  recipientId?: number
+  targetType?: string
+  targetId?: number
+  state?: "UNREAD" | "READ" | "DISMISSED"
+  status?: "PENDING" | "SENT" | "FAILED"
+  search?: string
+  page?: number
+  pageSize?: number
+  sentFrom?: string
+  sentTo?: string
+}
 
-  const payload = extractArrayFromApi<Notification>(data, [
-    "notifications",
-  ])
+export type NotificationListResult = {
+  notifications: Notification[]
+  pagination: PaginationMeta
+}
 
-  return payload
+export const fetchNotificationsWithPagination = async (
+  params?: NotificationListParams,
+): Promise<NotificationListResult> => {
+  const { data } = await api.get("/notifications", {
+    params: cleanQueryParams(params),
+  })
+
+  return {
+    notifications: extractArrayFromApi<Notification>(data, [
+      "notifications",
+    ]),
+    pagination: normalizePagination(
+      (data as any)?.pagination,
+      defaultPaginationMeta,
+    ),
+  }
+}
+
+export const fetchNotifications = async (
+  params?: NotificationListParams,
+): Promise<Notification[]> => {
+  const { notifications } = await fetchNotificationsWithPagination(params)
+  return notifications
 }
 
 export const deleteNotificationById = async (id: number): Promise<void> => {

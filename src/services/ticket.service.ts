@@ -5,6 +5,12 @@ import {
   extractArrayFromApi,
   unwrapApiData,
 } from "@/utils/api-response.util"
+import { cleanQueryParams } from "@/utils/query-param.util"
+import {
+  defaultPaginationMeta,
+  normalizePagination,
+  type PaginationMeta,
+} from "@/types/pagination"
 
 type RawTicket = {
   id: number
@@ -58,14 +64,6 @@ export type TicketListParams = {
   dueFrom?: string
   dueTo?: string
   updatedSince?: string
-}
-
-const cleanParams = (params?: TicketListParams) => {
-  if (!params) return undefined
-  const entries = Object.entries(params).filter(
-    ([, value]) => value !== undefined && value !== null && value !== "",
-  )
-  return entries.length > 0 ? Object.fromEntries(entries) : undefined
 }
 
 export const fetchTicketsLite = async (): Promise<TicketLite[]> => {
@@ -191,16 +189,35 @@ export async function fetchTicketFormOptions(
   return { projects, requesters }
 }
 
-export const fetchAdminTickets = async (
+export type AdminTicketListResult = {
+  tickets: AdminTicket[]
+  pagination: PaginationMeta
+}
+
+export const fetchAdminTicketsWithPagination = async (
   params?: TicketListParams,
-): Promise<AdminTicket[]> => {
+): Promise<AdminTicketListResult> => {
   const { data } = await api.get("/tickets", {
-    params: cleanParams(params),
+    params: cleanQueryParams(params),
   })
 
   const raw: RawTicket[] = extractArrayFromApi<RawTicket>(data, ["tickets"])
+  const pagination = normalizePagination(
+    (data as any)?.pagination,
+    defaultPaginationMeta,
+  )
 
-  return raw.map(mapTicket)
+  return {
+    tickets: raw.map(mapTicket),
+    pagination,
+  }
+}
+
+export const fetchAdminTickets = async (
+  params?: TicketListParams,
+): Promise<AdminTicket[]> => {
+  const { tickets } = await fetchAdminTicketsWithPagination(params)
+  return tickets
 }
 
 export async function createTicket(payload: any): Promise<any> {

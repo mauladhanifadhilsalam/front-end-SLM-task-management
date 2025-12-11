@@ -13,7 +13,7 @@ export default function AdminUsers() {
   const navigate = useNavigate()
 
   const {
-    filteredUsers,
+    users,
     loading,
     error,
     search,
@@ -23,6 +23,11 @@ export default function AdminUsers() {
     columns,
     toggleColumn,
     handleDeleteUser,
+    pagination,
+    page,
+    pageSize,
+    setPage,
+    setPageSize,
   } = useAdminUsers()
 
   return (
@@ -66,11 +71,16 @@ export default function AdminUsers() {
                   />
 
                   <UsersTable
-                    users={filteredUsers}
+                    users={users}
                     columns={columns}
                     loading={loading}
                     error={error}
                     onDeleteUser={handleDeleteUser}
+                    pagination={pagination}
+                    page={page}
+                    pageSize={pageSize}
+                    onPageChange={setPage}
+                    onPageSizeChange={setPageSize}
                   />
                 </div>
               </div>

@@ -13,6 +13,7 @@ const AdminComment: React.FC = () => {
   const navigate = useNavigate()
 
   const {
+    rows,
     loading,
     error,
     query,
@@ -23,8 +24,6 @@ const AdminComment: React.FC = () => {
     setPage,
     rowsPerPage,
     setRowsPerPage,
-    totalPages,
-    pageRows,
     selectedIds,
     isRowSelected,
     toggleRow,
@@ -33,6 +32,7 @@ const AdminComment: React.FC = () => {
     clearSelection,
     handleDelete,
     reload,
+    pagination,
   } = useAdminCommentList()
 
   const handleToggleColumn = (
@@ -74,10 +74,7 @@ const AdminComment: React.FC = () => {
                   </div>
                   <AdminCommentToolbar
                     query={query}
-                    onQueryChange={(value) => {
-                      setQuery(value)
-                      setPage(1)
-                    }}
+                    onQueryChange={setQuery}
                     cols={cols}
                     onToggleColumn={handleToggleColumn}
                     onRefresh={reload}
@@ -90,15 +87,15 @@ const AdminComment: React.FC = () => {
                 </div>
                 <div className="px-4 lg:px-6">
                   <AdminCommentTable
-                    rows={pageRows}
+                    rows={rows}
                     loading={loading}
                     error={error}
                     cols={cols}
+                    pagination={pagination}
                     page={page}
-                    totalPages={totalPages}
-                    rowsPerPage={rowsPerPage}
+                    pageSize={rowsPerPage}
                     onPageChange={setPage}
-                    onRowsPerPageChange={setRowsPerPage}
+                    onPageSizeChange={setRowsPerPage}
                     selectedIds={selectedIds}
                     isRowSelected={isRowSelected}
                     toggleRow={toggleRow}

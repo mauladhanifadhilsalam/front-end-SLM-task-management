@@ -133,18 +133,6 @@ export const ProjectsToolbar: React.FC<Props> = ({
             Download Excel
           </Button>
         )}
-
-        {onAddProject && (
-          <Button
-            variant="default"
-            size="sm"
-            className="flex items-center gap-2 whitespace-nowrap px-4 py-2"
-            onClick={onAddProject}
-          >
-            <IconPlus className="h-4 w-4 stroke-[2.5]" />
-            Tambah Project
-          </Button>
-        )}
       </div>
     </div>
   )

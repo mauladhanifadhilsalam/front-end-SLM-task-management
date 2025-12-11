@@ -8,6 +8,12 @@ import {
   unwrapApiData,
 } from "@/utils/api-response.util";
 import { api } from "@/lib/api";
+import { cleanQueryParams } from "@/utils/query-param.util";
+import {
+  defaultPaginationMeta,
+  normalizePagination,
+  type PaginationMeta,
+} from "@/types/pagination";
  
 const normalizeProjectOwners = (raw: any[]): ProjectOwner[] => {
     return raw.map((o) => ({
@@ -22,11 +28,40 @@ const normalizeProjectOwners = (raw: any[]): ProjectOwner[] => {
     }))
 }
 
-export const fetchProjectOwners = async (): Promise<ProjectOwner[]> => {
-  const { data } = await api.get(`/project-owners`)
+export type ProjectOwnerListParams = {
+  company?: string;
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export type ProjectOwnerListResult = {
+  owners: ProjectOwner[]
+  pagination: PaginationMeta
+}
+
+export const fetchProjectOwnersWithPagination = async (
+  params?: ProjectOwnerListParams,
+): Promise<ProjectOwnerListResult> => {
+  const { data } = await api.get(`/project-owners`, {
+    params: cleanQueryParams(params),
+  })
 
   const raw: any[] = extractArrayFromApi(data, ["projectOwners"])
-  return normalizeProjectOwners(raw)
+  return {
+    owners: normalizeProjectOwners(raw),
+    pagination: normalizePagination(
+      (data as any)?.pagination,
+      defaultPaginationMeta,
+    ),
+  }
+}
+
+export const fetchProjectOwners = async (
+  params?: ProjectOwnerListParams,
+): Promise<ProjectOwner[]> => {
+  const { owners } = await fetchProjectOwnersWithPagination(params)
+  return owners
 }
 
 export const deleteProjectOwnerById = async (id: number): Promise<void> => {

@@ -1,74 +1,105 @@
-import axios from "axios"
-import { Role, User, CreateUserPayload, UserLite } from "@/types/user.types"
+import { api } from "@/lib/api"
+import {
+  Role,
+  User,
+  CreateUserPayload,
+  UserLite,
+} from "@/types/user.types"
 import type { EditTicketAssigneeUser } from "@/types/ticket-assignee.type"
 import {
-    extractArrayFromApi,
-    unwrapApiData,
+  extractArrayFromApi,
+  unwrapApiData,
 } from "@/utils/api-response.util"
+import { cleanQueryParams } from "@/utils/query-param.util"
+import {
+  defaultPaginationMeta,
+  normalizePagination,
+  type PaginationMeta,
+} from "@/types/pagination"
 
-const API_BASE = import.meta.env.VITE_API_BASE
+const normalizeUsers = (raw: any[]): User[] =>
+  raw.map((u) => ({
+    id: Number(u.id),
+    fullName: String(u.fullName ?? u.name ?? ""),
+    email: String(u.email ?? ""),
+    passwordHash: String(u.passwordHash ?? ""),
+    role: (u.role as Role) ?? "DEVELOPER",
+  }))
 
-const getAuthHeaders = () => {
-    const token = localStorage.getItem("token")
-    if (!token) return undefined
-    return { Authorization: `Bearer ${token}` }
+export type UserListParams = {
+  search?: string
+  role?: Role
+  isActive?: boolean
+  page?: number
+  pageSize?: number
 }
 
-const normalizeUsers = (raw: any[]): User[] => {
-    return raw.map((u) => ({
-        id: Number(u.id),
-        fullName: String(u.fullName ?? ""),
-        email: String(u.email ?? ""),
-        passwordHash: String(u.passwordHash ?? ""),
-        role: (u.role as Role) ?? "DEVELOPER",
-    }))
+export const emptyUserPagination = { ...defaultPaginationMeta }
+
+export type FetchUsersResult = {
+  users: User[]
+  pagination: PaginationMeta
 }
 
-export const fetchUsers = async (): Promise<User[]> => {
-    const res = await axios.get(`${API_BASE}/users`, {
-        headers: getAuthHeaders(),
-})
+export const fetchUsersWithPagination = async (
+  params?: UserListParams,
+): Promise<FetchUsersResult> => {
+  const { data } = await api.get("/users", {
+    params: cleanQueryParams(params),
+  })
 
-    const raw: any[] = extractArrayFromApi(res.data, ["users"])
-    const normalized = normalizeUsers(raw)
-    return normalized.slice().sort((a, b) => a.id - b.id)
+  const rawList = Array.isArray((data as any)?.data)
+    ? ((data as any).data as any[])
+    : extractArrayFromApi(data, ["users"])
+
+  const normalized = normalizeUsers(rawList)
+  const pagination = normalizePagination(
+    (data as any)?.pagination,
+    defaultPaginationMeta,
+  )
+
+  return {
+    users: normalized,
+    pagination,
+  }
+}
+
+export const fetchUsers = async (
+  params?: UserListParams,
+): Promise<User[]> => {
+  const { users } = await fetchUsersWithPagination(params)
+  return users
 }
 
 export const deleteUserById = async (id: number): Promise<void> => {
-    await axios.delete(`${API_BASE}/users/${id}`, {
-        headers: getAuthHeaders(),
-    })
+  await api.delete(`/users/${id}`)
 }
 
-export const createUser = async (payload: CreateUserPayload): Promise<User> => {
-    const res = await axios.post(`${API_BASE}/users`, payload, {
-        headers: getAuthHeaders(),
-    })
-    return unwrapApiData<User>(res.data)
+export const createUser = async (
+  payload: CreateUserPayload,
+): Promise<User> => {
+  const { data } = await api.post("/users", payload)
+  return unwrapApiData<User>(data)
 }
 
-export const getUserById = async (id: string | number): Promise<any> => {
-    const res = await axios.get(`${API_BASE}/users/${id}`, {
-        headers: getAuthHeaders(),
-    })
-    return unwrapApiData(res.data)
+export const getUserById = async (
+  id: string | number,
+): Promise<any> => {
+  const { data } = await api.get(`/users/${id}`)
+  return unwrapApiData(data)
 }
 
 export const updateUser = async (
-    id: string | number,
-    payload: Record<string, unknown>,
-    ): Promise<void> => {
-    await axios.patch(`${API_BASE}/users/${id}`, payload, {
-        headers: getAuthHeaders(),
-    })
+  id: string | number,
+  payload: Record<string, unknown>,
+): Promise<void> => {
+  await api.patch(`/users/${id}`, payload)
 }
 
 export const fetchAssignableUsers = async (): Promise<UserLite[]> => {
-  const res = await axios.get(`${API_BASE}/users`, {
-    headers: getAuthHeaders(),
-  })
+  const { data } = await api.get("/users")
 
-  const raw: any[] = extractArrayFromApi(res.data, ["users"])
+  const raw: any[] = extractArrayFromApi(data, ["users"])
 
   return raw
     .map((u) => ({
@@ -85,9 +116,6 @@ export const fetchAssignableUsers = async (): Promise<UserLite[]> => {
 }
 
 export async function fetchUsersTicketAssignees(): Promise<EditTicketAssigneeUser[]> {
-  const res = await axios.get(`${API_BASE}/users`, {
-    headers: getAuthHeaders(),
-  })
-
-  return extractArrayFromApi<EditTicketAssigneeUser>(res.data, ["users"])
+  const { data } = await api.get("/users")
+  return extractArrayFromApi<EditTicketAssigneeUser>(data, ["users"])
 }

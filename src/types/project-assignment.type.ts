@@ -1,10 +1,9 @@
 export type RoleInProject =
+  | "TECH_LEAD"
   | "FRONT_END"
   | "BACK_END"
-  | "TECH_LEAD"
   | "DEVOPS"
   | "CLOUD_ENGINEER"
-  | ""
 
 export type ProjectAssignment = {
   id: number
@@ -12,7 +11,7 @@ export type ProjectAssignment = {
   projectName?: string
   assigneeId?: number
   assigneeName?: string
-  roleInProject?: string
+  roleInProject?: RoleInProject
   assignedAt?: string
 }
 

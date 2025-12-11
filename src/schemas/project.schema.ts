@@ -60,7 +60,7 @@ export const createProjectSchema = z
     endDate: isoDate,
 
     status: z
-      .enum(["NOT_STARTED", "IN_PROGRESS", "COMPLETED", "ON_HOLD"])
+      .enum(["NOT_STARTED", "IN_PROGRESS", "ON_HOLD", "DONE"])
       .default("NOT_STARTED"),
     completion: z
       .number()

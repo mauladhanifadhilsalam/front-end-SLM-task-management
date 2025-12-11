@@ -5,6 +5,8 @@ import { Link } from "react-router-dom"
 import { IconEye, IconEdit } from "@tabler/icons-react"
 import { Badge } from "@/components/ui/badge"
 import { Project } from "@/types/project.type"
+import type { PaginationMeta } from "@/types/pagination"
+import { TablePaginationControls } from "@/components/table-pagination-controls"
 import { ProjectColumns } from "../hooks/use-admin-projects"
 import { ProjectDeleteDialog } from "./project-delete-dialog"
 
@@ -15,6 +17,11 @@ type Props = {
   columns: ProjectColumns
   colSpan: number
   onDelete: (id: number) => void
+  pagination: PaginationMeta
+  page: number
+  pageSize: number
+  onPageChange: (page: number) => void
+  onPageSizeChange: (size: number) => void
 }
 
 export const ProjectsTable: React.FC<Props> = ({
@@ -24,6 +31,11 @@ export const ProjectsTable: React.FC<Props> = ({
   columns,
   colSpan,
   onDelete,
+  pagination,
+  page,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
 }) => {
 
   const role = (localStorage.getItem("role") || "").toUpperCase()
@@ -139,8 +151,8 @@ export const ProjectsTable: React.FC<Props> = ({
                   <td className="px-4 py-3">
                     {p.startDate
                       ? new Date(
-                          p.startDate,
-                        ).toLocaleDateString("id-ID")
+                        p.startDate,
+                      ).toLocaleDateString("id-ID")
                       : "-"}
                   </td>
                 )}
@@ -148,8 +160,8 @@ export const ProjectsTable: React.FC<Props> = ({
                   <td className="px-4 py-3">
                     {p.endDate
                       ? new Date(
-                          p.endDate,
-                        ).toLocaleDateString("id-ID")
+                        p.endDate,
+                      ).toLocaleDateString("id-ID")
                       : "-"}
                   </td>
                 )}
@@ -178,10 +190,17 @@ export const ProjectsTable: React.FC<Props> = ({
                   </td>
                 )}
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            )))}
+          </tbody>
+        </table>
+      <TablePaginationControls
+        total={pagination.total}
+        page={page}
+        pageSize={pageSize}
+        onPageChange={onPageChange}
+        onPageSizeChange={onPageSizeChange}
+        label="projects"
+      />
     </div>
   )
 }

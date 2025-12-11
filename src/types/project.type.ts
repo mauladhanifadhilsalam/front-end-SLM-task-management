@@ -1,7 +1,8 @@
 
 import type { UserLite } from "@/types/user.types"
+import type { RoleInProject } from "@/types/project-assignment.type"
 
-export type ProjectStatus = "NOT_STARTED" | "IN_PROGRESS" | "DONE" | string
+export type ProjectStatus = "NOT_STARTED" | "IN_PROGRESS" | "ON_HOLD" | "DONE"
 
 export type ProjectOwnerLite = {
   id: number
@@ -18,7 +19,7 @@ export type ProjectPhasePayload = {
 
 export type ProjectAssignmentPayload = {
   userId: number
-  roleInProject: string
+  roleInProject: RoleInProject
 }
 
 export type Project = {
@@ -72,7 +73,7 @@ export type ProjectPhase = {
 export type ProjectAssignment = {
   id: number
   userId: number
-  roleInProject: string
+  roleInProject: RoleInProject
   isActive?: boolean | null
   allocation?: number | null
   notes?: string | null

@@ -1,19 +1,23 @@
-import axios from "axios"
-import type { ActivityLog } from "@/types/activity-log.type"
+import { api } from "@/lib/api"
+import type {
+  ActivityLog,
+  ActivityTargetType,
+} from "@/types/activity-log.type"
 import { extractArrayFromApi } from "@/utils/api-response.util"
-
-const API_BASE = import.meta.env.VITE_API_BASE as string
-
-const getAuthHeader = () => {
-  const token = localStorage.getItem("token")
-  return token ? { Authorization: `Bearer ${token}` } : undefined
-}
+import { cleanQueryParams } from "@/utils/query-param.util"
+import {
+  defaultPaginationMeta,
+  normalizePagination,
+  type PaginationMeta,
+} from "@/types/pagination"
 
 const mapActivityLog = (item: any): ActivityLog => ({
   id: Number(item.id),
   userId: Number(item.userId ?? item.user_id ?? item.user?.id ?? 0),
   action: String(item.action ?? ""),
-  targetType: String(item.targetType ?? item.target_type ?? "-"),
+  targetType: (item.targetType ??
+    item.target_type ??
+    "COMMENT") as ActivityTargetType,
   targetId: Number(item.targetId ?? item.target_id ?? 0),
   details: (item.details as Record<string, unknown>) ?? {},
   occurredAt: String(
@@ -31,26 +35,53 @@ const mapActivityLog = (item: any): ActivityLog => ({
   },
 })
 
-export const fetchActivityLogs = async (): Promise<ActivityLog[]> => {
-  const res = await axios.get(`${API_BASE}/activity-logs`, {
-    headers: getAuthHeader(),
+export type ActivityLogListParams = {
+  targetType?: string
+  targetId?: number
+  userId?: number
+  action?: string
+  search?: string
+  page?: number
+  pageSize?: number
+  from?: string
+  to?: string
+}
+
+export type ActivityLogListResult = {
+  logs: ActivityLog[]
+  pagination: PaginationMeta
+}
+
+export const fetchActivityLogsWithPagination = async (
+  params?: ActivityLogListParams,
+): Promise<ActivityLogListResult> => {
+  const { data } = await api.get(`/activity-logs`, {
+    params: cleanQueryParams(params),
   })
 
-  const list = extractArrayFromApi(res.data, ["logs"]).map(
-    mapActivityLog,
-  ) as ActivityLog[]
+  const list = extractArrayFromApi(data, ["logs"]).map(mapActivityLog) as ActivityLog[]
 
   list.sort(
     (a, b) =>
-      new Date(b.occurredAt).getTime() -
-      new Date(a.occurredAt).getTime(),
+      new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime(),
   )
 
-  return list
+  return {
+    logs: list,
+    pagination: normalizePagination(
+      (data as any)?.pagination,
+      defaultPaginationMeta,
+    ),
+  }
+}
+
+export const fetchActivityLogs = async (
+  params?: ActivityLogListParams,
+): Promise<ActivityLog[]> => {
+  const { logs } = await fetchActivityLogsWithPagination(params)
+  return logs
 }
 
 export const deleteActivityLog = async (id: number): Promise<void> => {
-  await axios.delete(`${API_BASE}/activity-logs/${id}`, {
-    headers: getAuthHeader(),
-  })
+  await api.delete(`/activity-logs/${id}`)
 }

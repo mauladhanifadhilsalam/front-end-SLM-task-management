@@ -1,11 +1,22 @@
 "use client"
 
 import * as React from "react"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query"
 import { toast } from "sonner"
-import type { AdminTicket, AdminTicketColumns } from "@/types/ticket-type"
-import { fetchAdminTickets, deleteTicket } from "@/services/ticket.service"
+
 import { ticketKeys } from "@/lib/query-keys"
+import {
+  deleteTicket,
+  fetchAdminTicketsWithPagination,
+  type TicketListParams,
+  type AdminTicketListResult,
+} from "@/services/ticket.service"
+import type { AdminTicket, AdminTicketColumns } from "@/types/ticket-type"
 
 const defaultColumns: AdminTicketColumns = {
   id: true,
@@ -20,16 +31,32 @@ const defaultColumns: AdminTicketColumns = {
   actions: true,
 }
 
+const normalizeSearch = (value: string) => value.trim().toLowerCase()
+
 export function useAdminTickets() {
   const queryClient = useQueryClient()
   const [error, setError] = React.useState("")
   const [q, setQ] = React.useState("")
+  const [page, setPage] = React.useState(1)
+  const [pageSize, setPageSize] = React.useState(10)
   const [cols, setCols] = React.useState<AdminTicketColumns>(defaultColumns)
 
-  const ticketsQuery = useQuery({
-    queryKey: ticketKeys.list(),
-    queryFn: fetchAdminTickets,
+  const filters = React.useMemo<TicketListParams>(() => {
+    const search = normalizeSearch(q)
+    return {
+      page,
+      pageSize,
+      ...(search ? { search } : {}),
+    }
+  }, [q, page, pageSize])
+
+  const queryKey = React.useMemo(() => ticketKeys.list(filters), [filters])
+
+  const ticketsQuery = useQuery<AdminTicketListResult>({
+    queryKey,
+    queryFn: () => fetchAdminTicketsWithPagination(filters),
     staleTime: 30 * 1000,
+    placeholderData: keepPreviousData,
   })
 
   React.useEffect(() => {
@@ -45,7 +72,15 @@ export function useAdminTickets() {
     }
   }, [ticketsQuery.error, ticketsQuery.isSuccess])
 
-  const tickets = ticketsQuery.data ?? []
+  const tickets = ticketsQuery.data?.tickets ?? []
+  const pagination = ticketsQuery.data?.pagination ?? {
+    total: 0,
+    page,
+    pageSize,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPrevPage: false,
+  }
 
   const formatDate = React.useCallback((iso?: string) => {
     if (!iso) return "-"
@@ -56,24 +91,6 @@ export function useAdminTickets() {
     }
   }, [])
 
-  const filteredTickets = React.useMemo(() => {
-    const s = q.trim().toLowerCase()
-    if (!s) return tickets
-    return tickets.filter((t) => {
-      const fields = [
-        t.title,
-        t.type,
-        t.priority,
-        t.status,
-        t.requesterName,
-        t.projectName,
-      ]
-        .filter(Boolean)
-        .map((x) => String(x).toLowerCase())
-      return fields.some((f) => f.includes(s))
-    })
-  }, [tickets, q])
-
   const toggleColumn = (key: keyof AdminTicketColumns, value: boolean) => {
     setCols((prev) => ({ ...prev, [key]: value }))
   }
@@ -81,24 +98,34 @@ export function useAdminTickets() {
   const deleteMutation = useMutation({
     mutationFn: deleteTicket,
     onMutate: async (id: number) => {
-      await queryClient.cancelQueries({ queryKey: ticketKeys.list() })
+      await queryClient.cancelQueries({ queryKey })
       const previous =
-        queryClient.getQueryData<AdminTicket[]>(ticketKeys.list()) ?? []
+        queryClient.getQueryData<AdminTicketListResult>(queryKey)
 
-      queryClient.setQueryData<AdminTicket[]>(
-        ticketKeys.list(),
-        (current = []) => current.filter((t) => t.id !== id),
+      queryClient.setQueryData<AdminTicketListResult>(
+        queryKey,
+        (current) => {
+          if (!current) return current
+          return {
+            ...current,
+            tickets: current.tickets.filter((t) => t.id !== id),
+            pagination: {
+              ...current.pagination,
+              total: Math.max(0, current.pagination.total - 1),
+            },
+          }
+        },
       )
 
       return { previous }
     },
     onError: (_err, _id, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(ticketKeys.list(), context.previous)
+        queryClient.setQueryData(queryKey, context.previous)
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ticketKeys.list() })
+      queryClient.invalidateQueries({ queryKey })
     },
   })
 
@@ -107,7 +134,7 @@ export function useAdminTickets() {
     try {
       await deleteMutation.mutateAsync(id)
       toast.success("Ticket terhapus", {
-        description: `Ticket “${target?.title ?? `#${id}`}” berhasil dihapus.`,
+        description: `Ticket "${target?.title ?? `#${id}`}" berhasil dihapus.`,
       })
     } catch (e: any) {
       const msg = e?.response?.data?.message || "Gagal menghapus ticket."
@@ -119,7 +146,7 @@ export function useAdminTickets() {
   }
 
   return {
-    tickets: filteredTickets,
+    tickets,
     loading: ticketsQuery.isLoading,
     error,
     q,
@@ -129,6 +156,11 @@ export function useAdminTickets() {
     formatDate,
     deleteTicket: handleDelete,
     hasFilter: q.trim().length > 0,
+    pagination,
+    page,
+    pageSize,
+    setPage,
+    setPageSize,
     refetch: ticketsQuery.refetch,
   }
 }

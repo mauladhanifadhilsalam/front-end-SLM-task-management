@@ -13,7 +13,7 @@ const AdminProjectPhasePage: React.FC = () => {
   const navigate = useNavigate();
 
   const {
-    filteredPhases,
+    phases,
     loading,
     error,
     query,
@@ -23,6 +23,11 @@ const AdminProjectPhasePage: React.FC = () => {
     toggleColumn,
     deletePhase,
     getStatusVariant,
+    pagination,
+    page,
+    pageSize,
+    setPage,
+    setPageSize,
   } = useAdminProjectPhaseList();
 
   return (
@@ -64,17 +69,20 @@ const AdminProjectPhasePage: React.FC = () => {
                       navigate("/admin/dashboard/project-phases/create")
                     }
                   />
-                  <div className="rounded-md border overflow-x-auto">
-                    <AdminProjectPhaseTable
-                      phases={filteredPhases}
-                      loading={loading}
-                      error={error}
-                      cols={cols}
-                      colSpan={colSpan}
-                      onDeletePhase={deletePhase}
-                      getStatusVariant={getStatusVariant}
-                    />
-                  </div>
+                  <AdminProjectPhaseTable
+                    phases={phases}
+                    loading={loading}
+                    error={error}
+                    cols={cols}
+                    colSpan={colSpan}
+                    onDeletePhase={deletePhase}
+                    getStatusVariant={getStatusVariant}
+                    pagination={pagination}
+                    page={page}
+                    pageSize={pageSize}
+                    onPageChange={setPage}
+                    onPageSizeChange={setPageSize}
+                  />
                 </div>
               </div>
             </div>

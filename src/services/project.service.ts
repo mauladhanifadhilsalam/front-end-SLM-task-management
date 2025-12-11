@@ -1,4 +1,4 @@
-import axios from "axios"
+import { api } from "@/lib/api"
 import {
   Project,
   ProjectOwnerLite,
@@ -14,14 +14,12 @@ import {
   extractArrayFromApi,
   unwrapApiData,
 } from "@/utils/api-response.util"
-
-const API_BASE = import.meta.env.VITE_API_BASE
-
-const getAuthHeaders = () => {
-  const token = localStorage.getItem("token")
-  if (!token) return undefined
-  return { Authorization: `Bearer ${token}` }
-}
+import { cleanQueryParams } from "@/utils/query-param.util"
+import {
+  defaultPaginationMeta,
+  normalizePagination,
+  type PaginationMeta,
+} from "@/types/pagination"
 
 const normalizeOwner = (raw: any | null | undefined): ProjectOwnerLite | null => {
   if (!raw) return null
@@ -81,27 +79,54 @@ const parseFileNameFromDisposition = (
   }
 }
 
-export const fetchProjects = async (): Promise<Project[]> => {
-  const res = await axios.get(`${API_BASE}/projects`, {
-    headers: getAuthHeaders(),
+export type ProjectListParams = {
+  status?: ProjectStatus
+  ownerId?: number
+  assignedUserId?: number
+  category?: string
+  search?: string
+  page?: number
+  pageSize?: number
+}
+
+export type ProjectListResult = {
+  projects: Project[]
+  pagination: PaginationMeta
+}
+
+export const fetchProjectsWithPagination = async (
+  params?: ProjectListParams,
+): Promise<ProjectListResult> => {
+  const { data } = await api.get("/projects", {
+    params: cleanQueryParams(params),
   })
 
-  const data: any[] = extractArrayFromApi<any>(res.data, ["projects"])
-  return data.map(normalizeProject)
+  const list: any[] = extractArrayFromApi<any>(data, ["projects"])
+  return {
+    projects: list.map(normalizeProject),
+    pagination: normalizePagination(
+      (data as any)?.pagination,
+      defaultPaginationMeta,
+    ),
+  }
+}
+
+export const fetchProjects = async (
+  params?: ProjectListParams,
+): Promise<Project[]> => {
+  const { projects } = await fetchProjectsWithPagination(params)
+  return projects
 }
 
 export const deleteProjectById = async (id: number): Promise<void> => {
-  await axios.delete(`${API_BASE}/projects/${id}`, {
-    headers: getAuthHeaders(),
-  })
+  await api.delete(`/projects/${id}`)
 }
 
 export const downloadProjectReport = async (): Promise<{
   blob: Blob
   fileName: string
 }> => {
-  const res = await axios.get<Blob>(`${API_BASE}/projects/report`, {
-    headers: getAuthHeaders(),
+  const res = await api.get<Blob>("/projects/report", {
     responseType: "blob",
   })
 
@@ -117,11 +142,9 @@ export const downloadProjectReport = async (): Promise<{
 }
 
 export const getProjectOwners = async (): Promise<ProjectOwnerLite[]> => {
-  const res = await axios.get(`${API_BASE}/project-owners`, {
-    headers: getAuthHeaders(),
-  })
+  const { data } = await api.get("/project-owners")
 
-  const raw: any[] = extractArrayFromApi(res.data, ["projectOwners"])
+  const raw: any[] = extractArrayFromApi(data, ["projectOwners"])
 
   return raw.map((d) => ({
     id: Number(d.id),
@@ -134,19 +157,12 @@ export const getProjectOwners = async (): Promise<ProjectOwnerLite[]> => {
 export const createProject = async (
   payload: CreateProjectPayload,
 ): Promise<void> => {
-  await axios.post(`${API_BASE}/projects`, payload, {
-    headers: {
-      "Content-Type": "application/json",
-      ...getAuthHeaders(),
-    },
-  })
+  await api.post("/projects", payload)
 }
 
 export const fetchProjectById = async (id: number): Promise<ProjectDetail> => {
-  const res = await axios.get(`${API_BASE}/projects/${id}`, {
-    headers: getAuthHeaders(),
-  })
-  const d = unwrapApiData<any>(res.data)
+  const { data } = await api.get(`/projects/${id}`)
+  const d = unwrapApiData<any>(data)
 
   const base = normalizeProject(d)
 
@@ -185,12 +201,7 @@ export const updateProject = async (
   id: number,
   payload: UpdateProjectPayload,
 ): Promise<void> => {
-  await axios.patch(`${API_BASE}/projects/${id}`, payload, {
-    headers: {
-      "Content-Type": "application/json",
-      ...getAuthHeaders(),
-    },
-  })
+  await api.patch(`/projects/${id}`, payload)
 }
 
 export const addAssignmentToProject = async (
@@ -198,14 +209,9 @@ export const addAssignmentToProject = async (
   userId: number,
   roleInProject: RoleInProject,
 ) => {
-  return axios.post(
-    `${API_BASE}/project-assignments`,
-    {
-      projectId,    
-      userId,       
-      roleInProject 
-    },
-    { headers: getAuthHeaders() },
-  )
+  return api.post(`/project-assignments`, {
+    projectId,
+    userId,
+    roleInProject,
+  })
 }
-

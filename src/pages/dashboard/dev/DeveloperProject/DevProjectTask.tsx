@@ -242,7 +242,6 @@ function buildStats(tickets: Ticket[]) {
       status === "DONE" ||
       status === "RESOLVED" ||
       status === "CLOSED" ||
-      status === "COMPLETED" ||
       status.includes("DONE") ||
       status.includes("RESOLVED") ||
       status.includes("CLOSED") ||
