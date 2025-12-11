@@ -37,10 +37,10 @@ type Props = {
     key: keyof ProjectColumns,
     value: boolean | "indeterminate",
   ) => void
-  onCreateProject: () => void
   onDownloadReport?: () => void
   downloadDisabled?: boolean
   showColumnToggle?: boolean
+  onAddProject?: () => void
 }
 
 const COLUMN_LABELS: Record<keyof ProjectColumns, string> = {
@@ -62,18 +62,18 @@ export const ProjectsToolbar: React.FC<Props> = ({
   onSearchChange,
   onStatusFilterChange,
   onToggleColumn,
-  onCreateProject,
   onDownloadReport,
   downloadDisabled = false,
   showColumnToggle = true,
+  onAddProject,
 }) => {
   const handleStatusChange = (value: string) => {
     onStatusFilterChange(value as StatusFilter)
   }
 
   return (
-    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 md:w-auto w-full">
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
         <Input
           placeholder="Cari nama, owner, kategori, atau catatan..."
           value={search}
@@ -93,17 +93,17 @@ export const ProjectsToolbar: React.FC<Props> = ({
         </Select>
       </div>
 
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+      <div className="flex flex-row flex-wrap items-center gap-2">
         {showColumnToggle && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                variant="outline"
+                variant="default"
                 size="sm"
-                className="flex items-center justify-center gap-2 sm:w-auto"
+                className="flex items-center gap-2 whitespace-nowrap px-3"
               >
                 <IconLayoutGrid className="h-4 w-4" />
-                Kolom
+                Columns
                 <IconChevronDown className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -125,7 +125,7 @@ export const ProjectsToolbar: React.FC<Props> = ({
           <Button
             variant="default"
             size="sm"
-            className="flex items-center justify-center gap-2 w-full sm:w-auto bg-green-600 hover:bg-green-500 text-white border-transparent"
+            className="flex items-center gap-2 whitespace-nowrap px-3 bg-green-600 hover:bg-green-500 text-white border-transparent"
             onClick={onDownloadReport}
             disabled={downloadDisabled}
           >
@@ -133,11 +133,6 @@ export const ProjectsToolbar: React.FC<Props> = ({
             Download Excel
           </Button>
         )}
-
-        <Button onClick={onCreateProject} className="w-full sm:w-auto">
-          <IconPlus className="mr-2 h-4 w-4" />
-          Tambah Project
-        </Button>
       </div>
     </div>
   )

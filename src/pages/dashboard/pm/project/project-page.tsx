@@ -74,7 +74,7 @@ export default function AdminProjects() {
   }, [downloadingReport])
 
   return (
-    <div>
+    <div className="overflow-x-hidden">
       <SidebarProvider
         style={
           {
@@ -84,42 +84,48 @@ export default function AdminProjects() {
         }
       >
         <AppSidebarPm variant="inset" />
-        <SidebarInset>
+        <SidebarInset className="overflow-x-hidden">
           <SiteHeader />
 
-          <main className="flex flex-col flex-1 p-6 space-y-6">
+          <main className="flex flex-col flex-1 p-6 space-y-6 max-w-full overflow-x-hidden">
             <div className="flex items-center justify-between">
-              <div>
+              <div className="min-w-0">
                 <h1 className="text-2xl font-semibold">
                   Daftar Project
                 </h1>
                 <p className="text-muted-foreground">
-                Lihat dan kelola semua project aktif.
+                  Lihat dan kelola semua project aktif.
                 </p>
               </div>
             </div>
 
-            <ProjectSummaryCharts projects={projects} />
+            <div className="w-full overflow-x-hidden">
+              <ProjectSummaryCharts projects={projects} />
+            </div>
 
-            <ProjectsToolbar
-              search={search}
-              statusFilter={statusFilter}
-              columns={columns}
-              onSearchChange={setSearch}
-              onStatusFilterChange={setStatusFilter}
-              onToggleColumn={toggleColumn}
-              onCreateProject={handleCreateProject}
-              onDownloadReport={handleDownloadReport}
-              downloadDisabled={downloadingReport}
-              showColumnToggle={false}
-            />
+            <div className="w-full overflow-x-hidden">
+              <ProjectsToolbar
+                search={search}
+                statusFilter={statusFilter}
+                columns={columns}
+                onSearchChange={setSearch}
+                onStatusFilterChange={setStatusFilter}
+                onToggleColumn={toggleColumn}
+                onDownloadReport={handleDownloadReport}
+                downloadDisabled={downloadingReport}
+                showColumnToggle={false}
+                onAddProject={handleCreateProject}
+              />
+            </div>
 
-            <ProjectsCardsList
+            <div className="w-full overflow-x-hidden">
+              <ProjectsCardsList
                 projects={projects}
                 loading={loading}
                 error={error}
                 onDelete={deleteProject}
-                />
+              />
+            </div>
 
             {!loading && !error && !hasData && (
               search.trim() !== "" ? (

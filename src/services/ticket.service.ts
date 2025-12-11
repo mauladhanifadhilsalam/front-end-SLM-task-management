@@ -104,6 +104,7 @@ export async function deleteTicket(id: number | string): Promise<void> {
   await api.delete(`/tickets/${id}`)
 }
 
+
 const mapTicket = (raw: RawTicket): AdminTicket => {
   const assigneeIds =
     Array.isArray(raw.assignees)
