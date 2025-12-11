@@ -1,7 +1,6 @@
 import * as React from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { useNavigate } from "react-router-dom"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -29,6 +28,18 @@ type Props = {
   onSearchChange: (value: string) => void
   onStatusChange: (value: string) => void
   onToggleColumn: (key: keyof TicketAssigneeColumns) => void
+  onAssignTicket?: () => void
+}
+
+const COLUMN_LABELS: Record<keyof TicketAssigneeColumns, string> = {
+  id: "ID",
+  ticket: "Ticket",
+  assignee: "Assignee",
+  type: "Type",
+  priority: "Priority",
+  status: "Status",
+  createdAt: "Assigned At",
+  actions: "Aksi",
 }
 
 export const TicketAssigneesToolbar: React.FC<Props> = ({
@@ -38,19 +49,24 @@ export const TicketAssigneesToolbar: React.FC<Props> = ({
   onSearchChange,
   onStatusChange,
   onToggleColumn,
+  onAssignTicket,
 }) => {
-  const navigate = useNavigate()
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+      {/* Mobile & Tablet: Stack vertically */}
+      {/* Desktop (lg+): Single row horizontal layout */}
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-3">
+        {/* Search Input */}
         <Input
           placeholder="Cari ticket atau assignee..."
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full sm:max-w-xs md:w-80"
+          className="w-full lg:flex-1 lg:max-w-md"
         />
+        
+        {/* Status Filter */}
         <Select value={statusFilter} onValueChange={onStatusChange}>
-          <SelectTrigger className="w-full sm:w-56 md:w-48">
+          <SelectTrigger className="w-full lg:w-48">
             <SelectValue placeholder="Filter status" />
           </SelectTrigger>
           <SelectContent>
@@ -62,28 +78,44 @@ export const TicketAssigneesToolbar: React.FC<Props> = ({
             <SelectItem value="CLOSED">CLOSED</SelectItem>
           </SelectContent>
         </Select>
-      </div>
-      <div className="flex">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button size="sm" className="flex items-center gap-2 cursor-pointer">
-              <IconLayoutGrid className="h-4 w-4" />
-              Column
-              <IconChevronDown className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            {(Object.keys(cols) as (keyof TicketAssigneeColumns)[]).map((key) => (
-              <DropdownMenuCheckboxItem
-                key={key}
-                checked={cols[key]}
-                onCheckedChange={() => onToggleColumn(key)}
+
+        {/* Action Buttons Group */}
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2 lg:flex-nowrap">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                size="sm"
+                className="self-start sm:self-auto flex items-center gap-2 cursor-pointer"
               >
-                {key.toUpperCase()}
-              </DropdownMenuCheckboxItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+                <IconLayoutGrid className="h-4 w-4" />
+                <span>Columns</span>
+                <IconChevronDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              {(Object.keys(cols) as (keyof TicketAssigneeColumns)[]).map((key) => (
+                <DropdownMenuCheckboxItem
+                  key={key}
+                  checked={cols[key]}
+                  onCheckedChange={() => onToggleColumn(key)}
+                >
+                  {COLUMN_LABELS[key]}
+                </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {onAssignTicket && (
+            <Button
+              size="sm"
+              onClick={onAssignTicket}
+              className="w-full sm:w-auto cursor-pointer"
+            >
+              <IconPlus className="mr-2 h-4 w-4" />
+              Add Ticket Assignment
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   )

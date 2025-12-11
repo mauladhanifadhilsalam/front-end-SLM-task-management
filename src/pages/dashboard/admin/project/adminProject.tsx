@@ -14,8 +14,6 @@ import {
   ProjectsSearchEmptyState,
 } from "@/features/projects/components/projecs-empty-state"
 import { downloadProjectReport } from "@/services/project.service"
-import { Button } from "@/components/ui/button"
-import { IconPlus } from "@tabler/icons-react"
 
 export default function AdminProjects() {
   const navigate = useNavigate()
@@ -98,20 +96,11 @@ export default function AdminProjects() {
               <div className="flex flex-col gap-4 px-4 py-4 md:gap-6 md:py-6 lg:px-6 overflow-x-hidden">
 
                 {/* Header */}
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <h1 className="text-2xl font-semibold">Daftar Project</h1>
-                    <p className="text-muted-foreground pt-2">
-                      Lihat dan kelola semua project aktif.
-                    </p>
-                  </div>
-                  <Button
-                    onClick={handleCreateProject}
-                    className="shrink-0 w-full sm:w-auto"
-                  >
-                    <IconPlus className="mr-2 h-4 w-4" />
-                    Tambah Project
-                  </Button>
+                <div className="flex flex-col gap-2">
+                  <h1 className="text-2xl font-semibold">Daftar Project</h1>
+                  <p className="text-muted-foreground">
+                    Lihat dan kelola semua project aktif.
+                  </p>
                 </div>
 
                 {/* Toolbar */}
@@ -160,12 +149,6 @@ export default function AdminProjects() {
                 )}
               </div>
             </div>
-
-
-
-
-
-
           </div>
         </SidebarInset>
       </SidebarProvider>

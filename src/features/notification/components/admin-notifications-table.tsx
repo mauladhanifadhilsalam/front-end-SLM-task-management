@@ -121,55 +121,64 @@ export const AdminNotificationsTable: React.FC<Props> = ({
               </div>
             </div>
 
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-                <Input
-                  placeholder="Cari pesan, subject, email, target, atau penerima..."
-                  value={search}
-                  onChange={(e) => onSearchChange(e.target.value)}
-                  className="w-full sm:w-80"
-                />
-                <Select
-                  value={stateFilter}
-                  onValueChange={(value) =>
-                    onStateFilterChange(value as NotificationState | "all")
-                  }
-                >
-                  <SelectTrigger className="w-full sm:w-48">
-                    <SelectValue placeholder="Filter status baca" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">ALL</SelectItem>
-                    <SelectItem value="UNREAD">UNREAD</SelectItem>
-                    <SelectItem value="READ">READ</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            {/* Toolbar - Responsive Layout */}
+            <div className="flex flex-col gap-3">
+              {/* Mobile & Tablet: Stack vertically, Desktop: Single row with space-between */}
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
+                {/* Left Group: Search & Filter */}
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3 lg:flex-1">
+                  {/* Search Input */}
+                  <Input
+                    placeholder="Cari pesan, subject, email, target, atau penerima..."
+                    value={search}
+                    onChange={(e) => onSearchChange(e.target.value)}
+                    className="w-full lg:flex-1 lg:max-w-md"
+                  />
+                  
+                  {/* Status Filter */}
+                  <Select
+                    value={stateFilter}
+                    onValueChange={(value) =>
+                      onStateFilterChange(value as NotificationState | "all")
+                    }
+                  >
+                    <SelectTrigger className="w-full lg:w-48">
+                      <SelectValue placeholder="Filter status baca" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">ALL</SelectItem>
+                      <SelectItem value="UNREAD">UNREAD</SelectItem>
+                      <SelectItem value="READ">READ</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <div className="flex">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      size="sm"
-                      className="flex cursor-pointer items-center gap-2"
-                    >
-                      <IconLayoutGrid className="h-4 w-4" />
-                      Columns
-                      <IconChevronDown className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start">
-                    {(Object.keys(cols) as (keyof ColState)[]).map((key) => (
-                      <DropdownMenuCheckboxItem
-                        key={key}
-                        checked={cols[key]}
-                        onCheckedChange={(v) => onToggleColumn(key, v)}
+                {/* Right Group: Columns Button */}
+                <div className="self-start lg:self-auto">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        size="sm"
+                        className="flex cursor-pointer items-center gap-2"
                       >
-                        {key}
-                      </DropdownMenuCheckboxItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                        <IconLayoutGrid className="h-4 w-4" />
+                        Columns
+                        <IconChevronDown className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {(Object.keys(cols) as (keyof ColState)[]).map((key) => (
+                        <DropdownMenuCheckboxItem
+                          key={key}
+                          checked={cols[key]}
+                          onCheckedChange={(v) => onToggleColumn(key, v)}
+                        >
+                          {key}
+                        </DropdownMenuCheckboxItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
             </div>
 

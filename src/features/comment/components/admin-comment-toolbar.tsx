@@ -37,43 +37,44 @@ export const AdminCommentToolbar: React.FC<Props> = ({
   onClearSelection,
 }) => {
   return (
-    <div className="mb-4 flex flex-col gap-3">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+    <div className="flex flex-col gap-3">
+      {/* Row 1: Search/Clear + Refresh + Columns */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3 lg:justify-between">
+        {/* Left Group: Search & Clear Selection */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3 sm:flex-1">
           <Input
             placeholder="Filter by message, user, email, role, ticket title/project…"
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
-            className="w-full sm:max-w-md md:w-[28rem]"
+            className="w-full sm:flex-1 lg:max-w-md"
           />
-          <div className="flex flex-wrap items-center gap-2">
-            {selectedCount > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onClearSelection}
-                title="Clear selection"
-                className="w-full sm:w-auto"
-              >
-                Clear selection
-              </Button>
-            )}
+          {selectedCount > 0 && (
             <Button
               variant="outline"
               size="sm"
-              onClick={onRefresh}
-              className="cursor-pointer w-full sm:w-auto"
-              title="Refresh"
+              onClick={onClearSelection}
+              title="Clear selection"
+              className="w-full sm:w-auto"
             >
-              <IconReload className="h-4 w-4" />
+              Clear selection
             </Button>
-          </div>
+          )}
         </div>
 
-        <div className="flex w-full flex-wrap items-center gap-2 sm:justify-end md:w-auto">
+        {/* Right Group: Refresh + Columns (+ Add Comment on Desktop) */}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onRefresh}
+            className="cursor-pointer"
+            title="Refresh"
+          >
+            <IconReload className="h-4 w-4" />
+          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size="sm" className="flex items-center gap-2">
+              <Button size="sm" className="flex items-center gap-2 cursor-pointer">
                 <IconLayoutGrid className="h-4 w-4" />
                 <span>Columns</span>
                 <IconChevronDown className="h-4 w-4" />
@@ -124,10 +125,11 @@ export const AdminCommentToolbar: React.FC<Props> = ({
               </DropdownMenuCheckboxItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          {/* Add Comment - Only visible on Desktop */}
           <Button
             size="sm"
             onClick={onCreate}
-            className="w-full cursor-pointer sm:w-auto"
+            className="hidden lg:flex cursor-pointer"
             title="Create a new comment"
           >
             <IconPlus className="mr-2 h-4 w-4" />
@@ -135,6 +137,17 @@ export const AdminCommentToolbar: React.FC<Props> = ({
           </Button>
         </div>
       </div>
+
+      {/* Row 2: Add Comment Button - Mobile: full width, Tablet: auto width, Desktop: hidden */}
+      <Button
+        size="sm"
+        onClick={onCreate}
+        className="w-full sm:w-auto lg:hidden cursor-pointer self-start"
+        title="Create a new comment"
+      >
+        <IconPlus className="mr-2 h-4 w-4" />
+        Add Comment
+      </Button>
     </div>
   )
 }
