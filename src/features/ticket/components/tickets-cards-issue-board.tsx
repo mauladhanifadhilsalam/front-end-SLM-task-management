@@ -60,7 +60,6 @@ type Props = {
 const typeLabel: Record<TicketType, string> = {
   TASK: "Task",
   ISSUE: "Issue",
-  BUG: "Bug",
 }
 
 const statusLabel: Record<TicketStatus, string> = {
@@ -147,14 +146,6 @@ export const TicketsCardsBoard: React.FC<Props> = ({
     ticketTitle?: string
   }>({})
 
-  if (loading) {
-    return (
-      <div className="rounded-2xl border bg-background/40 p-6">
-        Memuat tiket...
-      </div>
-    )
-  }
-
   if (error) {
     return (
       <div className="rounded-2xl border border-destructive/40 bg-destructive/5 p-6 text-sm text-destructive">
@@ -172,11 +163,6 @@ export const TicketsCardsBoard: React.FC<Props> = ({
         )}
       </div>
 
-      {hasFilter && (
-        <p className="text-[11px] text-muted-foreground">
-          Filter aktif. Beberapa issue mungkin tidak ditampilkan.
-        </p>
-      )}
 
       {issueTickets.length === 0 ? (
         <div className="rounded-2xl border bg-background/40 p-6 text-sm text-muted-foreground">
