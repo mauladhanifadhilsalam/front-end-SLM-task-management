@@ -42,6 +42,16 @@ export function useUserReportedIssues(
     staleTime: 30 * 1000,
   })
 
+  const filteredTickets = React.useMemo(
+    () =>
+      (ticketsQuery.data ?? []).filter((ticket) => {
+        const isIssue = String(ticket.type || "").toUpperCase() === "ISSUE"
+        const isRequester = Number(ticket.requesterId) === currentUserId
+        return isIssue && isRequester
+      }),
+    [ticketsQuery.data, currentUserId],
+  )
+
   const deleteMutation = useMutation<
     void,
     unknown,
@@ -92,7 +102,7 @@ export function useUserReportedIssues(
   )
 
   return {
-    tickets: ticketsQuery.data ?? [],
+    tickets: filteredTickets,
     loading: ticketsQuery.isLoading,
     error: errorMessage,
     deleteTicket: handleDelete,

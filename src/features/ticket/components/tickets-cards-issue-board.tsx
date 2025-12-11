@@ -60,7 +60,6 @@ type Props = {
 const typeLabel: Record<TicketType, string> = {
   TASK: "Task",
   ISSUE: "Issue",
-  BUG: "Bug",
 }
 
 const statusLabel: Record<TicketStatus, string> = {

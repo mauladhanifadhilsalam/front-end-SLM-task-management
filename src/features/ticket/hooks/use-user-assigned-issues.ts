@@ -37,6 +37,18 @@ export function useUserAssignedIssues(
     staleTime: 30 * 1000,
   })
 
+  const filteredTickets = React.useMemo(
+    () =>
+      (ticketsQuery.data ?? []).filter((ticket) => {
+        const isIssue = String(ticket.type || "").toUpperCase() === "ISSUE"
+        const assignees = Array.isArray(ticket.assigneeIds)
+          ? ticket.assigneeIds.map((id) => Number(id))
+          : []
+        return isIssue && assignees.includes(currentUserId)
+      }),
+    [ticketsQuery.data, currentUserId],
+  )
+
   const errorMessage = React.useMemo(() => {
     if (!ticketsQuery.error) return ""
     if (ticketsQuery.error instanceof Error) {
@@ -46,7 +58,7 @@ export function useUserAssignedIssues(
   }, [ticketsQuery.error])
 
   return {
-    tickets: ticketsQuery.data ?? [],
+    tickets: filteredTickets,
     loading: ticketsQuery.isLoading,
     error: errorMessage,
     refetch: ticketsQuery.refetch,

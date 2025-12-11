@@ -35,6 +35,27 @@ export default function TicketsPage() {
     deleteTicket: deleteReportedTicket,
   } = useUserReportedIssues(currentUserId, search)
 
+  const filteredAssigned = React.useMemo(
+    () =>
+      assignedTickets.filter((t) => {
+        const isIssue = String(t.type || "").toUpperCase() === "ISSUE"
+        const assignees = Array.isArray(t.assigneeIds)
+          ? t.assigneeIds.map((id) => Number(id))
+          : []
+        return isIssue && assignees.includes(currentUserId)
+      }),
+    [assignedTickets, currentUserId],
+  )
+
+  const filteredReported = React.useMemo(
+    () =>
+      reportedTickets.filter((t) => {
+        const isIssue = String(t.type || "").toUpperCase() === "ISSUE"
+        return isIssue && Number(t.requesterId) === currentUserId
+      }),
+    [reportedTickets, currentUserId],
+  )
+
   const hasFilter = search.trim().length > 0
 
   const formatDate = React.useCallback((iso?: string) => {
@@ -49,14 +70,10 @@ export default function TicketsPage() {
 
   const summaryTickets = React.useMemo(() => {
     const byId = new Map<number, AdminTicket>()
-    assignedTickets.forEach((ticket) => {
-      byId.set(ticket.id, ticket)
-    })
-    reportedTickets.forEach((ticket) => {
-      byId.set(ticket.id, ticket)
-    })
+    filteredAssigned.forEach((ticket) => byId.set(ticket.id, ticket))
+    filteredReported.forEach((ticket) => byId.set(ticket.id, ticket))
     return Array.from(byId.values())
-  }, [assignedTickets, reportedTickets])
+  }, [filteredAssigned, filteredReported])
 
   const handleCreateIssue = React.useCallback(() => {
     navigate("/project-manager/dashboard/ticket-issue/create")
@@ -119,7 +136,7 @@ export default function TicketsPage() {
           </div>
               <TicketsCardsBoard
                 title="Issues assigned to you"
-                tickets={assignedTickets}
+                tickets={filteredAssigned}
                 loading={assignedLoading}
                 error={assignedError}
                 hasFilter={hasFilter}
@@ -140,7 +157,7 @@ export default function TicketsPage() {
                 title="Issues reported by you"
                 subtitle="Issue yang kamu buat / kamu laporkan ke tim."
                 emptyMessage="Belum ada issue yang kamu report."
-                tickets={reportedTickets}
+                tickets={filteredReported}
                 loading={reportedLoading}
                 error={reportedError}
                 onDelete={handleDelete} 
