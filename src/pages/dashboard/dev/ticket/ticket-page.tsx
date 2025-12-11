@@ -84,6 +84,10 @@ export default function DevTicketsPage() {
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+
+              <div className="px-7">
+                <TicketSummaryCharts tickets={summaryTickets} />
+              </div>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-7 pt-4">
                 <div className="space-y-1">
                   <h1 className="text-xl font-semibold">Issues</h1>
@@ -109,11 +113,6 @@ export default function DevTicketsPage() {
                   </Button>
                 </div>
               </div>
-
-              <div className="px-7">
-                <TicketSummaryCharts tickets={summaryTickets} />
-              </div>
-
               <TicketsCardsBoard
                 title="Issues assigned to you"
                 tickets={assignedTickets}
