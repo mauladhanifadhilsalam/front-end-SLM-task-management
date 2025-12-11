@@ -33,54 +33,66 @@ export const ProjectsTable: React.FC<Props> = ({
       : "/admin/dashboard"
 
   return (
-    <div className="rounded-md border overflow-x-auto">
-      {loading ? (
-        <div className="p-6">Memuat data...</div>
-      ) : error ? (
-        <div className="p-6 text-red-600">{error}</div>
-      ) : projects.length === 0 ? (
-        <div className="p-6">Tidak ada data ditemukan.</div>
-      ) : (
-        <table className="min-w-full text-sm">
-          <thead className="bg-muted/50 text-center">
+    <div className="overflow-x-auto rounded border">
+      <table className="min-w-full text-sm">
+        <thead className="bg-muted/50">
+          <tr className="text-center">
+            {columns.id && (
+              <th className="px-4 py-3 font-medium">ID</th>
+            )}
+            {columns.name && (
+              <th className="px-4 py-3 font-medium">Nama</th>
+            )}
+            {columns.categories && (
+              <th className="px-4 py-3 font-medium">
+                Kategori
+              </th>
+            )}
+            {columns.owner && (
+              <th className="px-4 py-3 font-medium">Owner</th>
+            )}
+            {columns.status && (
+              <th className="px-4 py-3 font-medium">Status</th>
+            )}
+            {columns.completion && (
+              <th className="px-4 py-3 font-medium">
+                Progress
+              </th>
+            )}
+            {columns.startDate && (
+              <th className="px-4 py-3 font-medium">Mulai</th>
+            )}
+            {columns.endDate && (
+              <th className="px-4 py-3 font-medium">
+                Selesai
+              </th>
+            )}
+            {columns.actions && (
+              <th className="px-4 py-3 font-medium">Aksi</th>
+            )}
+          </tr>
+        </thead>
+        <tbody>
+          {loading ? (
             <tr>
-              {columns.id && (
-                <th className="px-4 py-3 font-medium">ID</th>
-              )}
-              {columns.name && (
-                <th className="px-4 py-3 font-medium">Nama</th>
-              )}
-              {columns.categories && (
-                <th className="px-4 py-3 font-medium">
-                  Kategori
-                </th>
-              )}
-              {columns.owner && (
-                <th className="px-4 py-3 font-medium">Owner</th>
-              )}
-              {columns.status && (
-                <th className="px-4 py-3 font-medium">Status</th>
-              )}
-              {columns.completion && (
-                <th className="px-4 py-3 font-medium">
-                  Progress
-                </th>
-              )}
-              {columns.startDate && (
-                <th className="px-4 py-3 font-medium">Mulai</th>
-              )}
-              {columns.endDate && (
-                <th className="px-4 py-3 font-medium">
-                  Selesai
-                </th>
-              )}
-              {columns.actions && (
-                <th className="px-4 py-3 font-medium">Aksi</th>
-              )}
+              <td colSpan={colSpan} className="px-4 py-6 text-center">
+                Memuat data...
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {projects.map((p) => (
+          ) : error ? (
+            <tr>
+              <td colSpan={colSpan} className="px-4 py-6 text-center text-red-600">
+                {error}
+              </td>
+            </tr>
+          ) : projects.length === 0 ? (
+            <tr>
+              <td colSpan={colSpan} className="px-4 py-6 text-center">
+                Tidak ada data ditemukan.
+              </td>
+            </tr>
+          ) : (
+            projects.map((p) => (
               <tr key={p.id} className="border-t text-center">
                 {columns.id && (
                   <td className="px-4 py-3">{p.id}</td>
@@ -166,10 +178,10 @@ export const ProjectsTable: React.FC<Props> = ({
                   </td>
                 )}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+            ))
+          )}
+        </tbody>
+      </table>
     </div>
   )
 }

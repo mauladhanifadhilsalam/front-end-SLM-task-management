@@ -41,7 +41,7 @@ export const TicketAssigneesToolbar: React.FC<Props> = ({
 }) => {
   const navigate = useNavigate()
   return (
-    <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
         <Input
           placeholder="Cari ticket atau assignee..."
@@ -63,16 +63,16 @@ export const TicketAssigneesToolbar: React.FC<Props> = ({
           </SelectContent>
         </Select>
       </div>
-      <div className="flex w-full flex-wrap items-center gap-2 sm:justify-end md:w-auto">
+      <div className="flex">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="flex items-center gap-2">
+            <Button size="sm" className="flex items-center gap-2 cursor-pointer">
               <IconLayoutGrid className="h-4 w-4" />
-              Kolom
+              Column
               <IconChevronDown className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="start">
             {(Object.keys(cols) as (keyof TicketAssigneeColumns)[]).map((key) => (
               <DropdownMenuCheckboxItem
                 key={key}
@@ -84,13 +84,6 @@ export const TicketAssigneesToolbar: React.FC<Props> = ({
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
-        <Button
-          onClick={() => navigate("/admin/dashboard/ticket-assignees/create")}
-          className="w-full sm:w-auto"
-        >
-          <IconPlus className="mr-2 h-4 w-4" />
-          Assign Ticket Baru
-        </Button>
       </div>
     </div>
   )

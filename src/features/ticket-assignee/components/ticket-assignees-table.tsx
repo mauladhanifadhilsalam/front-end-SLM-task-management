@@ -102,65 +102,71 @@ export const TicketAssigneesTable: React.FC<Props> = ({
   const colSpan = visibleColCount || 1
 
   return (
-    <div className="rounded-md border overflow-x-auto">
-      {loading ? (
-        <div className="p-6">
-          Memuat data dari server...
-        </div>
-      ) : error ? (
-        <div className="p-6 text-red-600">
-          Error: {error}
-        </div>
-      ) : filteredAssignees.length === 0 ? (
-        <div className="p-6">
-          Tidak ada data ticket assignment ditemukan.
-        </div>
-      ) : (
-        <table className="min-w-full text-sm">
-          <thead className="bg-muted/50 text-center">
+    <div className="overflow-x-auto rounded border">
+      <table className="min-w-full text-sm">
+        <thead className="bg-muted/50">
+          <tr className="text-center">
+            {cols.id && (
+              <th className="px-4 py-3 font-medium">ID</th>
+            )}
+            {cols.ticket && (
+              <th className="px-4 py-3 font-medium">
+                Ticket
+              </th>
+            )}
+            {cols.assignee && (
+              <th className="px-4 py-3 font-medium">
+                Assignee
+              </th>
+            )}
+            {cols.type && (
+              <th className="px-4 py-3 font-medium">
+                Type
+              </th>
+            )}
+            {cols.priority && (
+              <th className="px-4 py-3 font-medium">
+                Priority
+              </th>
+            )}
+            {cols.status && (
+              <th className="px-4 py-3 font-medium">
+                Status
+              </th>
+            )}
+            {cols.createdAt && (
+              <th className="px-4 py-3 font-medium">
+                Assigned At
+              </th>
+            )}
+            {cols.actions && (
+              <th className="px-4 py-3 font-medium">
+                Aksi
+              </th>
+            )}
+          </tr>
+        </thead>
+        <tbody>
+          {loading ? (
             <tr>
-              {cols.id && (
-                <th className="px-4 py-3 font-medium">ID</th>
-              )}
-              {cols.ticket && (
-                <th className="px-4 py-3 font-medium">
-                  Ticket
-                </th>
-              )}
-              {cols.assignee && (
-                <th className="px-4 py-3 font-medium">
-                  Assignee
-                </th>
-              )}
-              {cols.type && (
-                <th className="px-4 py-3 font-medium">
-                  Type
-                </th>
-              )}
-              {cols.priority && (
-                <th className="px-4 py-3 font-medium">
-                  Priority
-                </th>
-              )}
-              {cols.status && (
-                <th className="px-4 py-3 font-medium">
-                  Status
-                </th>
-              )}
-              {cols.createdAt && (
-                <th className="px-4 py-3 font-medium">
-                  Assigned At
-                </th>
-              )}
-              {cols.actions && (
-                <th className="px-4 py-3 font-medium">
-                  Aksi
-                </th>
-              )}
+              <td colSpan={colSpan} className="px-4 py-6 text-center">
+                Memuat data dari server...
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {filteredAssignees.map((a) => (
+          ) : error ? (
+            <tr>
+              <td colSpan={colSpan} className="px-4 py-6 text-center text-red-600">
+                Error: {error}
+              </td>
+            </tr>
+          ) : filteredAssignees.length === 0 ? (
+            <tr>
+              <td colSpan={colSpan} className="px-4 py-6 text-center">
+                Tidak ada data ticket assignment ditemukan.
+              </td>
+            </tr>
+          ) : (
+            filteredAssignees.map((a) => (
               <tr
                 key={a.id}
                 className="border-t text-center hover:bg-muted/50 transition-colors"
@@ -259,7 +265,7 @@ export const TicketAssigneesTable: React.FC<Props> = ({
                               </span>{" "}
                               akan dihapus dari ticket{" "}
                               <span className="font-semibold">
-                                “{a.ticket.title}”
+                                "{a.ticket.title}"
                               </span>
                               . Tindakan ini tidak dapat
                               dibatalkan.
@@ -284,10 +290,10 @@ export const TicketAssigneesTable: React.FC<Props> = ({
                   </td>
                 )}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+            ))
+          )}
+        </tbody>
+      </table>
     </div>
   )
 }
