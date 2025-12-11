@@ -238,7 +238,15 @@ export default function TaskComments({ taskId }: { taskId: number }) {
   };
 
   const handleDelete = async (id: number, ownerId: number) => {
-    // Permission check dihapus sementara untuk test
+    const isAdmin = meRole === "ADMIN";
+    const isOwner = meId != null && Number(meId) === Number(ownerId);
+    if (!isAdmin && !isOwner) {
+      toast.error("Tidak punya akses", {
+        description: "Hanya admin atau pemilik komentar yang bisa menghapus.",
+      });
+      return;
+    }
+
     setDeleteConfirm({ open: true, id, ownerId });
   };
 
@@ -265,7 +273,15 @@ export default function TaskComments({ taskId }: { taskId: number }) {
   };
 
   const startEdit = (c: TaskComment) => {
-    // Permission check dihapus sementara untuk test
+    const isAdmin = meRole === "ADMIN";
+    const isOwner = meId != null && Number(meId) === Number(c.userId);
+    if (!isAdmin && !isOwner) {
+      toast.error("Tidak punya akses", {
+        description: "Hanya admin atau pemilik komentar yang bisa mengubah.",
+      });
+      return;
+    }
+
     setEditingId(c.id);
     setEditingValue(c.message);
   };
@@ -390,8 +406,7 @@ export default function TaskComments({ taskId }: { taskId: number }) {
                     {c.updatedAt && c.updatedAt !== c.createdAt ? " • (diedit)" : ""}
                   </span>
 
-                  {/* TEMPORARY: Selalu tampilkan untuk test - nanti kita kembalikan kondisinya */}
-                  {editingId !== c.id && (
+                  {canModify && editingId !== c.id && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button 
