@@ -73,15 +73,20 @@ export const ProjectsToolbar: React.FC<Props> = ({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+      {/* Mobile & Tablet: Stack vertically */}
+      {/* Desktop (lg+): Single row horizontal layout */}
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-3">
+        {/* Search Input */}
         <Input
           placeholder="Cari nama, owner, kategori, atau catatan..."
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full sm:w-80"
+          className="w-full lg:flex-1 lg:max-w-md"
         />
+        
+        {/* Status Filter */}
         <Select value={statusFilter} onValueChange={handleStatusChange}>
-          <SelectTrigger className="w-full sm:w-48">
+          <SelectTrigger className="w-full lg:w-48">
             <SelectValue placeholder="Filter status" />
           </SelectTrigger>
           <SelectContent>
@@ -91,48 +96,61 @@ export const ProjectsToolbar: React.FC<Props> = ({
             <SelectItem value="DONE">DONE</SelectItem>
           </SelectContent>
         </Select>
-      </div>
 
-      <div className="flex flex-row flex-wrap items-center gap-2">
-        {showColumnToggle && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="default"
-                size="sm"
-                className="flex items-center gap-2 whitespace-nowrap px-3"
-              >
-                <IconLayoutGrid className="h-4 w-4" />
-                Columns
-                <IconChevronDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-40">
-              {(Object.keys(columns) as (keyof ProjectColumns)[]).map((key) => (
-                <DropdownMenuCheckboxItem
-                  key={key}
-                  checked={columns[key]}
-                  onCheckedChange={(v) => onToggleColumn(key, v)}
+        {/* Action Buttons Group */}
+        <div className="flex flex-row flex-wrap items-center gap-2 lg:flex-nowrap">
+          {showColumnToggle && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 whitespace-nowrap px-3"
                 >
-                  {COLUMN_LABELS[key]}
-                </DropdownMenuCheckboxItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
+                  <IconLayoutGrid className="h-4 w-4" />
+                  <span>Columns</span>
+                  <IconChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="min-w-40">
+                {(Object.keys(columns) as (keyof ProjectColumns)[]).map((key) => (
+                  <DropdownMenuCheckboxItem
+                    key={key}
+                    checked={columns[key]}
+                    onCheckedChange={(v) => onToggleColumn(key, v)}
+                  >
+                    {COLUMN_LABELS[key]}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
 
-        {onDownloadReport && (
-          <Button
-            variant="default"
-            size="sm"
-            className="flex items-center gap-2 whitespace-nowrap px-3 bg-green-600 hover:bg-green-500 text-white border-transparent"
-            onClick={onDownloadReport}
-            disabled={downloadDisabled}
-          >
-            <IconDownload className="h-4 w-4" />
-            Download Excel
-          </Button>
-        )}
+          {onDownloadReport && (
+            <Button
+              variant="default"
+              size="sm"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 whitespace-nowrap px-3 bg-green-600 hover:bg-green-500 text-white border-transparent"
+              onClick={onDownloadReport}
+              disabled={downloadDisabled}
+            >
+              <IconDownload className="h-4 w-4" />
+              <span>Download Excel</span>
+            </Button>
+          )}
+
+          {onAddProject && (
+            <Button
+              variant="default"
+              size="sm"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 whitespace-nowrap px-3"
+              onClick={onAddProject}
+            >
+              <IconPlus className="h-4 w-4" />
+              <span>Add Project</span>
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   )

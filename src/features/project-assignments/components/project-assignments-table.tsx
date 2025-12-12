@@ -61,29 +61,99 @@ export const ProjectAssignmentsTable: React.FC<Props> = ({
 
   return (
     <div className="px-4 lg:px-6">
-      <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+      <div className="mb-6 flex flex-col gap-3">
+        {/* Mobile & Tablet: Stack vertically, Desktop: Single row with space-between */}
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
+          {/* Search Input */}
           <Input
             placeholder="Filter by project, assignee, role, or status..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full sm:max-w-xs md:w-80"
+            className="w-full lg:flex-1 lg:max-w-md"
           />
+
+          {/* Right Group: Buttons - Only visible on Desktop */}
+          <div className="hidden lg:flex lg:items-center lg:gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="sm"
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <IconLayoutGrid className="h-4 w-4" />
+                  <span>Columns</span>
+                  <IconChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuCheckboxItem
+                  checked={columns.id}
+                  onCheckedChange={(v) =>
+                    setColumns((c) => ({ ...c, id: !!v }))
+                  }
+                >
+                  ID
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={columns.project}
+                  onCheckedChange={(v) =>
+                    setColumns((c) => ({ ...c, project: !!v }))
+                  }
+                >
+                  Project
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={columns.assignee}
+                  onCheckedChange={(v) =>
+                    setColumns((c) => ({ ...c, assignee: !!v }))
+                  }
+                >
+                  Assignee
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={columns.roleInProject}
+                  onCheckedChange={(v) =>
+                    setColumns((c) => ({ ...c, roleInProject: !!v }))
+                  }
+                >
+                  Role
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={columns.actions}
+                  onCheckedChange={(v) =>
+                    setColumns((c) => ({ ...c, actions: !!v }))
+                  }
+                >
+                  Actions
+                </DropdownMenuCheckboxItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <Button
+              size="sm"
+              onClick={onCreateClick}
+              className="cursor-pointer"
+            >
+              <IconPlus className="mr-2 h-4 w-4" />
+              Add Assignment
+            </Button>
+          </div>
         </div>
 
-        <div className="flex w-full flex-wrap items-center gap-2 sm:justify-end md:ml-auto md:w-auto">
+        {/* Buttons Row - Only visible on Mobile & Tablet */}
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2 lg:hidden">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 size="sm"
-                className="flex items-center gap-2 cursor-pointer"
+                className="self-start sm:self-auto flex items-center gap-2 cursor-pointer"
               >
                 <IconLayoutGrid className="h-4 w-4" />
                 <span>Columns</span>
-                <IconChevronDown className="h-4 w-4" />
+                <IconChevronDown className="ml-1 h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="start">
               <DropdownMenuCheckboxItem
                 checked={columns.id}
                 onCheckedChange={(v) =>
@@ -130,7 +200,7 @@ export const ProjectAssignmentsTable: React.FC<Props> = ({
           <Button
             size="sm"
             onClick={onCreateClick}
-            className="w-full cursor-pointer sm:w-auto"
+            className="w-full sm:w-auto cursor-pointer"
           >
             <IconPlus className="mr-2 h-4 w-4" />
             Add Assignment
@@ -255,7 +325,7 @@ export const ProjectAssignmentsTable: React.FC<Props> = ({
                   <p className="text-sm text-muted-foreground">
                     Tidak ditemukan hasil untuk{" "}
                     <span className="font-medium text-foreground">
-                      ƒ?o{search}ƒ??
+                      "{search}"
                     </span>
                     .
                   </p>

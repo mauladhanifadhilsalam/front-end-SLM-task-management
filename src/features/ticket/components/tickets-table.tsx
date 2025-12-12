@@ -131,25 +131,113 @@ export function TicketsTable({
         </div>
       </div>
 
-      <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+      {/* Toolbar - Responsive Layout */}
+      <div className="flex flex-col gap-3 mb-6">
+        {/* Mobile & Tablet: Stack vertically, Desktop: Single row with space-between */}
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
+          {/* Left Group: Search Input */}
           <Input
             placeholder="Cari title, status, priority, requester, atau project..."
             value={q}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full sm:max-w-xs md:w-80"
+            className="w-full lg:flex-1 lg:max-w-md"
           />
+
+          {/* Right Group: Buttons - Only visible on Desktop */}
+          <div className="hidden lg:flex lg:items-center lg:gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" className="flex items-center gap-2 cursor-pointer">
+                  <IconLayoutGrid className="h-4 w-4" />
+                  <span>Columns</span>
+                  <IconChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuCheckboxItem
+                  checked={cols.id}
+                  onCheckedChange={(v) => onToggleColumn("id", !!v)}
+                >
+                  ID
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={cols.title}
+                  onCheckedChange={(v) => onToggleColumn("title", !!v)}
+                >
+                  Title
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={cols.type}
+                  onCheckedChange={(v) => onToggleColumn("type", !!v)}
+                >
+                  Type
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={cols.priority}
+                  onCheckedChange={(v) => onToggleColumn("priority", !!v)}
+                >
+                  Priority
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={cols.status}
+                  onCheckedChange={(v) => onToggleColumn("status", !!v)}
+                >
+                  Status
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={cols.requester}
+                  onCheckedChange={(v) => onToggleColumn("requester", !!v)}
+                >
+                  Requester
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={cols.project}
+                  onCheckedChange={(v) => onToggleColumn("project", !!v)}
+                >
+                  Project
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={cols.startDate}
+                  onCheckedChange={(v) => onToggleColumn("startDate", !!v)}
+                >
+                  Start
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={cols.dueDate}
+                  onCheckedChange={(v) => onToggleColumn("dueDate", !!v)}
+                >
+                  Due
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={cols.actions}
+                  onCheckedChange={(v) => onToggleColumn("actions", !!v)}
+                >
+                  Actions
+                </DropdownMenuCheckboxItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button
+              size="sm"
+              onClick={onCreate}
+              className="cursor-pointer"
+            >
+              <IconPlus className="mr-2 h-4 w-4" />
+              Add Ticket
+            </Button>
+          </div>
         </div>
-        <div className="flex w-full flex-wrap items-center gap-2 sm:justify-end md:ml-auto md:w-auto">
+
+        {/* Buttons Row - Only visible on Mobile & Tablet */}
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2 lg:hidden">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size="sm" className="flex items-center gap-2 cursor-pointer">
+              <Button size="sm" className="self-start sm:self-auto flex items-center gap-2 cursor-pointer">
                 <IconLayoutGrid className="h-4 w-4" />
                 <span>Columns</span>
                 <IconChevronDown className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="start">
               <DropdownMenuCheckboxItem
                 checked={cols.id}
                 onCheckedChange={(v) => onToggleColumn("id", !!v)}
@@ -215,7 +303,7 @@ export function TicketsTable({
           <Button
             size="sm"
             onClick={onCreate}
-            className="w-full cursor-pointer sm:w-auto"
+            className="w-full sm:w-auto cursor-pointer"
           >
             <IconPlus className="mr-2 h-4 w-4" />
             Add Ticket
@@ -317,7 +405,7 @@ export function TicketsTable({
                           <AlertDialogContent>
                             <AlertDialogHeader>
                               <AlertDialogTitle>
-                                Hapus ticket “{t.title}”?
+                                Hapus ticket "{t.title}"?
                               </AlertDialogTitle>
                               <AlertDialogDescription>
                                 Tindakan ini tidak dapat dibatalkan. Ticket akan
@@ -367,7 +455,7 @@ export function TicketsTable({
                   <h3 className="text-sm font-medium">Hasil Pencarian</h3>
                   <p className="text-sm text-muted-foreground">
                     Tidak ditemukan hasil untuk{" "}
-                    <span className="font-medium text-foreground">“{q}”</span>.
+                    <span className="font-medium text-foreground">"{q}"</span>.
                   </p>
                 </div>
               </div>
