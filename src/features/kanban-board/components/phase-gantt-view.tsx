@@ -87,6 +87,10 @@ function buildMonthSegments(minDate: Date, maxDate: Date): MonthSegment[] {
   return segments;
 }
 
+function durationDaysInclusive(start: Date, end: Date) {
+  return diffDaysInclusive(start, end);
+}
+
 export const PhaseGanttView = ({ phases, className }: PhaseGanttViewProps) => {
   const rows: NormalizedPhase[] = useMemo(() => {
     return phases
@@ -137,7 +141,7 @@ export const PhaseGanttView = ({ phases, className }: PhaseGanttViewProps) => {
         </div>
         <div className="text-xs text-muted-foreground">
           {formatDate(minDate)} - {formatDate(maxDate)} | {rows.length} phase
-          {rows.length > 1 ? "s" : ""}
+          {rows.length > 1 ? "s" : ""} | {totalDays} hari
         </div>
       </div>
 
@@ -229,7 +233,8 @@ export const PhaseGanttView = ({ phases, className }: PhaseGanttViewProps) => {
                             {phase.name}
                           </p>
                           <p className="text-[11px] text-muted-foreground">
-                            {formatDate(phase.start)} - {formatDate(phase.end)}
+                            {formatDate(phase.start)} - {formatDate(phase.end)} |{" "}
+                            {durationDaysInclusive(phase.start, phase.end)} hari
                           </p>
                         </div>
                       </div>
@@ -255,7 +260,7 @@ export const PhaseGanttView = ({ phases, className }: PhaseGanttViewProps) => {
                           left,
                           width: Math.max(width, DAY_WIDTH * 0.7),
                         }}
-                        title={`${phase.name}\n${formatDate(phase.start)} - ${formatDate(phase.end)}`}
+                        title={`${phase.name}\n${formatDate(phase.start)} - ${formatDate(phase.end)} | ${durationDaysInclusive(phase.start, phase.end)} hari`}
                       />
                     </div>
                   </div>

@@ -97,6 +97,10 @@ function buildMonthSegments(minDate: Date, maxDate: Date): MonthSegment[] {
   return segments;
 }
 
+function durationDaysInclusive(start: Date, end: Date) {
+  return diffDaysInclusive(start, end);
+}
+
 export const TaskGanttView = ({ tickets, className }: TaskGanttViewProps) => {
   const tasks: NormalizedTask[] = useMemo(() => {
     return tickets
@@ -117,7 +121,12 @@ export const TaskGanttView = ({ tickets, className }: TaskGanttViewProps) => {
 
   if (tasks.length === 0) {
     return (
-      <div className={cn("rounded-xl border border-dashed border-border/70 bg-muted/40 p-4 text-sm text-muted-foreground", className)}>
+      <div
+        className={cn(
+          "rounded-xl border border-dashed border-border/70 bg-muted/40 p-4 text-sm text-muted-foreground",
+          className
+        )}
+      >
         Tambahkan tanggal mulai atau due date pada task untuk melihat Gantt chart.
       </div>
     );
@@ -153,7 +162,7 @@ export const TaskGanttView = ({ tickets, className }: TaskGanttViewProps) => {
         </div>
         <div className="text-xs text-muted-foreground">
           {formatDate(minDate)} - {formatDate(maxDate)} | {tasks.length} task
-          {tasks.length > 1 ? "s" : ""}
+          {tasks.length > 1 ? "s" : ""} | {totalDays} hari
         </div>
       </div>
 
@@ -246,7 +255,8 @@ export const TaskGanttView = ({ tickets, className }: TaskGanttViewProps) => {
                             {task.title}
                           </p>
                           <p className="text-[11px] text-muted-foreground">
-                            {formatDate(task.start)} - {formatDate(task.end)}
+                            {formatDate(task.start)} - {formatDate(task.end)} |{" "}
+                            {durationDaysInclusive(task.start, task.end)} hari
                           </p>
                         </div>
                         <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
@@ -275,7 +285,7 @@ export const TaskGanttView = ({ tickets, className }: TaskGanttViewProps) => {
                           left,
                           width: Math.max(width, DAY_WIDTH * 0.7),
                         }}
-                        title={`${task.title}\n${formatDate(task.start)} - ${formatDate(task.end)}`}
+                        title={`${task.title}\n${formatDate(task.start)} - ${formatDate(task.end)} | ${durationDaysInclusive(task.start, task.end)} hari`}
                       />
                     </div>
                   </div>
