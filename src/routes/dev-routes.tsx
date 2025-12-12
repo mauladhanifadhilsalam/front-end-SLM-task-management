@@ -7,6 +7,7 @@ import DeveloperProjects from "@/pages/dashboard/dev/DeveloperProject/DevProject
 import DevProjectTask from "@/pages/dashboard/dev/DeveloperProject/DevProjectTask"
 import DeveloperTaskDetail from "@/pages/dashboard/dev/DeveloperProject/DevDetailTask"
 import DevTicketsPage from "@/pages/dashboard/dev/ticket/ticket-page"
+import DevTaskTicketsPage from "@/pages/dashboard/dev/ticket/ticket-task-page"
 import DevViewTicketIssue from "@/pages/dashboard/dev/ticket/view-ticket-page"
 import DevCreateTicketIssue from "@/pages/dashboard/dev/ticket/create-ticket-issue"
 import DevEditTicketIssue from "@/pages/dashboard/dev/ticket/edit-ticket-issue"
@@ -54,6 +55,14 @@ export const devRoutes = (
       element={
         <ProtectedRoute allowedRoles={["developer"]}>
           <DeveloperTaskDetail />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/developer-dashboard/ticket-task"
+      element={
+        <ProtectedRoute allowedRoles={["developer"]}>
+          <DevTaskTicketsPage />
         </ProtectedRoute>
       }
     />
