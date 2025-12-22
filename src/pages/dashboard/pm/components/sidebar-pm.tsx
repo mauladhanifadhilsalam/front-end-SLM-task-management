@@ -56,6 +56,11 @@ const data = {
       url: "/project-manager/dashboard/ticket-issue",
       icon: IconTicket,
     },
+    {
+      title: "Task",
+      url: "/project-manager/dashboard/ticket-task",
+      icon: IconTicket,
+    },
   ],
 }
 
