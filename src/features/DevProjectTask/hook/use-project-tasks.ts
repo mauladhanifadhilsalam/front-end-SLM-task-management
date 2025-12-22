@@ -3,6 +3,7 @@ import { Ticket, TicketGroups, TicketStatus } from "@/types/project-tasks.types"
 import type { Phase } from "@/types/project-phases.type";
 import { projectTasksService } from "@/services/project-tasks.service";
 import { decodeToken } from "@/utils/token.utils";
+import { createTicketRealtimeConnection } from "@/lib/realtime/ticket-socket";
 
 export type RealtimeStatus = "idle" | "connecting" | "connected" | "polling" | "error";
 
@@ -22,14 +23,13 @@ export const useProjectTasks = (projectId: string | undefined) => {
 
     try {
       const currentProjectId = Number(projectId);
-      const allTickets = await projectTasksService.getTickets(token);
-
-      const filtered: Ticket[] = allTickets.filter((t: any): t is Ticket => {
-        const ticketProjectId = Number(t.projectId);
-        return ticketProjectId === currentProjectId && t.type === "TASK";
+      const remoteTickets = await projectTasksService.getTickets(token, {
+        projectId: currentProjectId,
+        type: "TASK",
+        sortOrder: "asc",
       });
 
-      setTickets(filtered);
+      setTickets(remoteTickets);
       setLastSyncedAt(new Date());
     } catch (err) {
       console.error("Error refreshing tickets:", err);
@@ -90,40 +90,52 @@ export const useProjectTasks = (projectId: string | undefined) => {
   }, [projectId, refreshTickets, token]);
 
   useEffect(() => {
-    if (!projectId || !token) {
+    if (!token || !projectId) {
       setRealtimeStatus("idle");
       return;
     }
 
-    let pollId: number | undefined;
-    let refreshing = false;
+    const numericProjectId = Number(projectId);
+    if (!Number.isFinite(numericProjectId)) {
+      return;
+    }
 
-    const safeRefresh = async () => {
-      if (refreshing || document.visibilityState === "hidden") return;
-      refreshing = true;
-      try {
-        await refreshTickets();
-      } finally {
-        refreshing = false;
-      }
-    };
+    setRealtimeStatus("connecting");
 
-    setRealtimeStatus("polling");
-    pollId = window.setInterval(safeRefresh, 8000);
-
-    const handleVisibility = () => {
-      if (document.visibilityState === "visible") {
-        safeRefresh();
-      }
-    };
-
-    window.addEventListener("visibilitychange", handleVisibility);
+    const connection = createTicketRealtimeConnection({
+      token,
+      projectId: numericProjectId,
+      handlers: {
+        onConnected: () => setRealtimeStatus("connected"),
+        onDisconnected: () => setRealtimeStatus("polling"),
+        onError: () => setRealtimeStatus("error"),
+        onTicketCreated: (ticket) => {
+          setTickets((prev) => {
+            const exists = prev.some((item) => item.id === ticket.id);
+            if (exists) {
+              return prev.map((item) => (item.id === ticket.id ? ticket : item));
+            }
+            return [...prev, ticket];
+          });
+          setLastSyncedAt(new Date());
+        },
+        onTicketUpdated: (ticket) => {
+          setTickets((prev) =>
+            prev.map((item) => (item.id === ticket.id ? ticket : item)),
+          );
+          setLastSyncedAt(new Date());
+        },
+        onTicketDeleted: (ticketId) => {
+          setTickets((prev) => prev.filter((ticket) => ticket.id !== ticketId));
+          setLastSyncedAt(new Date());
+        },
+      },
+    });
 
     return () => {
-      if (pollId) window.clearInterval(pollId);
-      window.removeEventListener("visibilitychange", handleVisibility);
+      connection.disconnect();
     };
-  }, [projectId, refreshTickets, token]);
+  }, [projectId, token]);
 
   const groups: TicketGroups = useMemo(() => {
     return {
