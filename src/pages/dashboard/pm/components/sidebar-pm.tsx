@@ -9,6 +9,7 @@ import {
   IconTicket,
   IconUserCheck,
   IconSettings,
+  IconRefresh,
 } from "@tabler/icons-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -60,6 +61,11 @@ const data = {
       title: "Task",
       url: "/project-manager/dashboard/ticket-task",
       icon: IconTicket,
+    },
+    {
+      title: "Team Update",
+      url: "/project-manager/dashboard/team-update",
+      icon: IconRefresh,
     },
   ],
 }
