@@ -17,6 +17,7 @@ export type AdminTicket = {
   type: TicketType | string
   title: string
   description?: string
+  actionPlan?: string  // ← TAMBAHKAN INI
   priority?: TicketPriority | string
   status: TicketStatus | string
   startDate?: string
@@ -70,6 +71,7 @@ export type TicketDetail = {
   type: TicketType | string
   title: string
   description: string | null
+  actionPlan?: string | null  // ← TAMBAHKAN INI
   priority: TicketPriority | string | null
   status: TicketStatus | string
   startDate: string | null
@@ -79,4 +81,32 @@ export type TicketDetail = {
   requesterName?: string
   projectName?: string
   assignees: TicketAssignee[]
+}
+
+// ← TAMBAHKAN TYPE INI JIKA BELUM ADA
+export type CreateTicketField =
+  | "projectId"
+  | "requesterId"
+  | "type"
+  | "title"
+  | "description"
+  | "actionPlan"  // ← TAMBAHKAN INI
+  | "priority"
+  | "status"
+  | "startDate"
+  | "dueDate"
+  | "assigneeIds"
+
+export type CreateTicketValues = {
+  projectId: number | null
+  requesterId?: number | null
+  type: TicketType | string
+  title: string
+  description: string
+  actionPlan?: string  // ← TAMBAHKAN INI
+  priority: TicketPriority | string
+  status: TicketStatus | string
+  startDate: string
+  dueDate: string
+  assigneeIds?: number[]
 }

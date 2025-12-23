@@ -45,7 +45,7 @@ type Props = {
   emptyMessage?: string
   tickets: AdminTicket[]
   loading: boolean
-  error: string
+  error: string | null // ← UBAH DARI string MENJADI string | null
   onDelete: (id: number) => void
   onView: (id: number) => void
   onEdit: (id: number) => void
@@ -146,11 +146,34 @@ export const TicketsCardsBoard: React.FC<Props> = ({
     ticketTitle?: string
   }>({})
 
+  // ← UBAH kondisi dari if (error) menjadi if (error !== null)
   if (error) {
     return (
       <div className="rounded-2xl border border-destructive/40 bg-destructive/5 p-6 text-sm text-destructive">
         {error}
       </div>
+    )
+  }
+
+  // ← TAMBAHKAN loading state
+  if (loading) {
+    return (
+      <section className="space-y-3 mr-7 ml-7">
+        <div className="space-y-1">
+          <h2 className="text-lg font-semibold">{title}</h2>
+          {subtitle && (
+            <p className="text-xs text-muted-foreground">{subtitle}</p>
+          )}
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="h-48 rounded-2xl border bg-muted/40 animate-pulse"
+            />
+          ))}
+        </div>
+      </section>
     )
   }
 
@@ -162,7 +185,6 @@ export const TicketsCardsBoard: React.FC<Props> = ({
           <p className="text-xs text-muted-foreground">{subtitle}</p>
         )}
       </div>
-
 
       {issueTickets.length === 0 ? (
         <div className="rounded-2xl border bg-background/40 p-6 text-sm text-muted-foreground">
@@ -197,7 +219,7 @@ export const TicketsCardsBoard: React.FC<Props> = ({
                         View detail
                       </DropdownMenuItem>
 
-                     {canAssignUser && (              
+                      {canAssignUser && (
                         <DropdownMenuItem
                           className="flex items-center gap-2 text-xs"
                           onClick={() => {
@@ -223,7 +245,6 @@ export const TicketsCardsBoard: React.FC<Props> = ({
                           Add attachment
                         </DropdownMenuItem>
                       )}
-
 
                       {canDelete && (
                         <AlertDialogTrigger asChild>
@@ -253,6 +274,35 @@ export const TicketsCardsBoard: React.FC<Props> = ({
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
                         {ticket.description}
                       </ReactMarkdown>
+                    </div>
+                  )}
+
+                  {/* ← TAMBAHAN BARU: Action Plan Preview */}
+                  {ticket.actionPlan && (
+                    <div className="mt-2 rounded-md bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800/40 p-2">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <svg
+                          className="h-3 w-3 text-blue-600 dark:text-blue-400"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                          />
+                        </svg>
+                        <span className="text-[10px] font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-wide">
+                          Action Plan
+                        </span>
+                      </div>
+                      <div className="markdown-body prose prose-xs max-w-none line-clamp-2 text-blue-900 dark:text-blue-200 text-[11px] [&>*]:my-0.5">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {ticket.actionPlan}
+                        </ReactMarkdown>
+                      </div>
                     </div>
                   )}
 

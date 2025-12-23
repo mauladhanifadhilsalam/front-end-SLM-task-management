@@ -59,6 +59,16 @@ export function EditTicketForm({
   onSubmit,
   isPm = false,
 }: Props) {
+  // Helper untuk mendapatkan nama project
+  const selectedProject = React.useMemo(() => {
+    return projects.find((p) => String(p.id) === form.projectId)
+  }, [projects, form.projectId])
+
+  // Helper untuk mendapatkan nama requester
+  const selectedRequester = React.useMemo(() => {
+    return requesters.find((r) => String(r.id) === form.requesterId)
+  }, [requesters, form.requesterId])
+
   return (
     <div className="flex flex-1 flex-col">
       <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
@@ -96,28 +106,34 @@ export function EditTicketForm({
               )}
 
               <form onSubmit={onSubmit} className="space-y-6" noValidate>
-                {/* Project & Requester */}
+                {/* Project & Requester - DISABLED */}
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label>Project *</Label>
                     <Select
                       value={form.projectId}
                       onValueChange={(v) => onChange("projectId", v)}
-                      disabled={saving || loading}
+                      disabled={true}
                     >
-                      <SelectTrigger className=" w-full max-w-full items-start py-2">
+                      <SelectTrigger className="w-full max-w-full items-start py-2">
                         <SelectValue
                           className="whitespace-normal break-words text-left leading-snug"
                           placeholder={
                             loadingOptions
-                              ? form.projectId
-                                ? `#${form.projectId}`
-                                : "Loading projects…"
+                              ? "Loading projects…"
+                              : loading
+                              ? "Loading ticket…"
                               : "Select a project"
                           }
-                        />
+                        >
+                          {selectedProject
+                            ? `${selectedProject.name} (#${selectedProject.id})`
+                            : form.projectId
+                            ? `Project #${form.projectId}`
+                            : null}
+                        </SelectValue>
                       </SelectTrigger>
-                      <SelectContent className="min-w-[320px] max-w-[90vw]  overflow-auto">
+                      <SelectContent className="min-w-[320px] max-w-[90vw] overflow-auto">
                         {loadingOptions ? (
                           <div className="p-2 text-xs text-muted-foreground">
                             Loading projects…
@@ -147,19 +163,25 @@ export function EditTicketForm({
                     <Select
                       value={form.requesterId}
                       onValueChange={(v) => onChange("requesterId", v)}
-                      disabled={saving || loading || isPm}
+                      disabled={true}
                     >
                       <SelectTrigger className="w-full max-w-full items-start py-2">
                         <SelectValue
                           className="whitespace-normal break-words text-left leading-snug"
                           placeholder={
                             loadingOptions
-                              ? form.requesterId
-                                ? `#${form.requesterId}`
-                                : "Loading requesters…"
+                              ? "Loading requesters…"
+                              : loading
+                              ? "Loading ticket…"
                               : "Select a requester"
                           }
-                        />
+                        >
+                          {selectedRequester
+                            ? `${selectedRequester.name} (#${selectedRequester.id})`
+                            : form.requesterId
+                            ? `User #${form.requesterId}`
+                            : null}
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent className="min-w-[320px] max-w-[90vw] max-h-64 overflow-auto">
                         {loadingOptions ? (
@@ -306,6 +328,18 @@ export function EditTicketForm({
                   disabled={saving || loading}
                   placeholder="Use Markdown to format your description..."
                 />
+
+                {/* Action Plan */}
+                <div className="space-y-2">
+                  <MarkdownEditor
+                    label="Action Plan"
+                    value={form.actionPlan || ""}
+                    onChange={(v) => onChange("actionPlan", v)}
+                    error={fieldErrors.actionPlan}
+                    disabled={saving || loading}
+                    placeholder="Describe the action plan to resolve this issue (optional)..."
+                  />
+                </div>
 
                 {/* Dates */}
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">

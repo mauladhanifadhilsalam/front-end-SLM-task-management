@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -26,6 +25,7 @@ export type UiEditTicketForm = {
   type: "" | "ISSUE" | "TASK"
   title: string
   description: string
+  actionPlan: string
   priority: "" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL"
   status:
     | ""
@@ -79,6 +79,7 @@ export function useEditTicketForm(ticketId?: string): UseEditTicketFormReturn {
     type: "",
     title: "",
     description: "",
+    actionPlan: "",
     priority: "",
     status: "",
     startDate: "",
@@ -154,6 +155,7 @@ export function useEditTicketForm(ticketId?: string): UseEditTicketFormReturn {
           type: (t.type ?? "") as UiEditTicketForm["type"],
           title: t.title ?? "",
           description: t.description ?? "",
+          actionPlan: t.actionPlan ?? "",
           priority: (t.priority ?? "") as UiEditTicketForm["priority"],
           status: (t.status ?? "") as UiEditTicketForm["status"],
           startDate: toLocalInput(t.startDate ?? null),
@@ -226,6 +228,7 @@ export function useEditTicketForm(ticketId?: string): UseEditTicketFormReturn {
       type: form.type,
       title: form.title.trim(),
       description: form.description.trim(),
+      actionPlan: form.actionPlan.trim(),
       priority: form.priority,
       status: form.status,
       startDate: form.startDate,
