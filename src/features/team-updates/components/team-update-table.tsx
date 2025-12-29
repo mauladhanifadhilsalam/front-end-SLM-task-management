@@ -55,6 +55,7 @@ import { deleteTeamUpdate } from "@/services/team-update.service"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { teamUpdateKeys } from "@/lib/query-keys"
+import { getCurrentUserId } from "@/utils/get-current-user"
 
 type UpdateStatus = TeamUpdateStatus
 
@@ -110,6 +111,7 @@ export function TeamUpdateTable({
     const didInitExpansion = React.useRef(false)
     const role = (localStorage.getItem("role") ?? "").toLowerCase()
     const isDeveloper = role === "developer"
+    const currentUserId = getCurrentUserId()
     const basePath = isDeveloper
         ? "/developer-dashboard/daily-updates"
         : "/project-manager/dashboard/team-update"
@@ -232,6 +234,7 @@ export function TeamUpdateTable({
 
     const handleDeleteUpdate = (item: TeamUpdate) => {
         if (!isDeveloper) return
+        if (item.userId !== currentUserId) return
         setDeleteTarget(item)
     }
 
@@ -511,7 +514,7 @@ export function TeamUpdateTable({
                                                                     >
                                                                         <IconEye className="h-4 w-4" />
                                                                     </Button>
-                                                                    {isDeveloper ? (
+                                                                    {isDeveloper && item.userId === currentUserId ? (
                                                                         <>
                                                                             <Button
                                                                                 type="button"
