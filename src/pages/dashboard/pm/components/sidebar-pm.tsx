@@ -4,16 +4,11 @@ import {
   IconUsers,
   IconUserStar,
   IconFolder,
-  IconTimeline,
-  IconUsersGroup,
   IconTicket,
-  IconUserCheck,
-  IconSettings,
-  IconRefresh,
+  IconMessage,
 } from "@tabler/icons-react"
 
 import { NavMain } from "@/components/nav-main"
-import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
 import {
   Sidebar,
@@ -65,7 +60,7 @@ const data = {
     {
       title: "Team Update",
       url: "/project-manager/dashboard/team-update",
-      icon: IconRefresh,
+      icon: IconMessage,
     },
   ],
 }

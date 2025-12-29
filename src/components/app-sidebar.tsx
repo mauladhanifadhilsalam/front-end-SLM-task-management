@@ -87,6 +87,11 @@ const data = {
       icon: IconUserCheck,
     },
     {
+      title: "Team Updates",
+      url: "/admin/dashboard/team-updates",
+      icon: IconMessage,
+    },
+    {
       title: "Comments",
       url: "/admin/dashboard/comments",
       icon: IconMessageDots,
