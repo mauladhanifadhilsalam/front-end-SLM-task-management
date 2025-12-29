@@ -45,6 +45,10 @@ import AdminNotification from "../pages/dashboard/admin/notification/adminNotifi
 import ViewNotification from "../pages/dashboard/admin/notification/viewNotification"
 import AdminProjectAssignment from "../pages/dashboard/admin/projectAssignment/adminProjectAssignment"
 import CreateProjectAssignment from "../pages/dashboard/admin/projectAssignment/createProjectAssignment"
+import AdminTeamUpdates from "../pages/dashboard/admin/team-updates/adminTeamUpdates"
+import AdminViewTeamUpdatePage from "../pages/dashboard/admin/team-updates/view-team-update-page"
+import AdminCreateTeamUpdatePage from "../pages/dashboard/admin/team-updates/create-team-update-page"
+import AdminEditTeamUpdatePage from "../pages/dashboard/admin/team-updates/edit-team-update-page"
 
 export const adminRoutes = (
   <Fragment>
@@ -336,6 +340,38 @@ export const adminRoutes = (
       element={
         <ProtectedRoute allowedRoles={["admin"]}>
           <ActivityLogPage />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/dashboard/team-updates"
+      element={
+        <ProtectedRoute allowedRoles={["admin"]}>
+          <AdminTeamUpdates />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/dashboard/team-updates/create"
+      element={
+        <ProtectedRoute allowedRoles={["admin"]}>
+          <AdminCreateTeamUpdatePage />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/dashboard/team-updates/view/:id"
+      element={
+        <ProtectedRoute allowedRoles={["admin"]}>
+          <AdminViewTeamUpdatePage />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/dashboard/team-updates/edit/:id"
+      element={
+        <ProtectedRoute allowedRoles={["admin"]}>
+          <AdminEditTeamUpdatePage />
         </ProtectedRoute>
       }
     />

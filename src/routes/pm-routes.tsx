@@ -4,6 +4,8 @@ import { ProtectedRoute } from "../components/ProtectedRoute"
 import PmDashboard from "../pages/dashboard/pm/dashboard"
 import DeveloperHighlightPage from "@/pages/dashboard/pm/developer/developer-highlight"
 import ProjectTaskPage from "@/pages/dashboard/pm/project/project-task-page"
+import TeamUpdatePage from "@/pages/dashboard/pm/team-updates/team-update-page"
+import ViewTeamUpdatePage from "@/pages/dashboard/pm/team-updates/view-team-update-page"
 
 
 import ViewProjectOwnerPage from "@/pages/dashboard/pm/project-owners/view-project-owner-page"
@@ -174,6 +176,22 @@ export const pmRoutes = (
           </ProtectedRoute>
         }
       />
+    <Route
+      path="/project-manager/dashboard/team-update"
+      element={
+        <ProtectedRoute allowedRoles={["project_manager"]}>
+          <TeamUpdatePage />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/project-manager/dashboard/team-update/view/:id"
+      element={
+        <ProtectedRoute allowedRoles={["project_manager"]}>
+          <ViewTeamUpdatePage />
+        </ProtectedRoute>
+      }
+    />
     <Route
       path="/project-manager-dashboard/notifications/me"
       element={
