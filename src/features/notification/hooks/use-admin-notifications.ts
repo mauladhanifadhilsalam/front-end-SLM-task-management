@@ -23,6 +23,7 @@ import type {
 } from "@/types/notification.type"
 import { notificationKeys } from "@/lib/query-keys"
 import { usePagination } from "@/hooks/use-pagination"
+import { buildSearchText, normalizeSearch } from "@/utils/search.util"
 
 type ColState = {
   id: boolean
@@ -93,6 +94,11 @@ export const useAdminNotifications = () => {
     placeholderData: keepPreviousData,
   })
 
+  const normalizedSearch = React.useMemo(
+    () => normalizeSearch(search),
+    [search],
+  )
+
   const notifications = React.useMemo(() => {
     const list = notificationsQuery.data?.notifications ?? []
     return list
@@ -103,6 +109,25 @@ export const useAdminNotifications = () => {
           new Date(a.createdAt).getTime(),
       )
   }, [notificationsQuery.data?.notifications])
+
+  const filteredNotifications = React.useMemo(() => {
+    if (!normalizedSearch) return notifications
+    return notifications.filter((notification) => {
+      const haystack = buildSearchText([
+        notification.id,
+        notification.subject,
+        notification.message,
+        notification.targetType,
+        notification.targetId,
+        notification.state,
+        notification.status,
+        notification.recipient?.fullName,
+        notification.recipient?.email,
+        notification.recipient?.role,
+      ])
+      return haystack.includes(normalizedSearch)
+    })
+  }, [notifications, normalizedSearch])
 
   const pagination = notificationsQuery.data?.pagination ?? {
     total: 0,
@@ -238,7 +263,7 @@ export const useAdminNotifications = () => {
 
   const confirmDelete = async () => {
     if (!deletingId) return
-    const target = notifications.find((n) => n.id === deletingId)
+    const target = filteredNotifications.find((n) => n.id === deletingId)
 
     setDeleting(true)
     try {
@@ -271,7 +296,7 @@ export const useAdminNotifications = () => {
   }
 
   return {
-    notifications,
+    notifications: filteredNotifications,
     loading,
     error: errorMessage,
     search,

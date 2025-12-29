@@ -15,6 +15,7 @@ import {
 } from "@/services/activity-log.service"
 import { activityLogKeys } from "@/lib/query-keys"
 import { usePagination } from "@/hooks/use-pagination"
+import { buildSearchText, normalizeSearch } from "@/utils/search.util"
 
 const defaultColumns: ActivityLogColumns = {
   id: true,
@@ -70,6 +71,10 @@ export const useActivityLogs = () => {
   })
 
   const logs = logsQuery.data?.logs ?? []
+  const normalizedSearch = React.useMemo(
+    () => normalizeSearch(search),
+    [search],
+  )
   const pagination = logsQuery.data?.pagination ?? {
     total: 0,
     page,
@@ -170,7 +175,29 @@ export const useActivityLogs = () => {
     }
   }
 
-  const filteredLogs = React.useMemo(() => logs, [logs])
+  const filteredLogs = React.useMemo(() => {
+    if (!normalizedSearch) return logs
+    return logs.filter((log) => {
+      let details = ""
+      try {
+        details = log.details ? JSON.stringify(log.details) : ""
+      } catch {
+        details = ""
+      }
+      const haystack = buildSearchText([
+        log.id,
+        log.action,
+        log.targetType,
+        log.targetId,
+        log.occurredAt,
+        log.user?.fullName,
+        log.user?.email,
+        log.user?.role,
+        details,
+      ])
+      return haystack.includes(normalizedSearch)
+    })
+  }, [logs, normalizedSearch])
 
   const visibleColCount = React.useMemo(
     () => Object.values(cols).filter(Boolean).length,
