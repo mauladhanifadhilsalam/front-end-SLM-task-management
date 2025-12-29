@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { AppSidebarDev } from "../components/app-sidebardev"
-import { TeamUpdateTable } from "@/pages/dashboard/pm/components/team-update-table"
+import { TeamUpdateTable } from "@/features/team-updates/components/team-update-table"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 

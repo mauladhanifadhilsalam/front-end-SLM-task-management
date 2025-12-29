@@ -34,8 +34,8 @@ import {
     IconFolder,
     IconPlus,
 } from "@tabler/icons-react"
-import { useTeamUpdates } from "../hooks/use-team-updates"
-import { usePmProjects } from "../hooks/use-pm-projects"
+import { useTeamUpdates } from "../../../pages/dashboard/pm/hooks/use-team-updates"
+import { usePmProjects } from "../../../pages/dashboard/pm/hooks/use-pm-projects"
 import type { TeamUpdate, TeamUpdateStatus } from "@/types/team-update.type"
 import { useNavigate } from "react-router-dom"
 
