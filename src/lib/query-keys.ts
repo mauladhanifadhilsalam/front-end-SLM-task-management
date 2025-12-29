@@ -133,4 +133,6 @@ export const teamUpdateKeys = {
     filters && Object.keys(filters).length > 0
       ? ([...teamUpdateKeys.all, "list", filters] as const)
       : ([...teamUpdateKeys.all, "list"] as const),
+  detail: (id: number | string) =>
+    [...teamUpdateKeys.all, "detail", String(id)] as const,
 }

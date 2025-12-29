@@ -29,3 +29,5 @@ export type TeamUpdateCreatePayload = {
   nextAction: string
   status: TeamUpdateStatus
 }
+
+export type TeamUpdateUpdatePayload = TeamUpdateCreatePayload

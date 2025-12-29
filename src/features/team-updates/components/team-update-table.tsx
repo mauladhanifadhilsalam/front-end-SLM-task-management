@@ -22,6 +22,16 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
     Select,
     SelectContent,
     SelectItem,
@@ -30,14 +40,21 @@ import {
 } from "@/components/ui/select"
 import {
     IconChevronRight,
+    IconEdit,
+    IconEye,
     IconFileSpreadsheet,
     IconFolder,
     IconPlus,
+    IconTrash,
 } from "@tabler/icons-react"
 import { useTeamUpdates } from "../../../pages/dashboard/pm/hooks/use-team-updates"
 import { usePmProjects } from "../../../pages/dashboard/pm/hooks/use-pm-projects"
 import type { TeamUpdate, TeamUpdateStatus } from "@/types/team-update.type"
 import { useNavigate } from "react-router-dom"
+import { deleteTeamUpdate } from "@/services/team-update.service"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { toast } from "sonner"
+import { teamUpdateKeys } from "@/lib/query-keys"
 
 type UpdateStatus = TeamUpdateStatus
 
@@ -84,12 +101,19 @@ export function TeamUpdateTable({
     showCreateButton = true,
 }: TeamUpdateTableProps) {
     const navigate = useNavigate()
+    const queryClient = useQueryClient()
     const { updates, loading, error } = useTeamUpdates()
     const { projects } = usePmProjects()
     const [query, setQuery] = React.useState("")
     const [statusFilter, setStatusFilter] = React.useState<UpdateStatus | "ALL">("ALL")
     const [expandedProjects, setExpandedProjects] = React.useState<Set<string>>(new Set())
     const didInitExpansion = React.useRef(false)
+    const role = (localStorage.getItem("role") ?? "").toLowerCase()
+    const isDeveloper = role === "developer"
+    const basePath = isDeveloper
+        ? "/developer-dashboard/daily-updates"
+        : "/project-manager/dashboard/team-update"
+    const [deleteTarget, setDeleteTarget] = React.useState<TeamUpdate | null>(null)
 
     const projectLabels = React.useMemo(() => {
         const map = new Map<number, string>()
@@ -184,6 +208,39 @@ export function TeamUpdateTable({
         navigate(createPath)
     }
 
+    const deleteMutation = useMutation({
+        mutationFn: deleteTeamUpdate,
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: teamUpdateKeys.all })
+            toast.success("Daily update berhasil dihapus")
+        },
+        onError: (err: any) => {
+            const msg =
+                err?.response?.data?.message ||
+                "Gagal menghapus daily update. Coba lagi."
+            toast.error("Gagal menghapus daily update", { description: msg })
+        },
+    })
+
+    const handleViewUpdate = (id: number) => {
+        navigate(`${basePath}/view/${id}`)
+    }
+
+    const handleEditUpdate = (id: number) => {
+        navigate(`${basePath}/edit/${id}`)
+    }
+
+    const handleDeleteUpdate = (item: TeamUpdate) => {
+        if (!isDeveloper) return
+        setDeleteTarget(item)
+    }
+
+    const confirmDelete = () => {
+        if (!deleteTarget) return
+        deleteMutation.mutate(deleteTarget.id, {
+            onSettled: () => setDeleteTarget(null),
+        })
+    }
 
     return (
         <Card className="overflow-hidden">
@@ -377,6 +434,11 @@ export function TeamUpdateTable({
                                                                 Next Action
                                                             </span>
                                                         </TableHead>
+                                                        <TableHead className="min-w-[120px] pr-4 text-right">
+                                                            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                                                Actions
+                                                            </span>
+                                                        </TableHead>
                                                     </TableRow>
                                                 </TableHeader>
                                                 <TableBody>
@@ -437,6 +499,45 @@ export function TeamUpdateTable({
                                                                     {item.nextAction}
                                                                 </Badge>
                                                             </TableCell>
+                                                            <TableCell className="pr-4">
+                                                                <div className="flex items-center justify-end gap-1">
+                                                                    <Button
+                                                                        type="button"
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        className="h-8 w-8"
+                                                                        onClick={() => handleViewUpdate(item.id)}
+                                                                        aria-label="View update"
+                                                                    >
+                                                                        <IconEye className="h-4 w-4" />
+                                                                    </Button>
+                                                                    {isDeveloper ? (
+                                                                        <>
+                                                                            <Button
+                                                                                type="button"
+                                                                                variant="ghost"
+                                                                                size="icon"
+                                                                                className="h-8 w-8"
+                                                                                onClick={() => handleEditUpdate(item.id)}
+                                                                                aria-label="Edit update"
+                                                                            >
+                                                                                <IconEdit className="h-4 w-4" />
+                                                                            </Button>
+                                                                            <Button
+                                                                                type="button"
+                                                                                variant="ghost"
+                                                                                size="icon"
+                                                                                className="h-8 w-8 text-red-600 hover:text-red-700"
+                                                                                onClick={() => handleDeleteUpdate(item)}
+                                                                                aria-label="Delete update"
+                                                                                disabled={deleteMutation.isPending}
+                                                                            >
+                                                                                <IconTrash className="h-4 w-4" />
+                                                                            </Button>
+                                                                        </>
+                                                                    ) : null}
+                                                                </div>
+                                                            </TableCell>
                                                         </TableRow>
                                                     ))}
                                                 </TableBody>
@@ -450,6 +551,32 @@ export function TeamUpdateTable({
                     )
                 })}
             </CardContent>
+            <AlertDialog
+                open={!!deleteTarget}
+                onOpenChange={(open) => (!open ? setDeleteTarget(null) : undefined)}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Hapus daily update?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Update dari {deleteTarget?.developer.fullName} akan dihapus
+                            permanen.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={deleteMutation.isPending}>
+                            Batal
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={confirmDelete}
+                            disabled={deleteMutation.isPending}
+                            className="bg-red-600 hover:bg-red-700"
+                        >
+                            {deleteMutation.isPending ? "Menghapus..." : "Hapus"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </Card>
     )
 }

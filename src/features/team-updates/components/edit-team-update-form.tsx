@@ -19,14 +19,17 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { IconCheck } from "@tabler/icons-react"
-import { useCreateTeamUpdateForm } from "../hooks/use-create-team-update-form"
+import { useEditTeamUpdateForm } from "../hooks/use-edit-team-update-form"
 import { usePmProjects } from "@/pages/dashboard/pm/hooks/use-pm-projects"
 import type {
   TeamUpdateField,
   TeamUpdateStatusOption,
+  TeamUpdateValues,
 } from "@/schemas/team-update.schema"
 
 type Props = {
+  updateId: number
+  initialValues?: TeamUpdateValues
   onSuccess?: () => void
 }
 
@@ -36,11 +39,15 @@ const statusOptions: { value: TeamUpdateStatusOption; label: string }[] = [
   { value: "DONE", label: "Done" },
 ]
 
-export const CreateTeamUpdateForm: React.FC<Props> = ({ onSuccess }) => {
+export const EditTeamUpdateForm: React.FC<Props> = ({
+  updateId,
+  initialValues,
+  onSuccess,
+}) => {
   const { projects, loading: loadingProjects, error: projectError } =
     usePmProjects()
   const { form, errors, saving, handleChange, handleBlur, handleSubmit } =
-    useCreateTeamUpdateForm({
+    useEditTeamUpdateForm(updateId, initialValues, {
       onSuccess: () => {
         if (onSuccess) onSuccess()
       },
@@ -58,10 +65,8 @@ export const CreateTeamUpdateForm: React.FC<Props> = ({ onSuccess }) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Daily Update</CardTitle>
-        <CardDescription>
-          Isi update harian untuk project yang sedang kamu kerjakan.
-        </CardDescription>
+        <CardTitle>Edit Daily Update</CardTitle>
+        <CardDescription>Perbarui update harian kamu.</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6" noValidate>
@@ -202,7 +207,7 @@ export const CreateTeamUpdateForm: React.FC<Props> = ({ onSuccess }) => {
           <div className="flex justify-end space-x-3">
             <Button type="submit" disabled={saving} className="cursor-pointer">
               <IconCheck className="mr-2 h-4 w-4" />
-              {saving ? "Menyimpan..." : "Simpan Update"}
+              {saving ? "Menyimpan..." : "Simpan Perubahan"}
             </Button>
           </div>
         </form>

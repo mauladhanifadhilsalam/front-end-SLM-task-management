@@ -9,6 +9,7 @@ import {
 import type {
   TeamUpdate,
   TeamUpdateCreatePayload,
+  TeamUpdateUpdatePayload,
   TeamUpdateStatus,
 } from "@/types/team-update.type"
 
@@ -90,4 +91,27 @@ export const createTeamUpdate = async (
   const { data } = await api.post("/team-updates", payload)
   const raw = unwrapApiData<any>(data)
   return mapTeamUpdate(raw)
+}
+
+export const fetchTeamUpdateById = async (
+  id: number | string,
+): Promise<TeamUpdate> => {
+  const { data } = await api.get(`/team-updates/${id}`)
+  const raw = unwrapApiData<any>(data)
+  return mapTeamUpdate(raw)
+}
+
+export const updateTeamUpdate = async (
+  id: number | string,
+  payload: TeamUpdateUpdatePayload,
+): Promise<TeamUpdate> => {
+  const { data } = await api.patch(`/team-updates/${id}`, payload)
+  const raw = unwrapApiData<any>(data)
+  return mapTeamUpdate(raw)
+}
+
+export const deleteTeamUpdate = async (
+  id: number | string,
+): Promise<void> => {
+  await api.delete(`/team-updates/${id}`)
 }

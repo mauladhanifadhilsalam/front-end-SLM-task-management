@@ -23,7 +23,7 @@ export const teamUpdateSchema = z.object({
     .trim()
     .min(1, { message: "Next action wajib diisi." }),
   status: z.enum(["IN_PROGRESS", "NOT_STARTED", "DONE"], {
-    required_error: "Status wajib dipilih.",
+    message: "Status wajib dipilih.",
   }),
 })
 
