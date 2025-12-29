@@ -20,3 +20,12 @@ export type TeamUpdate = {
   createdAt: string
   developer: TeamUpdateDeveloper
 }
+
+export type TeamUpdateCreatePayload = {
+  projectId: number
+  yesterdayWork: string
+  todayWork: string
+  blocker?: string | null
+  nextAction: string
+  status: TeamUpdateStatus
+}

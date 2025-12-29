@@ -12,6 +12,8 @@ import DevViewTicketIssue from "@/pages/dashboard/dev/ticket/view-ticket-page"
 import DevCreateTicketIssue from "@/pages/dashboard/dev/ticket/create-ticket-issue"
 import DevEditTicketIssue from "@/pages/dashboard/dev/ticket/edit-ticket-issue"
 import DevAddTicketAttachment from "@/pages/dashboard/dev/fileAttachment/add-file-attachment"
+import DailyUpdatesPage from "@/pages/dashboard/dev/daily-updates/daily-updates-page"
+import CreateDailyUpdatePage from "@/pages/dashboard/dev/daily-updates/create-daily-update-page"
 
 export const devRoutes = (
   <Fragment>
@@ -107,6 +109,22 @@ export const devRoutes = (
       element={
         <ProtectedRoute allowedRoles={["developer"]}>
           <DevAddTicketAttachment />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/developer-dashboard/daily-updates"
+      element={
+        <ProtectedRoute allowedRoles={["developer"]}>
+          <DailyUpdatesPage />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/developer-dashboard/daily-updates/create"
+      element={
+        <ProtectedRoute allowedRoles={["developer"]}>
+          <CreateDailyUpdatePage />
         </ProtectedRoute>
       }
     />

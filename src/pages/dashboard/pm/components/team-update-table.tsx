@@ -32,10 +32,12 @@ import {
     IconChevronRight,
     IconFileSpreadsheet,
     IconFolder,
+    IconPlus,
 } from "@tabler/icons-react"
 import { useTeamUpdates } from "../hooks/use-team-updates"
 import { usePmProjects } from "../hooks/use-pm-projects"
 import type { TeamUpdate, TeamUpdateStatus } from "@/types/team-update.type"
+import { useNavigate } from "react-router-dom"
 
 type UpdateStatus = TeamUpdateStatus
 
@@ -66,7 +68,22 @@ const projectColors = {
     icon: "text-foreground",
 }
 
-export function TeamUpdateTable() {
+type TeamUpdateTableProps = {
+    title?: string
+    description?: string
+    createLabel?: string
+    createPath?: string
+    showCreateButton?: boolean
+}
+
+export function TeamUpdateTable({
+    title = "Team Update",
+    description = "Daily standup updates per project",
+    createLabel = "Create Daily Update",
+    createPath = "/project-manager/dashboard/team-update/create",
+    showCreateButton = true,
+}: TeamUpdateTableProps) {
+    const navigate = useNavigate()
     const { updates, loading, error } = useTeamUpdates()
     const { projects } = usePmProjects()
     const [query, setQuery] = React.useState("")
@@ -163,45 +180,56 @@ export function TeamUpdateTable() {
         alert(`Export Excel untuk "${project}" dengan ${data.length} data`)
     }
 
+    const handleCreateUpdate = () => {
+        navigate(createPath)
+    }
+
 
     return (
         <Card className="overflow-hidden">
             <CardHeader className="flex flex-col gap-3 pb-4 bg-gradient-to-r from-primary/5 via-transparent to-transparent">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div className="flex flex-col gap-2">
                     <div>
                         <CardTitle className="flex items-center gap-2 text-lg">
-                            Team Update
+                            {title}
                         </CardTitle>
                         <CardDescription>
-                            Daily standup updates per project
+                            {description}
                         </CardDescription>
                     </div>
-
                 </div>
 
 
                 {/* Filters */}
-                <div className="flex flex-col sm:flex-row gap-2">
-                    <Input
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                        placeholder="Cari developer atau task..."
-                        className="max-w-xs"
-                    />
-                    <Select
-                        value={statusFilter}
-                        onValueChange={(val) => setStatusFilter(val as UpdateStatus | "ALL")}
-                    >
-                        <SelectTrigger className="w-[140px]">
-                            <SelectValue placeholder="Filter Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="ALL">Semua Status</SelectItem>
-                            <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                            <SelectItem value="NOT_STARTED">Not Started</SelectItem>
-                            <SelectItem value="DONE">Done</SelectItem>
-                        </SelectContent>
-                    </Select>
+                <div className="flex flex-col w-full sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
+                        <Input
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            placeholder="Cari developer atau task..."
+                            className="max-w-xs"
+                        />
+                        <Select
+                            value={statusFilter}
+                            onValueChange={(val) => setStatusFilter(val as UpdateStatus | "ALL")}
+                        >
+                            <SelectTrigger className="w-[140px]">
+                                <SelectValue placeholder="Filter Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="ALL">Semua Status</SelectItem>
+                                <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                                <SelectItem value="NOT_STARTED">Not Started</SelectItem>
+                                <SelectItem value="DONE">Done</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    {showCreateButton ? (
+                        <Button size="sm" onClick={handleCreateUpdate} className="shrink-0">
+                            <IconPlus className="mr-1 h-4 w-4" />
+                            {createLabel}
+                        </Button>
+                    ) : null}
                 </div>
             </CardHeader>
 

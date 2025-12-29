@@ -66,6 +66,11 @@ const data = {
       url: "/developer-dashboard/ticket-task",
       icon: IconTicket,
     },
+    {
+      title: "Daily Updates",
+      url: "/developer-dashboard/daily-updates",
+      icon: IconMessageDots,
+    },
   ],
 }
 

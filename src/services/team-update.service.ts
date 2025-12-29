@@ -1,12 +1,16 @@
 import { api } from "@/lib/api"
-import { extractArrayFromApi } from "@/utils/api-response.util"
+import { extractArrayFromApi, unwrapApiData } from "@/utils/api-response.util"
 import { cleanQueryParams } from "@/utils/query-param.util"
 import {
   defaultPaginationMeta,
   normalizePagination,
   type PaginationMeta,
 } from "@/types/pagination"
-import type { TeamUpdate, TeamUpdateStatus } from "@/types/team-update.type"
+import type {
+  TeamUpdate,
+  TeamUpdateCreatePayload,
+  TeamUpdateStatus,
+} from "@/types/team-update.type"
 
 const normalizeStatus = (value: unknown): TeamUpdateStatus => {
   const status = String(value ?? "").toUpperCase()
@@ -78,4 +82,12 @@ export const fetchTeamUpdates = async (
 ): Promise<TeamUpdate[]> => {
   const { updates } = await fetchTeamUpdatesWithPagination(params)
   return updates
+}
+
+export const createTeamUpdate = async (
+  payload: TeamUpdateCreatePayload,
+): Promise<TeamUpdate> => {
+  const { data } = await api.post("/team-updates", payload)
+  const raw = unwrapApiData<any>(data)
+  return mapTeamUpdate(raw)
 }
