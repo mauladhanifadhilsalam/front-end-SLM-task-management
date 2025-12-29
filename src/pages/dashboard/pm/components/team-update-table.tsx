@@ -31,188 +31,87 @@ import {
 import {
     IconChevronRight,
     IconFileSpreadsheet,
-    IconFileTypePdf,
     IconFolder,
 } from "@tabler/icons-react"
+import { useTeamUpdates } from "../hooks/use-team-updates"
+import { usePmProjects } from "../hooks/use-pm-projects"
+import type { TeamUpdate, TeamUpdateStatus } from "@/types/team-update.type"
 
-// Types
-type UpdateStatus = "ON_TRACK" | "BLOCKED" | "AT_RISK"
+type UpdateStatus = TeamUpdateStatus
 
-interface TeamUpdate {
-    id: string
-    date: string
-    project: string
-    developer: string
-    status: UpdateStatus
-    yesterdayWork: string
-    todayWork: string
-    blocker: string | null
-    nextAction: string
-}
-
-// Dummy Projects
-const projects = [
-    "E-Commerce Platform",
-    "Mobile Banking App",
-    "HR Management System",
-    "Inventory Dashboard",
-]
-
-// Dummy Data with Projects
-const dummyTeamUpdates: TeamUpdate[] = [
-    {
-        id: "1",
-        date: "2023-12-18",
-        project: "E-Commerce Platform",
-        developer: "Andi Wijaya",
-        status: "ON_TRACK",
-        yesterdayWork: "Selesai API Login",
-        todayWork: "Integrasi Frontend",
-        blocker: null,
-        nextAction: "Deploy ke Staging",
-    },
-    {
-        id: "2",
-        date: "2023-12-18",
-        project: "E-Commerce Platform",
-        developer: "Budi Santoso",
-        status: "BLOCKED",
-        yesterdayWork: "Desain UI Home",
-        todayWork: "Revisi Desain",
-        blocker: "Menunggu aset dari klien",
-        nextAction: "Follow up PM",
-    },
-    {
-        id: "3",
-        date: "2023-12-18",
-        project: "Mobile Banking App",
-        developer: "Citra Dewi",
-        status: "AT_RISK",
-        yesterdayWork: "Fix Bug Cart",
-        todayWork: "Testing Payment",
-        blocker: "API Gateway sering timeout",
-        nextAction: "Cek log server",
-    },
-    {
-        id: "4",
-        date: "2023-12-18",
-        project: "Mobile Banking App",
-        developer: "Dimas Pratama",
-        status: "ON_TRACK",
-        yesterdayWork: "Setup Database",
-        todayWork: "Create API Endpoints",
-        blocker: null,
-        nextAction: "Unit Testing",
-    },
-    {
-        id: "5",
-        date: "2023-12-17",
-        project: "HR Management System",
-        developer: "Eka Putri",
-        status: "ON_TRACK",
-        yesterdayWork: "Review Code PR",
-        todayWork: "Implement Dashboard Charts",
-        blocker: null,
-        nextAction: "Dokumentasi API",
-    },
-    {
-        id: "6",
-        date: "2023-12-17",
-        project: "HR Management System",
-        developer: "Fajar Rahman",
-        status: "AT_RISK",
-        yesterdayWork: "Migration Database",
-        todayWork: "Data Validation",
-        blocker: "Data format tidak konsisten",
-        nextAction: "Meeting dengan Data Team",
-    },
-    {
-        id: "7",
-        date: "2023-12-17",
-        project: "Inventory Dashboard",
-        developer: "Gita Permata",
-        status: "ON_TRACK",
-        yesterdayWork: "Setup Project Structure",
-        todayWork: "Implementasi Auth Module",
-        blocker: null,
-        nextAction: "Code Review",
-    },
-    {
-        id: "8",
-        date: "2023-12-17",
-        project: "Inventory Dashboard",
-        developer: "Hendra Kusuma",
-        status: "BLOCKED",
-        yesterdayWork: "Design System Setup",
-        todayWork: "Component Library",
-        blocker: "Waiting for design approval",
-        nextAction: "Follow up Designer",
-    },
-]
-
-// Status metadata
 const statusMeta: Record<UpdateStatus, { label: string; className: string; dotColor: string }> = {
-    ON_TRACK: {
-        label: "On Track",
-        className:
-            "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300",
-        dotColor: "bg-emerald-500",
-    },
-    BLOCKED: {
-        label: "Blocked",
-        className:
-            "bg-red-50 text-red-700 border-red-200 dark:bg-red-500/15 dark:text-red-300",
-        dotColor: "bg-red-500",
-    },
-    AT_RISK: {
-        label: "At Risk",
+    IN_PROGRESS: {
+        label: "In Progress",
         className:
             "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/15 dark:text-amber-300",
         dotColor: "bg-amber-500",
     },
+    NOT_STARTED: {
+        label: "Not Started",
+        className:
+            "bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-500/15 dark:text-slate-300",
+        dotColor: "bg-slate-500",
+    },
+    DONE: {
+        label: "Done",
+        className:
+            "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300",
+        dotColor: "bg-emerald-500",
+    },
 }
 
-// Project color palette - neutral colors
-const projectColors: Record<string, { bg: string; border: string; icon: string }> = {
-    "E-Commerce Platform": {
-        bg: "bg-muted/50",
-        border: "border-border",
-        icon: "text-foreground",
-    },
-    "Mobile Banking App": {
-        bg: "bg-muted/50",
-        border: "border-border",
-        icon: "text-foreground",
-    },
-    "HR Management System": {
-        bg: "bg-muted/50",
-        border: "border-border",
-        icon: "text-foreground",
-    },
-    "Inventory Dashboard": {
-        bg: "bg-muted/50",
-        border: "border-border",
-        icon: "text-foreground",
-    },
+const projectColors = {
+    bg: "bg-muted/50",
+    border: "border-border",
+    icon: "text-foreground",
 }
 
 export function TeamUpdateTable() {
+    const { updates, loading, error } = useTeamUpdates()
+    const { projects } = usePmProjects()
     const [query, setQuery] = React.useState("")
     const [statusFilter, setStatusFilter] = React.useState<UpdateStatus | "ALL">("ALL")
-    const [expandedProjects, setExpandedProjects] = React.useState<Set<string>>(new Set(projects))
+    const [expandedProjects, setExpandedProjects] = React.useState<Set<string>>(new Set())
+    const didInitExpansion = React.useRef(false)
+
+    const projectLabels = React.useMemo(() => {
+        const map = new Map<number, string>()
+        projects.forEach((project) => {
+            map.set(project.id, project.name)
+        })
+        updates.forEach((item) => {
+            if (!map.has(item.projectId)) {
+                map.set(item.projectId, `Project ${item.projectId}`)
+            }
+        })
+        return map
+    }, [projects, updates])
+
+    const projectIds = React.useMemo(() => {
+        return Array.from(projectLabels.keys())
+            .sort((a, b) => a - b)
+            .map((id) => id.toString())
+    }, [projectLabels])
+
+    React.useEffect(() => {
+        if (didInitExpansion.current) return
+        if (projectIds.length === 0) return
+        setExpandedProjects(new Set(projectIds))
+        didInitExpansion.current = true
+    }, [projectIds])
 
     // Group updates by project
     const groupedUpdates = React.useMemo(() => {
-        let filtered = dummyTeamUpdates
+        let filtered = updates
 
         // Filter by search query
         const q = query.trim().toLowerCase()
         if (q) {
             filtered = filtered.filter((item) => {
-                const developer = item.developer.toLowerCase()
+                const developer = item.developer.fullName.toLowerCase()
                 const yesterday = item.yesterdayWork.toLowerCase()
                 const today = item.todayWork.toLowerCase()
-                const project = item.project.toLowerCase()
+                const project = (projectLabels.get(item.projectId) ?? "").toLowerCase()
                 return developer.includes(q) || yesterday.includes(q) || today.includes(q) || project.includes(q)
             })
         }
@@ -224,32 +123,27 @@ export function TeamUpdateTable() {
 
         // Group by project
         const grouped: Record<string, TeamUpdate[]> = {}
-        for (const project of projects) {
-            grouped[project] = filtered.filter((u) => u.project === project)
+        for (const projectId of projectIds) {
+            const numericId = Number(projectId)
+            grouped[projectId] = filtered.filter((u) => u.projectId === numericId)
         }
         return grouped
-    }, [query, statusFilter])
+    }, [query, statusFilter, updates, projectIds, projectLabels])
 
     // Calculate stats per project
     const projectStats = React.useMemo(() => {
-        const stats: Record<string, { onTrack: number; blocked: number; atRisk: number }> = {}
-        for (const project of projects) {
-            const updates = dummyTeamUpdates.filter((u) => u.project === project)
-            stats[project] = {
-                onTrack: updates.filter((u) => u.status === "ON_TRACK").length,
-                blocked: updates.filter((u) => u.status === "BLOCKED").length,
-                atRisk: updates.filter((u) => u.status === "AT_RISK").length,
+        const stats: Record<string, { done: number; notStarted: number; inProgress: number }> = {}
+        for (const projectId of projectIds) {
+            const numericId = Number(projectId)
+            const projectUpdates = updates.filter((u) => u.projectId === numericId)
+            stats[projectId] = {
+                done: projectUpdates.filter((u) => u.status === "DONE").length,
+                notStarted: projectUpdates.filter((u) => u.status === "NOT_STARTED").length,
+                inProgress: projectUpdates.filter((u) => u.status === "IN_PROGRESS").length,
             }
         }
         return stats
-    }, [])
-
-    // Total stats
-    const totalStats = React.useMemo(() => ({
-        onTrack: dummyTeamUpdates.filter((u) => u.status === "ON_TRACK").length,
-        blocked: dummyTeamUpdates.filter((u) => u.status === "BLOCKED").length,
-        atRisk: dummyTeamUpdates.filter((u) => u.status === "AT_RISK").length,
-    }), [])
+    }, [projectIds, updates])
 
     const toggleProject = (project: string) => {
         setExpandedProjects((prev) => {
@@ -263,19 +157,12 @@ export function TeamUpdateTable() {
         })
     }
 
-    const expandAll = () => setExpandedProjects(new Set(projects))
-    const collapseAll = () => setExpandedProjects(new Set())
-
     // Export handlers (dummy for now)
     const handleExportExcel = (project: string, data: TeamUpdate[]) => {
         console.log(`Exporting Excel for ${project}:`, data)
         alert(`Export Excel untuk "${project}" dengan ${data.length} data`)
     }
 
-    const handleExportPdf = (project: string, data: TeamUpdate[]) => {
-        console.log(`Exporting PDF for ${project}:`, data)
-        alert(`Export PDF untuk "${project}" dengan ${data.length} data`)
-    }
 
     return (
         <Card className="overflow-hidden">
@@ -310,24 +197,37 @@ export function TeamUpdateTable() {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="ALL">Semua Status</SelectItem>
-                            <SelectItem value="ON_TRACK">On Track</SelectItem>
-                            <SelectItem value="BLOCKED">Blocked</SelectItem>
-                            <SelectItem value="AT_RISK">At Risk</SelectItem>
+                            <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                            <SelectItem value="NOT_STARTED">Not Started</SelectItem>
+                            <SelectItem value="DONE">Done</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
             </CardHeader>
 
             <CardContent className="px-4 pb-6 space-y-4">
-                {projects.map((project) => {
-                    const updates = groupedUpdates[project]
-                    const stats = projectStats[project]
-                    const colors = projectColors[project] || { bg: "bg-gray-500/10", border: "border-gray-200", icon: "text-gray-600" }
-                    const isExpanded = expandedProjects.has(project)
+                {loading ? (
+                    <div className="text-sm text-muted-foreground px-4 py-8 text-center">
+                        Memuat team updates...
+                    </div>
+                ) : error ? (
+                    <div className="text-sm text-red-600 px-4 py-8 text-center">
+                        {error}
+                    </div>
+                ) : projectIds.length === 0 ? (
+                    <div className="text-sm text-muted-foreground px-4 py-8 text-center">
+                        Belum ada team updates.
+                    </div>
+                ) : projectIds.map((projectId) => {
+                    const projectLabel = projectLabels.get(Number(projectId)) ?? `Project ${projectId}`
+                    const updates = groupedUpdates[projectId]
+                    const stats = projectStats[projectId]
+                    const colors = projectColors
+                    const isExpanded = expandedProjects.has(projectId)
 
                     return (
                         <div
-                            key={project}
+                            key={projectId}
                             className={cn(
                                 "rounded-xl border overflow-hidden transition-all duration-200",
                                 colors.border,
@@ -336,7 +236,7 @@ export function TeamUpdateTable() {
                         >
                             {/* Project Header - Clickable */}
                             <button
-                                onClick={() => toggleProject(project)}
+                                onClick={() => toggleProject(projectId)}
                                 className={cn(
                                     "w-full flex items-center justify-between p-4 transition-colors",
                                     colors.bg,
@@ -351,28 +251,28 @@ export function TeamUpdateTable() {
                                         )} 
                                     />
                                     <IconFolder className={cn("h-5 w-5", colors.icon)} />
-                                    <span className="font-semibold text-foreground">{project}</span>
+                                    <span className="font-semibold text-foreground">{projectLabel}</span>
                                     <Badge variant="secondary" className="ml-2">
                                         {updates.length} updates
                                     </Badge>
                                 </div>
                                 <div className="flex items-center gap-3 text-xs">
-                                    {stats.onTrack > 0 && (
+                                    {stats?.done > 0 && (
                                         <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
                                             <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                                            {stats.onTrack}
+                                            {stats.done}
                                         </span>
                                     )}
-                                    {stats.blocked > 0 && (
-                                        <span className="flex items-center gap-1 text-red-600 dark:text-red-400">
-                                            <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
-                                            {stats.blocked}
-                                        </span>
-                                    )}
-                                    {stats.atRisk > 0 && (
+                                    {stats?.inProgress > 0 && (
                                         <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
-                                            <span className="h-2 w-2 rounded-full bg-amber-500" />
-                                            {stats.atRisk}
+                                            <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+                                            {stats.inProgress}
+                                        </span>
+                                    )}
+                                    {stats?.notStarted > 0 && (
+                                        <span className="flex items-center gap-1 text-slate-600 dark:text-slate-400">
+                                            <span className="h-2 w-2 rounded-full bg-slate-500" />
+                                            {stats.notStarted}
                                         </span>
                                     )}
                                 </div>
@@ -394,7 +294,7 @@ export function TeamUpdateTable() {
                                             size="sm"
                                             onClick={(e) => {
                                                 e.stopPropagation()
-                                                handleExportExcel(project, updates)
+                                                handleExportExcel(projectLabel, updates)
                                             }}
                                             className="gap-2"
                                             disabled={updates.length === 0}
@@ -462,7 +362,7 @@ export function TeamUpdateTable() {
                                                             )}
                                                         >
                                                             <TableCell className="pl-4 font-medium text-muted-foreground text-sm">
-                                                                {formatDate(item.date)}
+                                                                {formatDate(item.updatedAt || item.createdAt)}
                                                             </TableCell>
                                                             <TableCell>
                                                                 <div className="flex items-center gap-2">
@@ -470,13 +370,13 @@ export function TeamUpdateTable() {
                                                                         <AvatarFallback
                                                                             className={cn(
                                                                                 "text-xs font-bold",
-                                                                                pickAvatarColor(item.developer)
+                                                                                pickAvatarColor(item.developer.fullName)
                                                                             )}
                                                                         >
-                                                                            {initials(item.developer)}
+                                                                            {initials(item.developer.fullName)}
                                                                         </AvatarFallback>
                                                                     </Avatar>
-                                                                    <span className="text-sm font-medium">{item.developer}</span>
+                                                                    <span className="text-sm font-medium">{item.developer.fullName}</span>
                                                                 </div>
                                                             </TableCell>
                                                             <TableCell>
