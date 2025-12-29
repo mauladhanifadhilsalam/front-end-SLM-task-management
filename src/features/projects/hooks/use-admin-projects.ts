@@ -18,6 +18,7 @@ import {
 import { Project, ProjectStatus } from "@/types/project.type"
 import { projectKeys } from "@/lib/query-keys"
 import { usePagination } from "@/hooks/use-pagination"
+import { buildSearchText, normalizeSearch } from "@/utils/search.util"
 
 export type ProjectColumns = {
   id: boolean
@@ -96,10 +97,32 @@ export const useAdminProjects = () => {
     }
   }, [projectsQuery.error, projectsQuery.isSuccess])
 
+  const normalizedSearch = React.useMemo(
+    () => normalizeSearch(search),
+    [search],
+  )
+
   const projects = React.useMemo(() => {
     const list = projectsQuery.data?.projects ?? []
     return list.slice().sort((a, b) => a.id - b.id)
   }, [projectsQuery.data?.projects])
+
+  const filteredProjects = React.useMemo(() => {
+    if (!normalizedSearch) return projects
+    return projects.filter((project) => {
+      const haystack = buildSearchText([
+        project.id,
+        project.name,
+        project.status,
+        project.notes,
+        project.categories?.join(" "),
+        project.owner?.name,
+        project.owner?.email,
+        project.owner?.company,
+      ])
+      return haystack.includes(normalizedSearch)
+    })
+  }, [projects, normalizedSearch])
 
   const pagination = projectsQuery.data?.pagination ?? {
     total: 0,
@@ -177,7 +200,7 @@ export const useAdminProjects = () => {
   )
 
   return {
-    projects,
+    projects: filteredProjects,
     loading: projectsQuery.isLoading,
     error,
     search,
