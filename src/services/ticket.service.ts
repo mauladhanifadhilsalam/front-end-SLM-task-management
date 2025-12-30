@@ -20,6 +20,8 @@ type RawTicket = {
   type?: string
   title?: string
   description?: string
+  actionPlan?: string  
+  action_plan?: string  
   priority?: string
   status?: string
   requesterId?: number
@@ -122,6 +124,7 @@ const mapTicket = (raw: RawTicket): AdminTicket => {
     type: String(raw.type ?? ""),
     title: String(raw.title ?? ""),
     description: raw.description ?? "",
+    actionPlan: raw.actionPlan ?? raw.action_plan ?? undefined,  
     priority: raw.priority as AdminTicket["priority"],
     status: (raw.status ?? "TO_DO") as AdminTicket["status"],
     requesterId: Number(
@@ -266,6 +269,7 @@ export async function fetchTicketById(
     type: String(t.type ?? ""),
     title: String(t.title ?? ""),
     description: t.description ?? null,
+    actionPlan: t.actionPlan ?? t.action_plan ?? null,  
     priority: t.priority ?? null,
     status: String(t.status ?? "TO_DO"),
     startDate: t.startDate ?? t.start_date ?? null,

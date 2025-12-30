@@ -43,6 +43,10 @@ type Props = {
 
   /** mode PM: requester + type di-disable */
   isPm?: boolean
+  
+  /** Nama project dan requester dari ticket data */
+  projectName?: string
+  requesterName?: string
 }
 
 export function EditTicketForm({
@@ -58,7 +62,88 @@ export function EditTicketForm({
   onChange,
   onSubmit,
   isPm = false,
+  projectName,
+  requesterName,
 }: Props) {
+  // State untuk menyimpan nama dari ticket data
+  const [ticketProjectName, setTicketProjectName] = React.useState<string>("")
+  const [ticketRequesterName, setTicketRequesterName] = React.useState<string>("")
+
+  // Helper untuk mendapatkan nama project
+  const selectedProject = React.useMemo(() => {
+    if (!form.projectId || projects.length === 0) return null
+    const found = projects.find((p) => String(p.id) === String(form.projectId))
+    console.log("🔍 Finding project:", {
+      projectId: form.projectId,
+      totalProjects: projects.length,
+      found: found?.name,
+    })
+    return found
+  }, [projects, form.projectId])
+
+  // Helper untuk mendapatkan nama requester
+  const selectedRequester = React.useMemo(() => {
+    if (!form.requesterId || requesters.length === 0) return null
+    const found = requesters.find((r) => String(r.id) === String(form.requesterId))
+    console.log("🔍 Finding requester:", {
+      requesterId: form.requesterId,
+      totalRequesters: requesters.length,
+      found: found?.name,
+    })
+    return found
+  }, [requesters, form.requesterId])
+
+  // Update nama project dan requester ketika data sudah available
+  React.useEffect(() => {
+    if (selectedProject?.name) {
+      setTicketProjectName(selectedProject.name)
+    }
+  }, [selectedProject])
+
+  React.useEffect(() => {
+    if (selectedRequester?.name) {
+      setTicketRequesterName(selectedRequester.name)
+    }
+  }, [selectedRequester])
+
+  // Debug log untuk cek data
+  React.useEffect(() => {
+    console.group("📊 EditTicketForm Debug")
+    console.log("Loading:", loading)
+    console.log("Loading Options:", loadingOptions)
+    console.log("Form projectId:", form.projectId)
+    console.log("Form requesterId:", form.requesterId)
+    console.log("Projects array:", projects.length, projects)
+    console.log("Requesters array:", requesters.length, requesters)
+    console.log("Selected Project:", selectedProject)
+    console.log("Selected Requester:", selectedRequester)
+    console.log("Ticket Project Name:", ticketProjectName)
+    console.log("Ticket Requester Name:", ticketRequesterName)
+    console.groupEnd()
+  }, [form, projects, requesters, selectedProject, selectedRequester, loading, loadingOptions, ticketProjectName, ticketRequesterName])
+
+  // Display value untuk project
+  const projectDisplayValue = React.useMemo(() => {
+    if (loading) return "Loading ticket…"
+    // Prioritas: projectName dari props > selectedProject > fallback
+    if (projectName) return projectName
+    if (selectedProject?.name) return selectedProject.name
+    if (ticketProjectName) return ticketProjectName
+    if (form.projectId) return `Project #${form.projectId}`
+    return ""
+  }, [loading, projectName, selectedProject, ticketProjectName, form.projectId])
+
+  // Display value untuk requester
+  const requesterDisplayValue = React.useMemo(() => {
+    if (loading) return "Loading ticket…"
+    // Prioritas: requesterName dari props > selectedRequester > fallback
+    if (requesterName) return requesterName
+    if (selectedRequester?.name) return selectedRequester.name
+    if (ticketRequesterName) return ticketRequesterName
+    if (form.requesterId) return `User #${form.requesterId}`
+    return ""
+  }, [loading, requesterName, selectedRequester, ticketRequesterName, form.requesterId])
+
   return (
     <div className="flex flex-1 flex-col">
       <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
@@ -96,45 +181,14 @@ export function EditTicketForm({
               )}
 
               <form onSubmit={onSubmit} className="space-y-6" noValidate>
-                {/* Project & Requester */}
+                {/* Project & Requester - DISABLED (tidak bisa diubah) */}
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label>Project *</Label>
-                    <Select
-                      value={form.projectId}
-                      onValueChange={(v) => onChange("projectId", v)}
-                      disabled={saving || loading}
-                    >
-                      <SelectTrigger className=" w-full max-w-full items-start py-2">
-                        <SelectValue
-                          className="whitespace-normal break-words text-left leading-snug"
-                          placeholder={
-                            loadingOptions
-                              ? form.projectId
-                                ? `#${form.projectId}`
-                                : "Loading projects…"
-                              : "Select a project"
-                          }
-                        />
-                      </SelectTrigger>
-                      <SelectContent className="min-w-[320px] max-w-[90vw]  overflow-auto">
-                        {loadingOptions ? (
-                          <div className="p-2 text-xs text-muted-foreground">
-                            Loading projects…
-                          </div>
-                        ) : (
-                          projects.map((p) => (
-                            <SelectItem
-                              key={p.id}
-                              value={String(p.id)}
-                              className="whitespace-normal leading-snug text-left"
-                            >
-                              {p.name} (#{p.id})
-                            </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
+                    <Label>Project</Label>
+                    <Input
+                      value={projectDisplayValue}
+                      disabled
+                    />
                     {fieldErrors.projectId && (
                       <p className="mt-1 text-xs text-red-600">
                         {fieldErrors.projectId}
@@ -143,42 +197,11 @@ export function EditTicketForm({
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Requester *</Label>
-                    <Select
-                      value={form.requesterId}
-                      onValueChange={(v) => onChange("requesterId", v)}
-                      disabled={saving || loading || isPm}
-                    >
-                      <SelectTrigger className="w-full max-w-full items-start py-2">
-                        <SelectValue
-                          className="whitespace-normal break-words text-left leading-snug"
-                          placeholder={
-                            loadingOptions
-                              ? form.requesterId
-                                ? `#${form.requesterId}`
-                                : "Loading requesters…"
-                              : "Select a requester"
-                          }
-                        />
-                      </SelectTrigger>
-                      <SelectContent className="min-w-[320px] max-w-[90vw] max-h-64 overflow-auto">
-                        {loadingOptions ? (
-                          <div className="p-2 text-xs text-muted-foreground">
-                            Loading requesters…
-                          </div>
-                        ) : (
-                          requesters.map((r) => (
-                            <SelectItem
-                              key={r.id}
-                              value={String(r.id)}
-                              className="whitespace-normal leading-snug text-left"
-                            >
-                              {r.name} (#{r.id})
-                            </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
+                    <Label>Requester</Label>
+                    <Input
+                      value={requesterDisplayValue}
+                      disabled
+                    />
                     {fieldErrors.requesterId && (
                       <p className="mt-1 text-xs text-red-600">
                         {fieldErrors.requesterId}
@@ -306,6 +329,18 @@ export function EditTicketForm({
                   disabled={saving || loading}
                   placeholder="Use Markdown to format your description..."
                 />
+
+                {/* Action Plan */}
+                <div className="space-y-2">
+                  <MarkdownEditor
+                    label="Action Plan"
+                    value={form.actionPlan || ""}
+                    onChange={(v) => onChange("actionPlan", v)}
+                    error={fieldErrors.actionPlan}
+                    disabled={saving || loading}
+                    placeholder="Describe the action plan to resolve this issue (optional)..."
+                  />
+                </div>
 
                 {/* Dates */}
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">

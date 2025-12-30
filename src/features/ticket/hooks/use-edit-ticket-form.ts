@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -26,6 +25,7 @@ export type UiEditTicketForm = {
   type: "" | "ISSUE" | "TASK"
   title: string
   description: string
+  actionPlan: string
   priority: "" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL"
   status:
     | ""
@@ -49,6 +49,8 @@ type UseEditTicketFormReturn = {
   loadingOptions: boolean
   saving: boolean
   error: string | null
+  projectName: string
+  requesterName: string
   handleChange: (field: keyof UiEditTicketForm, value: string) => void
   handleSubmit: (e: React.FormEvent, onSuccess: () => void) => void
 }
@@ -73,12 +75,17 @@ export function useEditTicketForm(ticketId?: string): UseEditTicketFormReturn {
   const [saving, setSaving] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
 
+  // State untuk menyimpan nama project dan requester dari ticket
+  const [projectName, setProjectName] = React.useState<string>("")
+  const [requesterName, setRequesterName] = React.useState<string>("")
+
   const [form, setForm] = React.useState<UiEditTicketForm>({
     projectId: "",
     requesterId: "",
     type: "",
     title: "",
     description: "",
+    actionPlan: "",
     priority: "",
     status: "",
     startDate: "",
@@ -148,17 +155,41 @@ export function useEditTicketForm(ticketId?: string): UseEditTicketFormReturn {
 
         if (!active) return
 
+        console.log("🎫 Ticket data:", t)
+
         setForm({
           projectId: String(t.projectId ?? ""),
           requesterId: String(t.requesterId ?? ""),
           type: (t.type ?? "") as UiEditTicketForm["type"],
           title: t.title ?? "",
           description: t.description ?? "",
+          actionPlan: t.actionPlan ?? "",
           priority: (t.priority ?? "") as UiEditTicketForm["priority"],
           status: (t.status ?? "") as UiEditTicketForm["status"],
           startDate: toLocalInput(t.startDate ?? null),
           dueDate: toLocalInput(t.dueDate ?? null),
         })
+
+        // Ambil nama dari relasi di response ticket
+        // Coba berbagai kemungkinan struktur data
+        const pName = 
+          (t as any).project?.name || 
+          (t as any).Project?.name || 
+          (t as any).projectName ||
+          ""
+        
+        const rName = 
+          (t as any).requester?.name || 
+          (t as any).requester?.fullName ||
+          (t as any).Requester?.name ||
+          (t as any).Requester?.fullName ||
+          (t as any).requesterName ||
+          ""
+
+        console.log("📦 Extracted names:", { projectName: pName, requesterName: rName })
+
+        setProjectName(pName)
+        setRequesterName(rName)
       } catch (err: any) {
         if (!active) return
         setError(
@@ -226,6 +257,7 @@ export function useEditTicketForm(ticketId?: string): UseEditTicketFormReturn {
       type: form.type,
       title: form.title.trim(),
       description: form.description.trim(),
+      actionPlan: form.actionPlan.trim(),
       priority: form.priority,
       status: form.status,
       startDate: form.startDate,
@@ -278,6 +310,8 @@ export function useEditTicketForm(ticketId?: string): UseEditTicketFormReturn {
     loadingOptions,
     saving,
     error,
+    projectName,
+    requesterName,
     handleChange,
     handleSubmit,
   }
