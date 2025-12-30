@@ -27,6 +27,9 @@ import PmTaskTicketsPage from "@/pages/dashboard/pm/ticket/ticket-task-page"
 import AddTicketAttachment from "@/pages/dashboard/pm/fileAttachment/add-file-attachment"
 
 import NotificationPage from "../pages/notification/notification"
+import IssueEscalationPage from "@/pages/dashboard/pm/project/issue-escalation"
+import ViewIssueEscalationPage from "@/pages/dashboard/pm/project/detail-issue-escalation"
+import EditIssueEscalationPage from "@/pages/dashboard/pm/project/edit-issue-escalation"
 
 export const pmRoutes = (
   <Fragment>
@@ -179,6 +182,33 @@ export const pmRoutes = (
       element={
         <ProtectedRoute allowedRoles={["project_manager"]}>
           <NotificationPage />
+        </ProtectedRoute>
+      }
+    />
+
+    <Route
+      path="/project-manager/dashboard/projects/:projectId/issues"
+      element={
+        <ProtectedRoute allowedRoles={["project_manager"]}>
+          <IssueEscalationPage />
+        </ProtectedRoute>
+      }
+    />
+
+    <Route
+      path="/project-manager/dashboard/projects/:projectId/issues/:issueId"
+      element={
+        <ProtectedRoute allowedRoles={["project_manager"]}>
+          <ViewIssueEscalationPage />
+        </ProtectedRoute>
+      }
+    />
+
+    <Route
+      path="/project-manager/dashboard/projects/:projectId/issues/:issueId/edit"
+      element={
+        <ProtectedRoute allowedRoles={["project_manager"]}>
+          <EditIssueEscalationPage />
         </ProtectedRoute>
       }
     />

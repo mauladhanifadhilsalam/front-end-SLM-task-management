@@ -10,7 +10,6 @@ import { TicketSummaryCharts } from "./ticket-summary-charts"
 import { TicketsCardsBoard } from "@/features/ticket/components/tickets-cards-issue-board"
 import { useUserAssignedIssues } from "@/features/ticket/hooks/use-user-assigned-issues"
 import { useUserReportedIssues } from "@/features/ticket/hooks/use-user-reported-issues"
-import { useAllIssues } from "@/pages/dashboard/pm/hooks/use-all-issues" 
 import type {
   AdminTicket,
   TicketPriority,
@@ -53,13 +52,6 @@ export default function TicketsPage() {
     error: reportedError,
     deleteTicket: deleteReportedTicket,
   } = useUserReportedIssues(currentUserId, search)
-
-  // ← HOOK BARU untuk semua issues
-  const {
-    tickets: allIssues,
-    loading: allIssuesLoading,
-    error: allIssuesError,
-  } = useAllIssues(search)
 
   const hasFilter =
     search.trim().length > 0 ||
@@ -105,18 +97,6 @@ export default function TicketsPage() {
     [reportedTickets, filterTickets],
   )
 
-  // ← FILTER untuk semua issues, exclude yang sudah ada di assigned/reported
-  const filteredOtherIssues = React.useMemo(() => {
-    const assignedIds = new Set(assignedTickets.map(t => t.id))
-    const reportedIds = new Set(reportedTickets.map(t => t.id))
-    
-    return filterTickets(
-      allIssues.filter(
-        t => !assignedIds.has(t.id) && !reportedIds.has(t.id)
-      )
-    )
-  }, [allIssues, assignedTickets, reportedTickets, filterTickets])
-
   const formatDate = React.useCallback((iso?: string) => {
     if (!iso) return "-"
     const d = new Date(iso)
@@ -131,9 +111,8 @@ export default function TicketsPage() {
     const byId = new Map<number, AdminTicket>()
     filteredAssigned.forEach((ticket) => byId.set(ticket.id, ticket))
     filteredReported.forEach((ticket) => byId.set(ticket.id, ticket))
-    filteredOtherIssues.forEach((ticket) => byId.set(ticket.id, ticket)) // ← Include other issues
     return Array.from(byId.values())
-  }, [filteredAssigned, filteredReported, filteredOtherIssues])
+  }, [filteredAssigned, filteredReported])
 
   const handleCreateIssue = React.useCallback(() => {
     navigate("/project-manager/dashboard/ticket-issue/create")
@@ -146,10 +125,10 @@ export default function TicketsPage() {
     [deleteReportedTicket],
   )
 
+
   const handleAddAttachment = (id: number) => {
     navigate(`/project-manager/dashboard/ticket-issue/${id}/attachments/new`)
   }
-
   return (
     <SidebarProvider
       style={
@@ -164,20 +143,19 @@ export default function TicketsPage() {
         <SiteHeader />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
-            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-              <div className="flex flex-col gap-2 px-7 pt-4">
-                <div className="space-y-1">
-                  <h1 className="text-xl font-semibold">Issues</h1>
-                  <p className="text-xs text-muted-foreground">
-                    Lihat issue yang ditugaskan ke kamu, issue yang kamu report, dan semua issue tim.
-                  </p>
-                </div>
+            <div  className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+
+          <div className="flex flex-col gap-2 px-7 pt-4">
+              <div className="space-y-1">
+                <h1 className="text-xl font-semibold">Issues</h1>
+                <p className="text-xs text-muted-foreground">
+                  Lihat issue yang ditugaskan ke kamu dan issue yang kamu report.
+                </p>
               </div>
-              
-              <div className="px-7">
-                <TicketSummaryCharts tickets={summaryTickets} />
-              </div>
-              
+          </div>
+          <div className="px-7">
+            <TicketSummaryCharts tickets={summaryTickets} />
+          </div>
               <div className="flex flex-1 flex-col gap-2 px-7 sm:flex-none sm:max-w-2xl">
                 <div className="relative flex-1">
                   <IconSearch className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -235,8 +213,6 @@ export default function TicketsPage() {
                   </Button>
                 </div>
               </div>
-
-              {/* Section 1: Issues assigned to you */}
               <TicketsCardsBoard
                 title="Issues assigned to you"
                 tickets={filteredAssigned}
@@ -249,14 +225,13 @@ export default function TicketsPage() {
                     state: { canEdit: false, canDelete: false },
                   })
                 }
-                onDelete={() => {}}
+                onDelete={() => {}} 
                 canDelete={false}
                 onEdit={() => {}}
                 canEdit={false}
                 canAssignUser={false}
               />
 
-              {/* Section 2: Issues reported by you */}
               <TicketsCardsBoard
                 title="Issues reported by you"
                 subtitle="Issue yang kamu buat / kamu laporkan ke tim."
@@ -264,38 +239,16 @@ export default function TicketsPage() {
                 tickets={filteredReported}
                 loading={reportedLoading}
                 error={reportedError}
-                onDelete={handleDelete}
+                onDelete={handleDelete} 
                 formatDate={formatDate}
                 hasFilter={hasFilter}
                 onAddAttachment={handleAddAttachment}
                 onEdit={(id) => navigate(`/project-manager/dashboard/ticket-issue/edit/${id}`)}
                 onView={(id) =>
-                  navigate(`/project-manager/dashboard/ticket-issue/view/${id}`, {
-                    state: { canEdit: true, canDelete: true },
-                  })
-                }
-              />
-
-              {/* ← SECTION BARU: All Other Issues (Developer's Issues) */}
-              <TicketsCardsBoard
-                title="Other team issues"
-                subtitle="Issue yang dibuat oleh anggota tim lainnya."
-                emptyMessage="Tidak ada issue lain dari tim."
-                tickets={filteredOtherIssues}
-                loading={allIssuesLoading}
-                error={allIssuesError}
-                hasFilter={hasFilter}
-                formatDate={formatDate}
-                onView={(id) =>
-                  navigate(`/project-manager/dashboard/ticket-issue/view/${id}`, {
-                    state: { canEdit: false, canDelete: false },
-                  })
-                }
-                onDelete={() => {}}
-                canDelete={false}
-                onEdit={() => {}}
-                canEdit={false}
-                canAssignUser={false}
+                navigate(`/project-manager/dashboard/ticket-issue/view/${id}`, {
+                  state: { canEdit: true, canDelete: true }, 
+                })
+              }
               />
             </div>
           </div>
