@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { Link } from "react-router-dom"
+
 import {
   Card,
   CardHeader,
@@ -11,12 +12,14 @@ import {
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
+
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -38,8 +41,10 @@ import {
   IconDotsVertical,
   IconListDetails,
   IconTimeline,
+  IconAlertTriangle,
   IconCalendarEvent,
 } from "@tabler/icons-react"
+
 import type { Project } from "@/types/project.type"
 
 type Props = {
@@ -81,6 +86,8 @@ export const ProjectsCardsList: React.FC<Props> = ({
   error,
   onDelete,
 }) => {
+  const [ganttProject, setGanttProject] = React.useState<Project | null>(null)
+
   if (loading) {
     return (
       <div className="rounded-2xl border bg-background/40 p-6 text-sm">
@@ -104,7 +111,6 @@ export const ProjectsCardsList: React.FC<Props> = ({
       </div>
     )
   }
-  const [ganttProject, setGanttProject] = React.useState<Project | null>(null)
 
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -115,7 +121,7 @@ export const ProjectsCardsList: React.FC<Props> = ({
           <AlertDialog key={project.id}>
             <Card className="flex h-full flex-col justify-between border bg-card/80 shadow-sm transition hover:-translate-y-[2px] hover:shadow-md">
               <CardHeader className="relative pb-3">
-                {/* TITIK TIGA - POSISI KANAN ATAS */}
+                {/* MENU TITIK TIGA */}
                 <div className="absolute right-4 top-4">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -128,33 +134,57 @@ export const ProjectsCardsList: React.FC<Props> = ({
                       </Button>
                     </DropdownMenuTrigger>
 
-                    <DropdownMenuContent align="end" className="w-44">
+                    <DropdownMenuContent align="end" className="w-52">
                       <DropdownMenuItem asChild>
-                        <Link className="flex items-center gap-2 text-xs" to={`/project-manager/dashboard/projects/view/${project.id}`}>
+                        <Link
+                          className="flex items-center gap-2 text-xs"
+                          to={`/project-manager/dashboard/projects/view/${project.id}`}
+                        >
                           <IconEye className="h-3.5 w-3.5" />
                           Detail project
                         </Link>
                       </DropdownMenuItem>
 
                       <DropdownMenuItem asChild>
-                        <Link className="flex items-center gap-2 text-xs" to={`/project-manager/dashboard/projects/edit/${project.id}`}>
+                        <Link
+                          className="flex items-center gap-2 text-xs"
+                          to={`/project-manager/dashboard/projects/edit/${project.id}`}
+                        >
                           <IconEdit className="h-3.5 w-3.5" />
                           Edit project
                         </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setGanttProject(project)} className="text-xs">
+
+                      <DropdownMenuItem
+                        onClick={() => setGanttProject(project)}
+                        className="flex items-center gap-2 text-xs"
+                      >
                         <IconTimeline className="h-3.5 w-3.5" />
                         View Gantt Chart
                       </DropdownMenuItem>
 
-
                       <DropdownMenuItem asChild>
-                        <Link className="flex items-center gap-2 text-xs" to={`/project-manager/dashboard/projects/tasks/${project.id}`}>
+                        <Link
+                          className="flex items-center gap-2 text-xs"
+                          to={`/project-manager/dashboard/projects/tasks/${project.id}`}
+                        >
                           <IconListDetails className="h-3.5 w-3.5" />
                           View task
                         </Link>
                       </DropdownMenuItem>
 
+                      {/* ISSUE & ESCALATION */}
+                      <DropdownMenuItem asChild>
+                        <Link
+                          className="flex items-center gap-2 text-xs"
+                          to={`/project-manager/dashboard/projects/${project.id}/issues`}
+                        >
+                          <IconAlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+                          Issue & Escalation
+                        </Link>
+                      </DropdownMenuItem>
+
+                      {/* DAILY CADENCE */}
                       <DropdownMenuItem asChild>
                         <Link
                           className="flex items-center gap-2 text-xs"
@@ -166,9 +196,10 @@ export const ProjectsCardsList: React.FC<Props> = ({
                         </Link>
                       </DropdownMenuItem>
 
+                      {/* DELETE */}
                       <AlertDialogTrigger asChild>
                         <DropdownMenuItem className="flex items-center gap-2 text-xs text-destructive focus:text-destructive">
-                          <IconTrash className="h-3.5 w-3.5 text-destructive" />
+                          <IconTrash className="h-3.5 w-3.5" />
                           Delete project
                         </DropdownMenuItem>
                       </AlertDialogTrigger>
@@ -178,11 +209,9 @@ export const ProjectsCardsList: React.FC<Props> = ({
 
                 {/* TITLE + STATUS */}
                 <div className="flex flex-col gap-2 pr-10">
-                  <div className="flex items-start justify-between gap-2">
-                    <CardTitle className="line-clamp-1 text-base">
-                      {project.name}
-                    </CardTitle>
-                  </div>
+                  <CardTitle className="line-clamp-1 text-base">
+                    {project.name}
+                  </CardTitle>
 
                   <div className="flex items-center gap-2">
                     <Badge variant={status.variant} className="text-[10px]">
@@ -205,7 +234,7 @@ export const ProjectsCardsList: React.FC<Props> = ({
                 {project.owner && (
                   <div className="flex items-center justify-between gap-3">
                     <span className="text-muted-foreground">Owner</span>
-                    <span className="font-medium truncate">
+                    <span className="truncate font-medium">
                       {project.owner.name}
                     </span>
                   </div>
@@ -214,22 +243,28 @@ export const ProjectsCardsList: React.FC<Props> = ({
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-muted-foreground">Project duration</span>
                   <span className="font-medium text-right">
-                    {formatDate(project.startDate)} — {formatDate(project.endDate)}
+                    {formatDate(project.startDate)} —{" "}
+                    {formatDate(project.endDate)}
                   </span>
                 </div>
 
-                {Array.isArray(project.categories) && project.categories.length > 0 && (
-                  <div className="flex flex-wrap gap-1 pt-1">
-                    {project.categories.map((cat) => (
-                      <Badge key={cat} variant="outline" className="text-[10px]">
-                        {cat}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
+                {Array.isArray(project.categories) &&
+                  project.categories.length > 0 && (
+                    <div className="flex flex-wrap gap-1 pt-1">
+                      {project.categories.map((cat) => (
+                        <Badge
+                          key={cat}
+                          variant="outline"
+                          className="text-[10px]"
+                        >
+                          {cat}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
               </CardContent>
 
-              {/* Dialog konfirmasi delete */}
+              {/* CONFIRM DELETE */}
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>Hapus project ini?</AlertDialogTitle>
@@ -252,11 +287,12 @@ export const ProjectsCardsList: React.FC<Props> = ({
           </AlertDialog>
         )
       })}
+
+      {/* GANTT CHART DIALOG */}
       <ProjectGanttChartDialog
         project={ganttProject}
         onClose={() => setGanttProject(null)}
       />
-
     </div>
   )
 }

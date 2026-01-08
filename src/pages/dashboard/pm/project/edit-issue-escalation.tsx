@@ -1,17 +1,19 @@
+// src/pages/project-manager/edit-issue.tsx
+
 "use client"
 
 import * as React from "react"
 import { useNavigate, useParams } from "react-router-dom"
 
-import { AppSidebarDev } from "@/pages/dashboard/dev/components/app-sidebardev"
+import { AppSidebarPm } from "../components/sidebar-pm"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
-import { useEditTicketForm } from "@/features/ticket/hooks/use-edit-ticket-form"
+import { useEditTicketFormPm } from "@/features/ticket/hooks/use-edit-ticket-form-pm"
 import { EditTicketForm } from "@/features/ticket/components/edit-ticket-form"
 
-export default function DevEditTicketIssue() {
+export default function EditIssuePage() {
   const navigate = useNavigate()
-  const { id } = useParams<{ id: string }>()
+  const { projectId, issueId } = useParams<{ projectId: string; issueId: string }>()
 
   const {
     form,
@@ -22,18 +24,16 @@ export default function DevEditTicketIssue() {
     loadingOptions,
     saving,
     error,
-    projectName,      // ✅ TAMBAHKAN INI
-    requesterName,    // ✅ TAMBAHKAN INI
     handleChange,
     handleSubmit,
-  } = useEditTicketForm(id)
+  } = useEditTicketFormPm(issueId)
 
   const handleBack = () => {
-    navigate("/developer-dashboard/ticket-issue")
+    navigate(`/project-manager/dashboard/projects/${projectId}/issues`)
   }
 
   const onSubmit = (e: React.FormEvent) => {
-    handleSubmit(e, () => navigate("/developer-dashboard/ticket-issue"))
+    handleSubmit(e, () => navigate(`/project-manager/dashboard/projects/${projectId}/issues`))
   }
 
   return (
@@ -46,7 +46,7 @@ export default function DevEditTicketIssue() {
           } as React.CSSProperties
         }
       >
-        <AppSidebarDev variant="inset" />
+        <AppSidebarPm variant="inset" />
         <SidebarInset>
           <SiteHeader />
           <EditTicketForm
@@ -58,11 +58,10 @@ export default function DevEditTicketIssue() {
             loadingOptions={loadingOptions}
             saving={saving}
             error={error}
-            projectName={projectName}       // ✅ TAMBAHKAN INI
-            requesterName={requesterName}   // ✅ TAMBAHKAN INI
             onBack={handleBack}
             onChange={handleChange}
             onSubmit={onSubmit}
+            isPm
           />
         </SidebarInset>
       </SidebarProvider>

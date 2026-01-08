@@ -32,6 +32,9 @@ export const createTicketSchema = z
 
     description: z.string().trim().min(10, { message: "Description minimal 10 karakter." }),
 
+    // ← TAMBAHAN BARU
+    actionPlan: z.string().trim().optional(),
+
     priority: TicketPriorityEnum,
     status: TicketStatusEnum,
 
@@ -69,6 +72,7 @@ export function toCreateTicketPayload(v: CreateTicketValues) {
     type: v.type,
     title: v.title.trim(),
     description: v.description.trim(),
+    actionPlan: v.actionPlan?.trim() || null, // ← TAMBAHAN BARU
     priority: v.priority,
     status: v.status,
     startDate: new Date(v.startDate).toISOString(),
@@ -91,6 +95,10 @@ export const editTicketSchema = z
     type: TicketTypeEnum,
     title: z.string().trim().min(3, { message: "Title minimal 3 karakter." }),
     description: z.string().trim().min(10, { message: "Description minimal 10 karakter." }),
+    
+    // ← TAMBAHAN BARU
+    actionPlan: z.string().trim().optional(),
+    
     priority: TicketPriorityEnum,
     status: TicketStatusEnum,
 
@@ -127,10 +135,10 @@ export function toEditTicketPayload(v: EditTicketValues) {
     type: v.type,
     title: v.title.trim(),
     description: v.description.trim(),
+    actionPlan: v.actionPlan?.trim() || null, // ← TAMBAHAN BARU
     priority: v.priority,
     status: v.status,
     startDate: new Date(v.startDate).toISOString(),
     dueDate: new Date(v.dueDate).toISOString(),
   };
 }
-

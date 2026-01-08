@@ -22,6 +22,7 @@ export type TicketAssigneeTicket = {
   id: number
   title: string
   description: string | null
+  actionPlan: string
   status: TicketStatus
   priority: TicketPriority
   type: TicketType

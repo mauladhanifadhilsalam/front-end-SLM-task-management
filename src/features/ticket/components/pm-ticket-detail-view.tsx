@@ -398,6 +398,24 @@ export function PmTicketDetailView({
                     <span className="text-muted-foreground">Tidak ada deskripsi.</span>
                   )}
                 </div>
+                
+                {ticket.actionPlan && (
+                  <div className="rounded-2xl border border-border bg-muted/50 p-5 space-y-3 dark:bg-white/5">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                        Action Plan
+                      </p>
+                      <Badge className="bg-blue-50 border-blue-200 text-blue-800 text-[11px] dark:bg-blue-500/10 dark:border-blue-400/50 dark:text-blue-100">
+                        Rencana Aksi
+                      </Badge>
+                    </div>
+                    <div className="markdown-body prose prose-sm max-w-none !bg-transparent !text-foreground leading-relaxed dark:prose-invert">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {ticket.actionPlan}
+                      </ReactMarkdown>
+                    </div>
+                  </div>
+                )}
 
                 <div className="rounded-2xl border border-border bg-muted/50 p-5 space-y-3 dark:bg-white/5">
                   <div className="flex items-center justify-between">

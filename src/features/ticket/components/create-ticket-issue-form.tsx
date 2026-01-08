@@ -27,7 +27,6 @@ import type {
   CreateTicketValues,
 } from "@/schemas/tickets.schema"
 import type { TicketFormProjectOption } from "@/services/ticket.service"
-import { CreateFileAttachmentForm } from "@/features/file-attachments/components/create-file-attachment-form"
 
 const TICKET_PRIORITIES = ["LOW", "MEDIUM", "HIGH", "CRITICAL"] as const
 const TICKET_STATUSES = [
@@ -145,9 +144,6 @@ export function CreateTicketIssueForm({
                     </div>
                   </div>
 
-                  {/* Requester info (auto, read-only) */}
-
-
                   {/* Title */}
                   <div className="space-y-2">
                     <Label htmlFor="title">Title *</Label>
@@ -176,6 +172,18 @@ export function CreateTicketIssueForm({
                       error={fieldErrors.description}
                       disabled={saving}
                       placeholder="Use Markdown to format your description..."
+                    />
+                  </div>
+
+                  {/* Action Plan - TAMBAHAN BARU */}
+                  <div className="space-y-2">
+                    <MarkdownEditor
+                      label="Action Plan"
+                      value={form.actionPlan || ""}
+                      onChange={(v) => onChange("actionPlan", v)}
+                      error={fieldErrors.actionPlan}
+                      disabled={saving}
+                      placeholder="Describe the action plan to resolve this issue (optional)..."
                     />
                   </div>
 
@@ -273,7 +281,6 @@ export function CreateTicketIssueForm({
                         </p>
                       )}
                     </div>
-                    
                   </div>
 
                   {/* Actions */}
