@@ -16,8 +16,9 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import type { PmDailyCadence } from "@/types/pm-daily-cadence.type"
+import type { ProjectUpdate } from "@/types/project-update.type"
 
-type ProjectUpdate = {
+type ProjectUpdateItem = {
   label: string
   value: string
 }
@@ -27,6 +28,9 @@ type Props = {
   loading?: boolean
   error?: string | null
   projectName?: string
+  projectUpdate?: ProjectUpdate | null
+  projectUpdateLoading?: boolean
+  projectUpdateError?: string | null
 }
 
 export function PmDailyCadence({
@@ -34,9 +38,14 @@ export function PmDailyCadence({
   loading,
   error,
   projectName,
+  projectUpdate,
+  projectUpdateLoading,
+  projectUpdateError,
 }: Props) {
   const historyRows = data?.history ?? []
-  const projectUpdates = buildProjectUpdates()
+  const projectUpdates = projectUpdate
+    ? buildProjectUpdates(projectUpdate)
+    : []
 
   return (
     <Card>
@@ -111,15 +120,31 @@ export function PmDailyCadence({
                 <CardTitle className="text-base">Project Updates</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
-                {projectUpdates.map((item) => (
-                  <div
-                    key={item.label}
-                    className="flex items-start justify-between gap-4 border-b border-dashed border-border/70 pb-2 last:border-b-0 last:pb-0"
-                  >
-                    <span className="text-muted-foreground">{item.label}</span>
-                    <span className="text-right font-medium">{item.value}</span>
+                {projectUpdateLoading ? (
+                  <div className="text-sm text-muted-foreground">
+                    Memuat project updates...
                   </div>
-                ))}
+                ) : projectUpdateError ? (
+                  <div className="text-sm text-destructive">
+                    {projectUpdateError}
+                  </div>
+                ) : projectUpdates.length === 0 ? (
+                  <div className="text-sm text-muted-foreground">
+                    Project updates not found.
+                  </div>
+                ) : (
+                  projectUpdates.map((item) => (
+                    <div
+                      key={item.label}
+                      className="flex items-start justify-between gap-4 border-b border-dashed border-border/70 pb-2 last:border-b-0 last:pb-0"
+                    >
+                      <span className="text-muted-foreground">
+                        {item.label}
+                      </span>
+                      <span className="text-right font-medium">{item.value}</span>
+                    </div>
+                  ))
+                )}
               </CardContent>
             </Card>
           </div>
@@ -129,15 +154,15 @@ export function PmDailyCadence({
   )
 }
 
-function buildProjectUpdates(): ProjectUpdate[] {
+function buildProjectUpdates(update: ProjectUpdate): ProjectUpdateItem[] {
   return [
-    { label: "Tanggal", value: "2025-10-14" },
-    { label: "Phase", value: "Phase 1" },
-    { label: "Fasilitator", value: "Abdul Sigma" },
-    { label: "Peserta", value: "Tim Dev, QA, BA" },
-    { label: "Tujuan Daily", value: "Monitoring progress & blockers" },
-    { label: "Highlight Progress", value: "On Progress part mobile" },
-    { label: "Mood Team", value: "Good" },
+    { label: "Tanggal", value: formatDate(update.reportDate) },
+    { label: "Phase", value: update.phase?.name ?? "-" },
+    { label: "Fasilitator", value: update.facilitator?.fullName ?? "-" },
+    { label: "Peserta", value: update.participant || "-" },
+    { label: "Tujuan Daily", value: update.objective || "-" },
+    { label: "Highlight Progress", value: update.progressHighlight || "-" },
+    { label: "Mood Team", value: update.teamMood || "-" },
   ]
 }
 

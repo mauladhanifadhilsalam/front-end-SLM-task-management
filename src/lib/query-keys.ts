@@ -8,6 +8,7 @@ import type { CommentListParams } from "@/services/comments.service"
 import type { NotificationListParams } from "@/services/notification.service"
 import type { ActivityLogListParams } from "@/services/activity-log.service"
 import type { TeamUpdateListParams } from "@/services/team-update.service"
+import type { ProjectUpdateListParams } from "@/services/project-update.service"
 
 export const profileKeys = {
   all: ["profile"] as const,
@@ -141,4 +142,12 @@ export const teamUpdateKeys = {
       : ([...teamUpdateKeys.all, "list"] as const),
   detail: (id: number | string) =>
     [...teamUpdateKeys.all, "detail", String(id)] as const,
+}
+
+export const projectUpdateKeys = {
+  all: ["project-updates"] as const,
+  list: (filters?: ProjectUpdateListParams) =>
+    filters && Object.keys(filters).length > 0
+      ? ([...projectUpdateKeys.all, "list", filters] as const)
+      : ([...projectUpdateKeys.all, "list"] as const),
 }
