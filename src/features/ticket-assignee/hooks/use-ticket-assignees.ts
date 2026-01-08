@@ -8,6 +8,7 @@ import {
   fetchTicketAssignees,
   deleteTicketAssignee,
 } from "@/services/ticket-assignee.service"
+import { buildSearchText, normalizeSearch } from "@/utils/search.util"
 
 type StatusFilter =
   | "all"
@@ -101,8 +102,7 @@ export const useTicketAssignees = () => {
   }
 
   const filteredAssignees = React.useMemo(() => {
-    const q = search.trim().toLowerCase()
-
+    const normalizedSearch = normalizeSearch(search)
     return assignees.filter((a) => {
       if (
         statusFilter !== "all" &&
@@ -111,17 +111,20 @@ export const useTicketAssignees = () => {
         return false
       }
 
-      if (!q) return true
+      if (!normalizedSearch) return true
 
-      const title = a.ticket.title.toLowerCase()
-      const fullName = a.user.fullName.toLowerCase()
-      const email = a.user.email.toLowerCase()
+      const haystack = buildSearchText([
+        a.id,
+        a.ticket?.id,
+        a.ticket?.title,
+        a.ticket?.type,
+        a.ticket?.priority,
+        a.ticket?.status,
+        a.user?.fullName,
+        a.user?.email,
+      ])
 
-      return (
-        title.includes(q) ||
-        fullName.includes(q) ||
-        email.includes(q)
-      )
+      return haystack.includes(normalizedSearch)
     })
   }, [assignees, search, statusFilter])
 

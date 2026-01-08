@@ -7,6 +7,8 @@ import type { ProjectPhaseListParams } from "@/services/project-phase.service"
 import type { CommentListParams } from "@/services/comments.service"
 import type { NotificationListParams } from "@/services/notification.service"
 import type { ActivityLogListParams } from "@/services/activity-log.service"
+import type { TeamUpdateListParams } from "@/services/team-update.service"
+import type { ProjectUpdateListParams } from "@/services/project-update.service"
 
 export const profileKeys = {
   all: ["profile"] as const,
@@ -35,6 +37,12 @@ export const dashboardKeys = {
   pmOverview: () => [...dashboardKeys.all, "pm-overview"] as const,
   pmDeveloperHighlights: () =>
     [...dashboardKeys.all, "pm-developer-highlights"] as const,
+  pmDailyCadence: (projectId?: number | string) =>
+    [
+      ...dashboardKeys.all,
+      "pm-daily-cadence",
+      projectId ? String(projectId) : "unknown",
+    ] as const,
 };
 
 export const projectKeys = {
@@ -124,4 +132,22 @@ export const activityLogKeys = {
     filters && Object.keys(filters).length > 0
       ? ([...activityLogKeys.all, "list", filters] as const)
       : ([...activityLogKeys.all, "list"] as const),
+}
+
+export const teamUpdateKeys = {
+  all: ["team-updates"] as const,
+  list: (filters?: TeamUpdateListParams) =>
+    filters && Object.keys(filters).length > 0
+      ? ([...teamUpdateKeys.all, "list", filters] as const)
+      : ([...teamUpdateKeys.all, "list"] as const),
+  detail: (id: number | string) =>
+    [...teamUpdateKeys.all, "detail", String(id)] as const,
+}
+
+export const projectUpdateKeys = {
+  all: ["project-updates"] as const,
+  list: (filters?: ProjectUpdateListParams) =>
+    filters && Object.keys(filters).length > 0
+      ? ([...projectUpdateKeys.all, "list", filters] as const)
+      : ([...projectUpdateKeys.all, "list"] as const),
 }

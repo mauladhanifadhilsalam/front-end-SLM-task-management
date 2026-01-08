@@ -17,6 +17,7 @@ import {
   type AdminTicketListResult,
 } from "@/services/ticket.service"
 import type { AdminTicket, AdminTicketColumns } from "@/types/ticket-type"
+import { buildSearchText, normalizeSearch } from "@/utils/search.util"
 
 const defaultColumns: AdminTicketColumns = {
   id: true,
@@ -30,8 +31,6 @@ const defaultColumns: AdminTicketColumns = {
   dueDate: true,
   actions: true,
 }
-
-const normalizeSearch = (value: string) => value.trim().toLowerCase()
 
 export function useAdminTickets() {
   const queryClient = useQueryClient()
@@ -72,7 +71,30 @@ export function useAdminTickets() {
     }
   }, [ticketsQuery.error, ticketsQuery.isSuccess])
 
-  const tickets = ticketsQuery.data?.tickets ?? []
+  const normalizedSearch = React.useMemo(
+    () => normalizeSearch(q),
+    [q],
+  )
+
+  const tickets = React.useMemo(() => {
+    const list = ticketsQuery.data?.tickets ?? []
+    if (!normalizedSearch) return list
+    return list.filter((ticket) => {
+      const haystack = buildSearchText([
+        ticket.id,
+        ticket.title,
+        ticket.description,
+        ticket.type,
+        ticket.priority,
+        ticket.status,
+        ticket.requesterName,
+        ticket.projectName,
+        ticket.startDate,
+        ticket.dueDate,
+      ])
+      return haystack.includes(normalizedSearch)
+    })
+  }, [ticketsQuery.data?.tickets, normalizedSearch])
   const pagination = ticketsQuery.data?.pagination ?? {
     total: 0,
     page,

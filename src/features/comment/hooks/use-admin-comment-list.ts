@@ -15,6 +15,7 @@ import {
 } from "@/services/comments.service"
 import { commentKeys } from "@/lib/query-keys"
 import { usePagination } from "@/hooks/use-pagination"
+import { buildSearchText, normalizeSearch } from "@/utils/search.util"
 
 export type AdminCommentColumnState = {
   sel: boolean
@@ -79,11 +80,34 @@ export const useAdminCommentList = () => {
     placeholderData: keepPreviousData,
   })
 
+  const normalizedSearch = React.useMemo(
+    () => normalizeSearch(query),
+    [query],
+  )
+
   const rows = React.useMemo(() => {
     const list = commentsQuery.data?.comments ?? []
     return list.slice().sort((a, b) => b.id - a.id)
   }, [commentsQuery.data?.comments])
 
+  const filteredRows = React.useMemo(() => {
+    if (!normalizedSearch) return rows
+    return rows.filter((comment) => {
+      const haystack = buildSearchText([
+        comment.id,
+        comment.ticketId,
+        comment.userId,
+        comment.message,
+        comment.user?.fullName,
+        comment.user?.name,
+        comment.user?.email,
+        comment.user?.role,
+        comment.ticket?.title,
+        comment.ticket?.project?.name,
+      ])
+      return haystack.includes(normalizedSearch)
+    })
+  }, [rows, normalizedSearch])
   const loading = commentsQuery.isLoading
   const pagination = commentsQuery.data?.pagination ?? {
     total: 0,
@@ -119,15 +143,16 @@ export const useAdminCommentList = () => {
     })
 
   const currentPageAllSelected =
-    rows.length > 0 && rows.every((r) => selectedIds.has(r.id))
+    filteredRows.length > 0 &&
+    filteredRows.every((r) => selectedIds.has(r.id))
 
   const toggleSelectAllOnPage = () =>
     setSelectedIds((prev) => {
       const next = new Set(prev)
       if (currentPageAllSelected) {
-        rows.forEach((r) => next.delete(r.id))
+        filteredRows.forEach((r) => next.delete(r.id))
       } else {
-        rows.forEach((r) => next.add(r.id))
+        filteredRows.forEach((r) => next.add(r.id))
       }
       return next
     })
@@ -169,7 +194,7 @@ export const useAdminCommentList = () => {
   })
 
   const handleDelete = async (id: number) => {
-    const target = rows.find((x) => x.id === id)
+    const target = filteredRows.find((x) => x.id === id)
 
     setSelectedIds((s) => {
       const next = new Set(s)
@@ -196,7 +221,7 @@ export const useAdminCommentList = () => {
   }
 
   return {
-    rows,
+    rows: filteredRows,
     loading,
     error,
     query,

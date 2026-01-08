@@ -42,6 +42,7 @@ import {
   IconListDetails,
   IconTimeline,
   IconAlertTriangle,
+  IconCalendarEvent,
 } from "@tabler/icons-react"
 
 import type { Project } from "@/types/project.type"
@@ -133,7 +134,7 @@ export const ProjectsCardsList: React.FC<Props> = ({
                       </Button>
                     </DropdownMenuTrigger>
 
-                    <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuContent align="end" className="w-52">
                       <DropdownMenuItem asChild>
                         <Link
                           className="flex items-center gap-2 text-xs"
@@ -172,7 +173,7 @@ export const ProjectsCardsList: React.FC<Props> = ({
                         </Link>
                       </DropdownMenuItem>
 
-                      {/* ISSUE & ESCALATION (SATU MENU) */}
+                      {/* ISSUE & ESCALATION */}
                       <DropdownMenuItem asChild>
                         <Link
                           className="flex items-center gap-2 text-xs"
@@ -183,10 +184,22 @@ export const ProjectsCardsList: React.FC<Props> = ({
                         </Link>
                       </DropdownMenuItem>
 
+                      {/* DAILY CADENCE */}
+                      <DropdownMenuItem asChild>
+                        <Link
+                          className="flex items-center gap-2 text-xs"
+                          to={`/project-manager/dashboard/projects/${project.id}/daily-cadence`}
+                          state={{ projectName: project.name }}
+                        >
+                          <IconCalendarEvent className="h-3.5 w-3.5" />
+                          Daily cadence
+                        </Link>
+                      </DropdownMenuItem>
+
                       {/* DELETE */}
                       <AlertDialogTrigger asChild>
                         <DropdownMenuItem className="flex items-center gap-2 text-xs text-destructive focus:text-destructive">
-                          <IconTrash className="h-3.5 w-3.5 text-destructive" />
+                          <IconTrash className="h-3.5 w-3.5" />
                           Delete project
                         </DropdownMenuItem>
                       </AlertDialogTrigger>

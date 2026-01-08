@@ -15,6 +15,7 @@ import {
   emptyUserPagination,
 } from "@/services/user.service"
 import { userKeys } from "@/lib/query-keys"
+import { buildSearchText, normalizeSearch } from "@/utils/search.util"
 
 type ManagedRole = Extract<Role, "PROJECT_MANAGER" | "DEVELOPER">
 export type RoleFilter = ManagedRole | "all"
@@ -82,7 +83,24 @@ React.useEffect(() => {
     }
 }, [usersQuery.error, usersQuery.isSuccess])
 
-const users = usersQuery.data?.users ?? []
+const normalizedSearch = React.useMemo(
+  () => normalizeSearch(search),
+  [search],
+)
+
+const users = React.useMemo(() => {
+  const list = usersQuery.data?.users ?? []
+  if (!normalizedSearch) return list
+  return list.filter((user) => {
+    const haystack = buildSearchText([
+      user.id,
+      user.fullName,
+      user.email,
+      user.role,
+    ])
+    return haystack.includes(normalizedSearch)
+  })
+}, [usersQuery.data?.users, normalizedSearch])
 const pagination = usersQuery.data?.pagination ?? emptyUserPagination
 
 const handleSearchChange = React.useCallback((value: string) => {

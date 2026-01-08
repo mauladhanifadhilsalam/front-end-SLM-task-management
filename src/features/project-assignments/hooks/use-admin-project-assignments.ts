@@ -17,6 +17,7 @@ import {
 } from "@/services/project-assignment.service"
 import { projectAssignmentKeys } from "@/lib/query-keys"
 import { usePagination } from "@/hooks/use-pagination"
+import { buildSearchText, normalizeSearch } from "@/utils/search.util"
 
 export type ProjectAssignmentColumns = {
   id: boolean
@@ -96,7 +97,24 @@ export const useAdminProjectAssignments = (): UseAdminProjectAssignmentsResult =
     }
   }, [assignmentsQuery.error, assignmentsQuery.isSuccess])
 
-  const assignments = assignmentsQuery.data?.assignments ?? []
+  const normalizedSearch = React.useMemo(
+    () => normalizeSearch(search),
+    [search],
+  )
+
+  const assignments = React.useMemo(() => {
+    const list = assignmentsQuery.data?.assignments ?? []
+    if (!normalizedSearch) return list
+    return list.filter((assignment) => {
+      const haystack = buildSearchText([
+        assignment.id,
+        assignment.projectName,
+        assignment.assigneeName,
+        assignment.roleInProject,
+      ])
+      return haystack.includes(normalizedSearch)
+    })
+  }, [assignmentsQuery.data?.assignments, normalizedSearch])
   const pagination = assignmentsQuery.data?.pagination ?? {
     total: 0,
     page,

@@ -31,6 +31,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { TablePaginationControls } from "@/components/table-pagination-controls"
 
 type Ticket = {
@@ -105,9 +116,12 @@ export default function IssueEscalationPage() {
   const currentTickets = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Hapus issue ini?")) return
-    await axios.delete(`http://localhost:3000/tickets/${id}`)
-    setTickets((p) => p.filter((t) => t.id !== id))
+    try {
+      await axios.delete(`http://localhost:3000/tickets/${id}`)
+      setTickets((p) => p.filter((t) => t.id !== id))
+    } catch (err) {
+      setError("Gagal menghapus issue")
+    }
   }
 
   const handleViewDetail = (issueId: number) => {
@@ -168,7 +182,7 @@ export default function IssueEscalationPage() {
             </Select>
           </div>
 
-          {/* TABLE SECTION - EXACT SAME STRUCTURE AS PROJECT TABLE */}
+          {/* TABLE SECTION */}
           <div className="rounded border">
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
@@ -178,7 +192,7 @@ export default function IssueEscalationPage() {
                     <th className="px-4 py-3 font-medium">Deskripsi</th>
                     <th className="px-4 py-3 font-medium">Developer</th>
                     <th className="px-4 py-3 font-medium">Status</th>
-                    <th className="px-4 py-3 font-medium">Mulai</th>
+                    <th className="px-4 py-3 font-medium">Ditemukan</th>
                     <th className="px-4 py-3 font-medium">Selesai</th>
                     <th className="px-4 py-3 font-medium">Action Plan</th>
                     <th className="px-4 py-3 font-medium">Aksi</th>
@@ -245,7 +259,7 @@ export default function IssueEscalationPage() {
                               onClick={() => handleViewDetail(t.id)} 
                               title="Lihat Detail"
                             >
-                              <IconEye className="h-4 w-4 text-blue-600 hover:text-blue-700" />
+                              <IconEye className="h-4 w-4 text-muted-foreground hover:text-foreground" />
                             </button>
                             <button 
                               onClick={() => navigate(`/project-manager/dashboard/projects/${projectId}/issues/${t.id}/edit`)} 
@@ -253,9 +267,32 @@ export default function IssueEscalationPage() {
                             >
                               <IconEdit className="h-4 w-4 text-muted-foreground hover:text-foreground" />
                             </button>
-                            <button onClick={() => handleDelete(t.id)} title="Hapus">
-                              <IconTrash className="h-4 w-4 text-red-600 hover:text-red-700" />
-                            </button>
+                            
+                            {/* AlertDialog for Delete Confirmation */}
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <button title="Hapus">
+                                  <IconTrash className="h-4 w-4 text-red-600 hover:text-red-700" />
+                                </button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Hapus issue ini?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Tindakan ini tidak dapat dibatalkan. Issue dengan ID #{t.id} akan dihapus secara permanen dari sistem.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Batal</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDelete(t.id)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Ya, hapus
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </div>
                         </td>
                       </tr>
@@ -265,7 +302,7 @@ export default function IssueEscalationPage() {
               </table>
             </div>
 
-            {/* PAGINATION - EXACT SAME AS PROJECT TABLE */}
+            {/* PAGINATION */}
             <TablePaginationControls
               total={pagination.total}
               page={currentPage}

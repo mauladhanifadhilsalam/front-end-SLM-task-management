@@ -4,6 +4,10 @@ import { ProtectedRoute } from "../components/ProtectedRoute"
 import PmDashboard from "../pages/dashboard/pm/dashboard"
 import DeveloperHighlightPage from "@/pages/dashboard/pm/developer/developer-highlight"
 import ProjectTaskPage from "@/pages/dashboard/pm/project/project-task-page"
+import TeamUpdatePage from "@/pages/dashboard/pm/team-updates/team-update-page"
+import ViewTeamUpdatePage from "@/pages/dashboard/pm/team-updates/view-team-update-page"
+import CreateTeamUpdatePage from "@/pages/dashboard/pm/team-updates/create-team-update-page"
+import EditTeamUpdatePage from "@/pages/dashboard/pm/team-updates/edit-team-update-page"
 
 
 import ViewProjectOwnerPage from "@/pages/dashboard/pm/project-owners/view-project-owner-page"
@@ -22,6 +26,7 @@ import ViewTickets from "@/pages/dashboard/pm/ticket/view-ticket-page"
 import CreateTicketIssue from "@/pages/dashboard/pm/ticket/create-ticket-issue"
 import EditTicketIssuePage from "@/pages/dashboard/pm/ticket/edit-ticket-issue"
 import PmTaskTicketsPage from "@/pages/dashboard/pm/ticket/ticket-task-page"
+import DailyCadencePage from "@/pages/dashboard/pm/daily-cadence/daily-cadence-page"
 
 
 import AddTicketAttachment from "@/pages/dashboard/pm/fileAttachment/add-file-attachment"
@@ -130,6 +135,14 @@ export const pmRoutes = (
         }
       />
     <Route
+      path="/project-manager/dashboard/projects/:projectId/daily-cadence"
+      element={
+        <ProtectedRoute allowedRoles={["project_manager"]}>
+          <DailyCadencePage />
+        </ProtectedRoute>
+      }
+    />
+    <Route
       path="/project-manager/dashboard/ticket-task"
       element={
         <ProtectedRoute allowedRoles={["project_manager"]}>
@@ -177,6 +190,38 @@ export const pmRoutes = (
           </ProtectedRoute>
         }
       />
+    <Route
+      path="/project-manager/dashboard/team-update"
+      element={
+        <ProtectedRoute allowedRoles={["project_manager"]}>
+          <TeamUpdatePage />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/project-manager/dashboard/team-update/create"
+      element={
+        <ProtectedRoute allowedRoles={["project_manager"]}>
+          <CreateTeamUpdatePage />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/project-manager/dashboard/team-update/edit/:id"
+      element={
+        <ProtectedRoute allowedRoles={["project_manager"]}>
+          <EditTeamUpdatePage />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/project-manager/dashboard/team-update/view/:id"
+      element={
+        <ProtectedRoute allowedRoles={["project_manager"]}>
+          <ViewTeamUpdatePage />
+        </ProtectedRoute>
+      }
+    />
     <Route
       path="/project-manager-dashboard/notifications/me"
       element={

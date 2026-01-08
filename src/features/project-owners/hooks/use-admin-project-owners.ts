@@ -16,6 +16,7 @@ import {
 } from "@/services/project-owner.service"
 import { ProjectOwner } from "@/types/project-owner.type"
 import { projectOwnerKeys } from "@/lib/query-keys"
+import { buildSearchText, normalizeSearch } from "@/utils/search.util"
 
 export type ProjectOwnerColumns = {
   id: boolean
@@ -63,7 +64,26 @@ export const useAdminProjectOwners = () => {
     staleTime: 60 * 1000,
     placeholderData: keepPreviousData,
   })
-  const owners = ownersQuery.data?.owners ?? []
+  const normalizedSearch = React.useMemo(
+    () => normalizeSearch(search),
+    [search],
+  )
+
+  const owners = React.useMemo(() => {
+    const list = ownersQuery.data?.owners ?? []
+    if (!normalizedSearch) return list
+    return list.filter((owner) => {
+      const haystack = buildSearchText([
+        owner.id,
+        owner.name,
+        owner.email,
+        owner.phone,
+        owner.company,
+        owner.address,
+      ])
+      return haystack.includes(normalizedSearch)
+    })
+  }, [ownersQuery.data?.owners, normalizedSearch])
   const pagination = ownersQuery.data?.pagination ?? {
     total: 0,
     page,

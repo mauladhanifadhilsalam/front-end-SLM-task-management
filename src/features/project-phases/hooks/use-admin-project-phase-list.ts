@@ -18,6 +18,7 @@ import {
 } from "@/services/project-phase.service";
 import { projectPhaseKeys } from "@/lib/query-keys";
 import { usePagination } from "@/hooks/use-pagination";
+import { buildSearchText, normalizeSearch } from "@/utils/search.util";
 
 export type PhaseColumnState = {
   id: boolean;
@@ -76,10 +77,32 @@ export const useAdminProjectPhaseList = () => {
     placeholderData: keepPreviousData,
   });
 
+  const normalizedSearch = React.useMemo(
+    () => normalizeSearch(query),
+    [query],
+  );
+
   const phases = React.useMemo(() => {
     const list = phasesQuery.data?.phases ?? [];
     return list.slice().sort((a, b) => a.id - b.id);
   }, [phasesQuery.data?.phases]);
+
+  const filteredPhases = React.useMemo(() => {
+    if (!normalizedSearch) return phases;
+    return phases.filter((phase) => {
+      const haystack = buildSearchText([
+        phase.id,
+        phase.name,
+        phase.project?.name,
+        phase.project?.status,
+        phase.startDate,
+        phase.endDate,
+        phase.project?.startDate,
+        phase.project?.endDate,
+      ]);
+      return haystack.includes(normalizedSearch);
+    });
+  }, [phases, normalizedSearch]);
 
   const pagination = phasesQuery.data?.pagination ?? {
     total: 0,
@@ -175,7 +198,7 @@ export const useAdminProjectPhaseList = () => {
   };
 
   return {
-    phases,
+    phases: filteredPhases,
     loading: phasesQuery.isLoading,
     error,
     query,
