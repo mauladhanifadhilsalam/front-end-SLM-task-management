@@ -38,6 +38,7 @@ import {
   IconDotsVertical,
   IconListDetails,
   IconTimeline,
+  IconCalendarEvent,
 } from "@tabler/icons-react"
 import type { Project } from "@/types/project.type"
 
@@ -151,6 +152,17 @@ export const ProjectsCardsList: React.FC<Props> = ({
                         <Link className="flex items-center gap-2 text-xs" to={`/project-manager/dashboard/projects/tasks/${project.id}`}>
                           <IconListDetails className="h-3.5 w-3.5" />
                           View task
+                        </Link>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuItem asChild>
+                        <Link
+                          className="flex items-center gap-2 text-xs"
+                          to={`/project-manager/dashboard/projects/${project.id}/daily-cadence`}
+                          state={{ projectName: project.name }}
+                        >
+                          <IconCalendarEvent className="h-3.5 w-3.5" />
+                          Daily cadence
                         </Link>
                       </DropdownMenuItem>
 

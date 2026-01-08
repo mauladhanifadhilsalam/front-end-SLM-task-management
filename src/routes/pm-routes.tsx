@@ -26,6 +26,7 @@ import ViewTickets from "@/pages/dashboard/pm/ticket/view-ticket-page"
 import CreateTicketIssue from "@/pages/dashboard/pm/ticket/create-ticket-issue"
 import EditTicketIssuePage from "@/pages/dashboard/pm/ticket/edit-ticket-issue"
 import PmTaskTicketsPage from "@/pages/dashboard/pm/ticket/ticket-task-page"
+import DailyCadencePage from "@/pages/dashboard/pm/daily-cadence/daily-cadence-page"
 
 
 import AddTicketAttachment from "@/pages/dashboard/pm/fileAttachment/add-file-attachment"
@@ -130,6 +131,14 @@ export const pmRoutes = (
           </ProtectedRoute>
         }
       />
+    <Route
+      path="/project-manager/dashboard/projects/:projectId/daily-cadence"
+      element={
+        <ProtectedRoute allowedRoles={["project_manager"]}>
+          <DailyCadencePage />
+        </ProtectedRoute>
+      }
+    />
     <Route
       path="/project-manager/dashboard/ticket-task"
       element={

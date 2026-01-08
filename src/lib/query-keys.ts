@@ -36,6 +36,12 @@ export const dashboardKeys = {
   pmOverview: () => [...dashboardKeys.all, "pm-overview"] as const,
   pmDeveloperHighlights: () =>
     [...dashboardKeys.all, "pm-developer-highlights"] as const,
+  pmDailyCadence: (projectId?: number | string) =>
+    [
+      ...dashboardKeys.all,
+      "pm-daily-cadence",
+      projectId ? String(projectId) : "unknown",
+    ] as const,
 };
 
 export const projectKeys = {
