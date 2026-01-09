@@ -35,3 +35,15 @@ export type ProjectUpdateListParams = {
   phaseId?: number
   facilitatorId?: number
 }
+
+export type CreateProjectUpdatePayload = {
+  projectId: number
+  reportDate: string
+  phaseId?: number
+  participant?: string
+  objective?: string
+  progressHighlight?: string
+  teamMood?: string
+}
+
+export type EditProjectUpdatePayload = Partial<CreateProjectUpdatePayload>

@@ -10,6 +10,7 @@ import type {
   ProjectUpdate,
   ProjectUpdateListParams,
 } from "@/types/project-update.type"
+import type { CreateProjectUpdatePayload, EditProjectUpdatePayload } from "@/types/project-update.type"
 
 export type { ProjectUpdateListParams }
 
@@ -75,4 +76,25 @@ export const fetchProjectUpdates = async (
 ): Promise<ProjectUpdate[]> => {
   const { updates } = await fetchProjectUpdatesWithPagination(params)
   return updates
+}
+
+export const createProjectUpdate = async (
+  payload: CreateProjectUpdatePayload,
+): Promise<ProjectUpdate> => {
+  const { data } = await api.post("/project-updates", payload)
+  const item = (data as any)?.data?.projectUpdate ?? (data as any)?.data?.project_update ?? (data as any)?.data ?? data
+  return mapProjectUpdate(item)
+}
+
+export const updateProjectUpdate = async (
+  id: number,
+  payload: EditProjectUpdatePayload,
+): Promise<ProjectUpdate> => {
+  const { data } = await api.patch(`/project-updates/${id}`, payload)
+  const item = (data as any)?.data?.projectUpdate ?? (data as any)?.data?.project_update ?? (data as any)?.data ?? data
+  return mapProjectUpdate(item)
+}
+
+export const deleteProjectUpdate = async (id: number): Promise<void> => {
+  await api.delete(`/project-updates/${id}`)
 }

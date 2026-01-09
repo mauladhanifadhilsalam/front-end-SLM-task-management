@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import {
   Card,
   CardContent,
@@ -7,20 +8,27 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { useQuery } from "@tanstack/react-query"
+import { useProjectUpdates } from "@/pages/dashboard/pm/hooks/use-project-updates"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+  useCreateProjectUpdate,
+  useUpdateProjectUpdate,
+  useDeleteProjectUpdate,
+} from "@/pages/dashboard/pm/hooks/use-project-update-mutations"
 import type { PmDailyCadence } from "@/types/pm-daily-cadence.type"
 import type { ProjectUpdate } from "@/types/project-update.type"
+import { fetchProjectPhases } from "@/services/project-phase.service"
+import { projectPhaseKeys } from "@/lib/query-keys"
+import { HistorySection } from "@/pages/dashboard/pm/components/history-section"
+import { ProjectUpdatesSection } from "@/pages/dashboard/pm/components/project-updates-section"
+import { DeleteConfirmDialog } from "@/pages/dashboard/pm/components/project-update-delete-confirm-dialog"
+import { ProjectUpdateDialog } from "@/pages/dashboard/pm/components/project-update-form"
 
-type ProjectUpdateItem = {
-  label: string
-  value: string
+type Phase = {
+  id: number
+  name: string
+  startDate: string
+  endDate: string
 }
 
 type Props = {
@@ -28,9 +36,20 @@ type Props = {
   loading?: boolean
   error?: string | null
   projectName?: string
+  projectId?: number
   projectUpdate?: ProjectUpdate | null
   projectUpdateLoading?: boolean
   projectUpdateError?: string | null
+  phases?: Phase[]
+}
+
+export type ProjectUpdateFormData = {
+  reportDate: string
+  phaseId: string
+  participant: string
+  objective: string
+  progressHighlight: string
+  teamMood: string
 }
 
 export function PmDailyCadence({
@@ -38,141 +57,179 @@ export function PmDailyCadence({
   loading,
   error,
   projectName,
-  projectUpdate,
-  projectUpdateLoading,
-  projectUpdateError,
+  projectId,
+  phases = [],
 }: Props) {
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [editingUpdate, setEditingUpdate] = useState<ProjectUpdate | null>(null)
+  const [deleteUpdateId, setDeleteUpdateId] = useState<number | null>(null)
+  const [formData, setFormData] = useState<ProjectUpdateFormData>({
+    reportDate: new Date().toISOString().split('T')[0],
+    phaseId: "",
+    participant: "",
+    objective: "",
+    progressHighlight: "",
+    teamMood: "",
+  })
+  const [formError, setFormError] = useState<string | null>(null)
+
   const historyRows = data?.history ?? []
-  const projectUpdates = projectUpdate
-    ? buildProjectUpdates(projectUpdate)
-    : []
+
+  const { 
+    updates: projectUpdates = [], 
+    loading: projectUpdateLoadingHook, 
+    error: projectUpdateErrorHook, 
+    reload 
+  } = useProjectUpdates(projectId ? { projectId } : undefined)
+
+  // Filter project updates untuk hari ini saja
+  const today = new Date().toISOString().split('T')[0]
+  const todayUpdates = projectUpdates.filter(update => {
+    const updateDate = new Date(update.reportDate).toISOString().split('T')[0]
+    return updateDate === today
+  })
+
+  const phasesQuery = useQuery({
+    queryKey: projectPhaseKeys.list(projectId ? { projectId } : undefined),
+    queryFn: () => fetchProjectPhases(projectId ? { projectId } : undefined),
+    enabled: !!projectId,
+  })
+
+  const createMutation = useCreateProjectUpdate()
+  const updateMutation = useUpdateProjectUpdate()
+  const deleteMutation = useDeleteProjectUpdate()
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setFormError(null)
+    if (!projectId) {
+      setFormError("Project tidak tersedia untuk membuat update")
+      return
+    }
+    const payload = {
+      projectId,
+      reportDate: new Date(formData.reportDate).toISOString(),
+      phaseId: parseInt(formData.phaseId),
+      participant: formData.participant,
+      objective: formData.objective,
+      progressHighlight: formData.progressHighlight,
+      teamMood: formData.teamMood,
+    }
+
+    try {
+      if (editingUpdate) {
+        await updateMutation.mutateAsync({ id: editingUpdate.id, payload })
+      } else {
+        await createMutation.mutateAsync(payload)
+      }
+      await reload()
+      setIsDialogOpen(false)
+      resetForm()
+    } catch (err) {
+      console.error("Error saving project update:", err)
+    }
+  }
+
+  const handleEdit = (update: ProjectUpdate) => {
+    setEditingUpdate(update)
+    setFormData({
+      reportDate: new Date(update.reportDate).toISOString().split('T')[0],
+      phaseId: update.phaseId?.toString() || "",
+      participant: update.participant || "",
+      objective: update.objective || "",
+      progressHighlight: update.progressHighlight || "",
+      teamMood: update.teamMood || "",
+    })
+    setIsDialogOpen(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteUpdateId) return
+    
+    try {
+      await deleteMutation.mutateAsync(deleteUpdateId)
+      await reload()
+      setDeleteUpdateId(null)
+    } catch (err) {
+      console.error("Error deleting project update:", err)
+    }
+  }
+
+  const resetForm = () => {
+    setEditingUpdate(null)
+    setFormData({
+      reportDate: new Date().toISOString().split('T')[0],
+      phaseId: "",
+      participant: "",
+      objective: "",
+      progressHighlight: "",
+      teamMood: "",
+    })
+  }
+
+  const handleDialogChange = (open: boolean) => {
+    setIsDialogOpen(open)
+    if (!open) {
+      resetForm()
+    }
+  }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <CardTitle>PM Daily Cadence</CardTitle>
-            <CardDescription>
-              <span className="font-medium text-foreground">
-                {projectName ?? "Project"}
-              </span>
-            </CardDescription>
+    <>
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <CardTitle>PM Daily Cadence</CardTitle>
+              <CardDescription>
+                <span className="font-medium text-foreground">
+                  {projectName ?? "Project"}
+                </span>
+              </CardDescription>
+            </div>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {loading ? (
-          <div className="text-sm text-muted-foreground">
-            Memuat daily cadence...
-          </div>
-        ) : error ? (
-          <div className="text-sm text-destructive">{error}</div>
-        ) : (
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-            <Card className="border border-border/60 shadow-none">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">History</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {historyRows.length === 0 ? (
-                  <div className="text-sm text-muted-foreground">
-                    History not found.
-                  </div>
-                ) : (
-                  <div className="overflow-hidden rounded-xl border border-border/60 bg-card/60">
-                    <Table className="border-separate border-spacing-0 text-sm">
-                      <TableHeader className="bg-muted/40">
-                        <TableRow className="hover:bg-transparent">
-                          <TableHead className="w-[28%]">Tanggal</TableHead>
-                          <TableHead className="w-[18%]">
-                            Jumlah Isu
-                          </TableHead>
-                          <TableHead>Catatan</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {historyRows.map((row) => (
-                          <TableRow
-                            key={`${row.date}-${row.note}`}
-                            className="transition-colors hover:bg-primary/5"
-                          >
-                            <TableCell className="font-medium">
-                              {formatDate(row.date)}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {row.totalIssues}
-                            </TableCell>
-                            <TableCell className="text-muted-foreground">
-                              {row.note}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="text-sm text-muted-foreground">
+              Memuat daily cadence...
+            </div>
+          ) : error ? (
+            <div className="text-sm text-destructive">{error}</div>
+          ) : (
+            <div className="grid gap-4 lg:grid-cols-2">
+              <HistorySection historyRows={historyRows} />
+              
+              <ProjectUpdatesSection
+                todayUpdates={todayUpdates}
+                loading={projectUpdateLoadingHook}
+                error={projectUpdateErrorHook}
+                onEdit={handleEdit}
+                onDelete={setDeleteUpdateId}
+                onOpenDialog={() => setIsDialogOpen(true)}
+              />
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-            <Card className="border border-border/60 shadow-none">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">Project Updates</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                {projectUpdateLoading ? (
-                  <div className="text-sm text-muted-foreground">
-                    Memuat project updates...
-                  </div>
-                ) : projectUpdateError ? (
-                  <div className="text-sm text-destructive">
-                    {projectUpdateError}
-                  </div>
-                ) : projectUpdates.length === 0 ? (
-                  <div className="text-sm text-muted-foreground">
-                    Project updates not found.
-                  </div>
-                ) : (
-                  projectUpdates.map((item) => (
-                    <div
-                      key={item.label}
-                      className="flex items-start justify-between gap-4 border-b border-dashed border-border/70 pb-2 last:border-b-0 last:pb-0"
-                    >
-                      <span className="text-muted-foreground">
-                        {item.label}
-                      </span>
-                      <span className="text-right font-medium">{item.value}</span>
-                    </div>
-                  ))
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      <ProjectUpdateDialog
+        open={isDialogOpen}
+        onOpenChange={handleDialogChange}
+        editingUpdate={editingUpdate}
+        formData={formData}
+        setFormData={setFormData}
+        phases={phases}
+        phasesQuery={phasesQuery}
+        onSubmit={handleSubmit}
+        formError={formError}
+      />
+
+      <DeleteConfirmDialog
+        open={deleteUpdateId !== null}
+        onOpenChange={(open) => !open && setDeleteUpdateId(null)}
+        onConfirm={handleDeleteConfirm}
+      />
+    </>
   )
-}
-
-function buildProjectUpdates(update: ProjectUpdate): ProjectUpdateItem[] {
-  return [
-    { label: "Tanggal", value: formatDate(update.reportDate) },
-    { label: "Phase", value: update.phase?.name ?? "-" },
-    { label: "Fasilitator", value: update.facilitator?.fullName ?? "-" },
-    { label: "Peserta", value: update.participant || "-" },
-    { label: "Tujuan Daily", value: update.objective || "-" },
-    { label: "Highlight Progress", value: update.progressHighlight || "-" },
-    { label: "Mood Team", value: update.teamMood || "-" },
-  ]
-}
-
-function formatDate(value?: string) {
-  if (!value) return "-"
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-  return new Intl.DateTimeFormat("id-ID", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(date)
 }
