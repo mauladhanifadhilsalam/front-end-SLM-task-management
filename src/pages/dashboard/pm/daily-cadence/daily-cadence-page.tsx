@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useLocation, useParams } from "react-router-dom"
+import { useLocation, useParams, useNavigate } from "react-router-dom"
 import { AppSidebarPm } from "../components/sidebar-pm"
 import { PmDailyCadence } from "../components/pm-daily-cadence"
 import { PmDailyCadenceCharts } from "../components/pm-daily-cadence-charts"
@@ -9,6 +9,8 @@ import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { usePmDailyCadence } from "../hooks/use-pm-daily-cadence"
 import { useProjectUpdates } from "../hooks/use-project-updates"
+import { Button } from "@/components/ui/button"
+import { ArrowLeft } from "lucide-react"
 
 type LocationState = {
   projectName?: string
@@ -17,6 +19,7 @@ type LocationState = {
 export default function DailyCadencePage() {
   const { projectId } = useParams()
   const location = useLocation()
+  const navigate = useNavigate()
   const state = location.state as LocationState | null
   const { data, loading, error } = usePmDailyCadence(projectId)
   const {
@@ -41,21 +44,32 @@ export default function DailyCadencePage() {
       <AppSidebarPm variant="inset" />
       <SidebarInset>
         <SiteHeader />
-        <div className="flex flex-1 flex-col">
+        <div className="flex flex-1 flex-col px-4 lg:px-6 py-6">
+          <div className="flex items-center gap-4 mb-6">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/project-manager/dashboard/projects")}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Kembali
+            </Button>
+          </div>
+          
           <div className="@container/main flex flex-1 flex-col gap-2">
-            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-              <div className="px-4 lg:px-6 flex flex-col gap-5">
-                <PmDailyCadenceCharts data={data} loading={loading} error={error} />
-                <PmDailyCadence
-                  data={data}
-                  loading={loading}
-                  error={error}
-                  projectName={state?.projectName}
-                  projectUpdate={latestUpdate}
-                  projectUpdateLoading={updatesLoading}
-                  projectUpdateError={updatesError}
-                />
-              </div>
+            <div className="flex flex-col gap-5">
+              <PmDailyCadenceCharts data={data} loading={loading} error={error} />
+              <PmDailyCadence
+                data={data}
+                loading={loading}
+                error={error}
+                projectName={state?.projectName}
+                projectId={projectId ? Number(projectId) : undefined}
+                projectUpdate={latestUpdate}
+                projectUpdateLoading={updatesLoading}
+                projectUpdateError={updatesError}
+              />
             </div>
           </div>
         </div>
