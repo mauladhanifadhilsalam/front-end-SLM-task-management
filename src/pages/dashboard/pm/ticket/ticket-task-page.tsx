@@ -229,7 +229,7 @@ export default function PmTaskTicketsPage() {
               />
 
               <TicketsCardsTaskBoard
-                title="Tasks reported by you"
+                title="Tasks requested by you"
                 subtitle="Task ticket yang kamu buat / ajukan ke tim."
                 emptyMessage="Belum ada task yang kamu ajukan."
                 tickets={filteredReported}
