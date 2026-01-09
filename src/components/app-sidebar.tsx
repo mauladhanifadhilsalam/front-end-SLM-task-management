@@ -1,12 +1,6 @@
 import * as React from "react"
 import {
-  IconCamera,
-  IconDashboard,
-  IconDatabase,
-  IconFileAi,
-  IconFileDescription,
   IconFolder,
-  IconSettings,
   IconUsers,
   IconTicket,
   IconUserCheck,
@@ -16,11 +10,10 @@ import {
   IconLayoutDashboard,
   IconMessage,
   IconMessageDots,
-  IconActivity,
   IconActivityHeartbeat,
   IconNotification,
-  IconHierarchy2,
-  IconUsersGroup
+  IconUsersGroup,
+  IconFileDescription
 } from "@tabler/icons-react"
 
 import { NavDocuments } from "@/components/nav-documents"
@@ -90,6 +83,11 @@ const data = {
       title: "Team Updates",
       url: "/admin/dashboard/team-updates",
       icon: IconMessage,
+    },
+    {
+      title: "Project Updates",
+      url: "/admin/dashboard/project-updates",
+      icon: IconFileDescription,
     },
     {
       title: "Comments",

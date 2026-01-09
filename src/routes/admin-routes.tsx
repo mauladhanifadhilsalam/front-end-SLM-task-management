@@ -49,6 +49,8 @@ import AdminTeamUpdates from "../pages/dashboard/admin/team-updates/adminTeamUpd
 import AdminViewTeamUpdatePage from "../pages/dashboard/admin/team-updates/view-team-update-page"
 import AdminCreateTeamUpdatePage from "../pages/dashboard/admin/team-updates/create-team-update-page"
 import AdminEditTeamUpdatePage from "../pages/dashboard/admin/team-updates/edit-team-update-page"
+import AdminDailyCadencePage from "../pages/dashboard/admin/daily-cadence/daily-cadence-page"
+import AdminProjectUpdates from "../pages/dashboard/admin/project-updates/admin-project-updates"
 
 export const adminRoutes = (
   <Fragment>
@@ -372,6 +374,22 @@ export const adminRoutes = (
       element={
         <ProtectedRoute allowedRoles={["admin"]}>
           <AdminEditTeamUpdatePage />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/dashboard/project-updates"
+      element={
+        <ProtectedRoute allowedRoles={["admin"]}>
+          <AdminProjectUpdates />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/dashboard/projects/:projectId/daily-cadence"
+      element={
+        <ProtectedRoute allowedRoles={["admin"]}>
+          <AdminDailyCadencePage />
         </ProtectedRoute>
       }
     />
