@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { Link } from "react-router-dom"
-import { IconEye, IconEdit, IconCalendarEvent } from "@tabler/icons-react"
+import { IconEye, IconEdit} from "@tabler/icons-react"
 import { Badge } from "@/components/ui/badge"
 import { Project } from "@/types/project.type"
 import type { PaginationMeta } from "@/types/pagination"
@@ -178,12 +178,6 @@ export const ProjectsTable: React.FC<Props> = ({
                         to={`${basePath}/projects/edit/${p.id}`}
                       >
                         <IconEdit className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-                      </Link>
-                      <Link
-                        to={`${basePath}/projects/${p.id}/daily-cadence`}
-                        state={{ projectName: p.name }}
-                      >
-                        <IconCalendarEvent className="h-4 w-4 text-muted-foreground hover:text-foreground" />
                       </Link>
                       <div className="">
                         <ProjectDeleteDialog
