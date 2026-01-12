@@ -15,26 +15,27 @@ const normalizeProjectAssignment = (a: any): ProjectAssignment => {
   return {
     id: Number(a.id),
     projectId: Number(a.projectId ?? a.project_id ?? a.project?.id),
-    projectName: String(
-      a.projectName ?? a.project_name ?? a.project?.name ?? "",
-    ),
-    assigneeId: Number(
-      a.assigneeId ??
-        a.userId ??
-        a.assignee_id ??
-        a.user?.id,
-    ),
-    assigneeName:
-        a.assigneeName ??
-        a.assignee_name ??
-        a.userName ??
-        a.user_name ??
-        a.assignee?.fullName ??
-        a.user?.fullName ??
-        "",
-    roleInProject: a.roleInProject ?? a.assignmentRole ?? "",
-    assignedAt: a.assignedAt ?? a.created_at,
-}
+    userId: Number(a.userId ?? a.user_id ?? a.user?.id),
+    assignedAt: String(a.assignedAt ?? a.created_at ?? new Date().toISOString()),
+    user: {
+      id: Number(a.user?.id ?? a.userId),
+      fullName: String(a.user?.fullName ?? a.user?.name ?? a.assigneeName ?? ""),
+      email: String(a.user?.email ?? ""),
+      role: String(a.user?.role ?? ""),
+      projectRole: a.user?.projectRole ?? null,
+    },
+    project: {
+      id: Number(a.project?.id ?? a.projectId),
+      name: String(a.project?.name ?? a.projectName ?? ""),
+      status: String(a.project?.status ?? ""),
+      startDate: String(a.project?.startDate ?? ""),
+      endDate: String(a.project?.endDate ?? ""),
+    },
+    // Legacy fields mapping
+    projectName: String(a.project?.name ?? a.projectName ?? ""),
+    assigneeName: String(a.user?.fullName ?? a.assigneeName ?? ""),
+    roleInProject: (a.user?.projectRole as any) ?? a.roleInProject ?? undefined,
+  }
 }
 
 export type ProjectAssignmentListParams = {

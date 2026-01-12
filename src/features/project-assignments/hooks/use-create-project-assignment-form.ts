@@ -7,7 +7,6 @@ import axios from "axios"
 import {
   ProjectLite,
   UserLite,
-  RoleInProject,
   CreateProjectAssignmentPayload,
 } from "@/types/project-assignment.type"
 import { projectAssignmentCreateSchema, ProjectAssignmentCreateForm } from "@/schemas/project-assignment.schema"
@@ -29,7 +28,6 @@ type UseCreateProjectAssignmentFormResult = {
   errors: CreateAssignmentFormError
   saving: boolean
   handleChange: (field: keyof CreateAssignmentFormState, value: string) => void
-  handleRoleChange: (value: RoleInProject) => void
   handleSubmit: (e: React.FormEvent) => Promise<void>
   handleCancel: () => void
 }
@@ -46,8 +44,6 @@ export const useCreateProjectAssignmentForm =
     const [form, setForm] = React.useState<CreateAssignmentFormState>({
       projectId: "",
       userId: "",
-      roleInProject: "",
-      assignedAt: "",
       note: "",
     })
 
@@ -64,10 +60,6 @@ export const useCreateProjectAssignmentForm =
       }
     }
 
-    const handleRoleChange = (value: RoleInProject) => {
-      handleChange("roleInProject", value)
-    }
-
     const validate = (
       values: CreateAssignmentFormState,
     ): CreateAssignmentFormError => {
@@ -82,9 +74,6 @@ export const useCreateProjectAssignmentForm =
       }
       if (flattened.userId?.[0]) {
         fieldErrors.userId = flattened.userId[0]
-      }
-      if (flattened.roleInProject?.[0]) {
-        fieldErrors.roleInProject = flattened.roleInProject[0]
       }
 
       return fieldErrors
@@ -122,6 +111,7 @@ export const useCreateProjectAssignmentForm =
           id: Number(u.id),
           fullName: u.fullName ?? u.name ?? `User #${u.id}`,
           email: u.email ?? "",
+          projectRole: u.projectRole,
         }))
         setUsers(normalized)
       } finally {
@@ -145,8 +135,6 @@ export const useCreateProjectAssignmentForm =
       const payload: CreateProjectAssignmentPayload = {
         projectId: Number(form.projectId),
         userId: Number(form.userId),
-        roleInProject: form.roleInProject as RoleInProject,
-        assignedAt: form.assignedAt || undefined,
       }
 
       try {
@@ -183,7 +171,6 @@ export const useCreateProjectAssignmentForm =
         errors,
         saving,
         handleChange,
-        handleRoleChange,
         handleSubmit,
         handleCancel,
     }
