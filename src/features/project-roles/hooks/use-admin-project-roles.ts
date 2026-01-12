@@ -8,7 +8,7 @@ import {
 import { toast } from "sonner"
 import {
   fetchProjectRolesWithPagination,
-  deleteProjectRoleById,
+  deleteProjectRoleByCode,
   type ProjectRoleListParams,
   type FetchProjectRolesResult,
   emptyProjectRolePagination,
@@ -107,8 +107,8 @@ export const useAdminProjectRoles = () => {
   }, [])
 
   const deleteMutation = useMutation({
-    mutationFn: deleteProjectRoleById,
-    onMutate: async (id: number) => {
+    mutationFn: deleteProjectRoleByCode,
+    onMutate: async (code: string) => {
       await queryClient.cancelQueries({ queryKey })
       const previous =
         queryClient.getQueryData<FetchProjectRolesResult>(queryKey)
@@ -119,7 +119,7 @@ export const useAdminProjectRoles = () => {
           if (!current) return current
           return {
             ...current,
-            projectRoles: current.projectRoles.filter((r) => r.id !== id),
+            projectRoles: current.projectRoles.filter((r) => r.code !== code),
             pagination: {
               ...current.pagination,
               total: Math.max(0, current.pagination.total - 1),
@@ -130,7 +130,7 @@ export const useAdminProjectRoles = () => {
 
       return { previous }
     },
-    onError: (_err, _id, context) => {
+    onError: (_err, _code, context) => {
       if (context?.previous) {
         queryClient.setQueryData(queryKey, context.previous)
       }
@@ -141,11 +141,11 @@ export const useAdminProjectRoles = () => {
   })
 
   const handleDeleteProjectRole = React.useCallback(
-    async (id: number) => {
+    async (code: string) => {
       try {
-        await deleteMutation.mutateAsync(id)
+        await deleteMutation.mutateAsync(code)
         toast.success("Project Role terhapus", {
-          description: `Project Role #${id} berhasil dihapus.`,
+          description: `Project Role "${code}" berhasil dihapus.`,
         })
       } catch (e: any) {
         const msg = e?.response?.data?.message || "Gagal menghapus project role"

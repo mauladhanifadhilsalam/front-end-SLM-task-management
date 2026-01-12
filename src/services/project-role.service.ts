@@ -59,15 +59,15 @@ export const fetchProjectRoles = async (
   return projectRoles
 }
 
-export const fetchProjectRoleById = async (
-  id: number | string,
+export const fetchProjectRoleByCode = async (
+  code: string,
 ): Promise<ProjectRole> => {
-  const { data } = await api.get(`/project-roles/${id}`)
+  const { data } = await api.get(`/project-roles/${code}`)
   return unwrapApiData<ProjectRole>(data)
 }
 
-export const deleteProjectRoleById = async (id: number): Promise<void> => {
-  await api.delete(`/project-roles/${id}`)
+export const deleteProjectRoleByCode = async (code: string): Promise<void> => {
+  await api.delete(`/project-roles/${code}`)
 }
 
 export const createProjectRole = async (
@@ -77,9 +77,9 @@ export const createProjectRole = async (
   return unwrapApiData<ProjectRole>(data)
 }
 
-export const updateProjectRole = async (
-  id: number | string,
+export const updateProjectRoleByCode = async (
+  code: string,
   payload: Partial<{ code: string; name: string }>,
 ): Promise<void> => {
-  await api.patch(`/project-roles/${id}`, payload)
+  await api.patch(`/project-roles/${code}`, payload)
 }

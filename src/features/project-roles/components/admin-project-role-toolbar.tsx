@@ -87,7 +87,7 @@ export const AdminProjectRoleToolbar: React.FC<Props> = ({
         {onCreateClick && (
           <Button size="sm" onClick={onCreateClick}>
             <IconPlus className="mr-2 h-4 w-4" />
-            Create
+            Create Project Role
           </Button>
         )}
       </div>

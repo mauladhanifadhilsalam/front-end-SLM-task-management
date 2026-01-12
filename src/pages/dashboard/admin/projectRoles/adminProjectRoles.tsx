@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useNavigate } from "react-router-dom"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
@@ -9,6 +10,7 @@ import { AdminProjectRoleTable } from "@/features/project-roles/components/admin
 import { useAdminProjectRoles } from "@/features/project-roles/hooks/use-admin-project-roles"
 
 const AdminProjectRolesPage: React.FC = () => {
+  const navigate = useNavigate()
   const {
     projectRoles,
     loading,
@@ -58,6 +60,7 @@ const AdminProjectRolesPage: React.FC = () => {
                     onQueryChange={setSearch}
                     cols={columns}
                     onToggleColumn={toggleColumn}
+                    onCreateClick={() => navigate("/admin/dashboard/project-roles/create")}
                   />
                   <AdminProjectRoleTable
                     projectRoles={projectRoles}

@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { Link } from "react-router-dom"
-import { IconEye, IconTrash } from "@tabler/icons-react"
+import { IconEye, IconEdit, IconTrash } from "@tabler/icons-react"
 import type { ProjectRole } from "@/types/project-roles.type"
 import type { PaginationMeta } from "@/types/pagination"
 import { TablePaginationControls } from "@/components/table-pagination-controls"
@@ -24,7 +24,7 @@ type Props = {
   columns: ProjectRoleTableColumns
   loading: boolean
   error: string
-  onDeleteProjectRole: (id: number) => void
+  onDeleteProjectRole: (code: string) => void
   pagination: PaginationMeta
   page: number
   pageSize: number
@@ -81,10 +81,17 @@ export const AdminProjectRoleTable: React.FC<Props> = ({
                 <td className="px-4 py-3">
                   <div className="flex justify-center items-center gap-2">
                     <Link
-                      to={`${basePath}/view/${role.id}`}
+                      to={`${basePath}/view/${role.code}`}
                       className="inline-flex"
                     >
                       <IconEye className="h-4 w-4" />
+                    </Link>
+
+                    <Link
+                      to={`${basePath}/edit/${role.code}`}
+                      className="inline-flex"
+                    >
+                      <IconEdit className="h-4 w-4" />
                     </Link>
 
                     <AlertDialog>
@@ -105,8 +112,8 @@ export const AdminProjectRoleTable: React.FC<Props> = ({
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Batal</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => onDeleteProjectRole(role.id)}
+                          <AlertDialogAction className="bg-red-600 hover:bg-red-800"
+                            onClick={() => onDeleteProjectRole(role.code)}
                           >
                             Hapus
                           </AlertDialogAction>

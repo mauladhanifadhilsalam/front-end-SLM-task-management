@@ -51,6 +51,9 @@ import AdminCreateTeamUpdatePage from "../pages/dashboard/admin/team-updates/cre
 import AdminEditTeamUpdatePage from "../pages/dashboard/admin/team-updates/edit-team-update-page"
 
 import AdminProjectRoles from "../pages/dashboard/admin/projectRoles/adminProjectRoles"
+import CreateProjectRole from "../pages/dashboard/admin/projectRoles/createProjectRole"
+import ViewProjectRole from "../pages/dashboard/admin/projectRoles/viewProjectRole"
+import EditProjectRole from "../pages/dashboard/admin/projectRoles/editProjectRole"
 
 export const adminRoutes = (
   <Fragment>
@@ -383,6 +386,30 @@ export const adminRoutes = (
       element={
         <ProtectedRoute allowedRoles={["admin"]}>
           <AdminProjectRoles />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/dashboard/project-roles/create"
+      element={
+        <ProtectedRoute allowedRoles={["admin"]}>
+          <CreateProjectRole />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/dashboard/project-roles/view/:code"
+      element={
+        <ProtectedRoute allowedRoles={["admin"]}>
+          <ViewProjectRole />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/dashboard/project-roles/edit/:code"
+      element={
+        <ProtectedRoute allowedRoles={["admin"]}>
+          <EditProjectRole />
         </ProtectedRoute>
       }
     />
