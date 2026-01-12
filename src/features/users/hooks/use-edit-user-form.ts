@@ -36,6 +36,7 @@ export const useEditUserForm = (options: UseEditUserFormOptions) => {
     email: "",
     role: RoleEnum.enum.DEVELOPER,
     password: "",
+    projectRole: "",
   })
   const [loading, setLoading] = React.useState(true)
   const [saving, setSaving] = React.useState(false)
@@ -61,6 +62,7 @@ export const useEditUserForm = (options: UseEditUserFormOptions) => {
           email: data.email ?? "",
           role: normalizeRole(data.role ?? data.user_role),
           password: "",
+          projectRole: data.projectRole ?? data.project_role ?? "",
         })
       } catch (e: any) {
         const msg = e?.response?.data?.message || "Gagal memuat data user."
@@ -144,6 +146,9 @@ export const useEditUserForm = (options: UseEditUserFormOptions) => {
           if (zodFmt?.password?._errors?.[0]) {
             fe.password = zodFmt.password._errors[0]
           }
+          if (zodFmt?.projectRole?._errors?.[0]) {
+            fe.projectRole = zodFmt.projectRole._errors[0]
+          }
 
           if (Object.keys(fe).length > 0) {
             setFieldErrors(fe)
@@ -152,6 +157,7 @@ export const useEditUserForm = (options: UseEditUserFormOptions) => {
               fe.email ||
               fe.role ||
               fe.password ||
+              fe.projectRole ||
               "Data tidak valid."
           } else {
             msg =

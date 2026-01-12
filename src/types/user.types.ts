@@ -17,6 +17,7 @@ export type CreateUserPayload = {
     email: string
     role: string
     password: string
+    projectRole?: string
 }
 
 export type UserWithMeta = User & {

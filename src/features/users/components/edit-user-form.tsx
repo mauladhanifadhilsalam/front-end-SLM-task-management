@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useQuery } from "@tanstack/react-query"
 import {
   Card,
   CardContent,
@@ -21,6 +22,8 @@ import {
 import { IconCheck } from "@tabler/icons-react"
 import { RoleEnum } from "@/schemas/users.schema"
 import { useEditUserForm } from "../hooks/use-edit-user-form"
+import { fetchProjectRoles } from "@/services/project-role.service"
+import { projectRoleKeys } from "@/lib/query-keys"
 
 type Props = {
   userId?: string
@@ -44,6 +47,11 @@ export const EditUserForm: React.FC<Props> = ({
   } = useEditUserForm({
     userId,
     onSuccess,
+  })
+
+  const { data: projectRoles = [] } = useQuery({
+    queryKey: projectRoleKeys.all,
+    queryFn: () => fetchProjectRoles(),
   })
 
   if (loading) {
@@ -154,31 +162,58 @@ export const EditUserForm: React.FC<Props> = ({
                 placeholder="Masukkan password baru"
                 disabled={saving}
                 aria-invalid={!!fieldErrors.password}
-                />
-                {fieldErrors.password && (
-                    <p className="text-xs pl-1 text-red-600">
-                    {fieldErrors.password}
-                    </p>
-                )}
-                </div>
+              />
+              {fieldErrors.password && (
+                <p className="text-xs pl-1 text-red-600">
+                  {fieldErrors.password}
+                </p>
+              )}
             </div>
+          </div>
 
-            <div className="flex justify-end space-x-3">
-                <Button
-                type="button"
-                variant="outline"
-                onClick={onCancel}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="projectRole">Project Role</Label>
+              <Select
+                value={form.projectRole || ""}
+                onValueChange={(v) => handleChange("projectRole", v)}
                 disabled={saving}
-                >
-                Batal
-                </Button>
-                <Button type="submit" disabled={saving}>
-                <IconCheck className="mr-2 h-4 w-4" />
-                {saving ? "Menyimpan..." : "Simpan Perubahan"}
-                </Button>
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih project role (opsional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  {projectRoles.map((pr) => (
+                    <SelectItem key={pr.code} value={pr.code}>
+                      {pr.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {fieldErrors.projectRole && (
+                <p className="text-xs pl-1 text-red-600">
+                  {fieldErrors.projectRole}
+                </p>
+              )}
             </div>
-            </form>
-        </CardContent>
-        </Card>
-    )
+          </div>
+
+          <div className="flex justify-end space-x-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={saving}
+            >
+              Batal
+            </Button>
+            <Button type="submit" disabled={saving}>
+              <IconCheck className="mr-2 h-4 w-4" />
+              {saving ? "Menyimpan..." : "Simpan Perubahan"}
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  )
 }
