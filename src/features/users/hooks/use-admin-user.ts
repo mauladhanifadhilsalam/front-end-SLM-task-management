@@ -26,6 +26,7 @@ export type UserTableColumns = {
     email: boolean
     passwordHash: boolean
     role: boolean
+    projectRole: boolean
     actions: boolean
 }
 
@@ -42,6 +43,7 @@ export const useAdminUsers = () => {
         email: true,
         passwordHash: false,
         role: true,
+        projectRole: true,
         actions: true,
 })
 

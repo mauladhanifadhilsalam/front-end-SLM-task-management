@@ -4,6 +4,7 @@ import type { UserListParams } from "@/services/user.service"
 import type { ProjectOwnerListParams } from "@/services/project-owner.service"
 import type { ProjectAssignmentListParams } from "@/services/project-assignment.service"
 import type { ProjectPhaseListParams } from "@/services/project-phase.service"
+import type { ProjectRoleListParams } from "@/services/project-role.service"
 import type { CommentListParams } from "@/services/comments.service"
 import type { NotificationListParams } from "@/services/notification.service"
 import type { ActivityLogListParams } from "@/services/activity-log.service"
@@ -150,4 +151,14 @@ export const projectUpdateKeys = {
     filters && Object.keys(filters).length > 0
       ? ([...projectUpdateKeys.all, "list", filters] as const)
       : ([...projectUpdateKeys.all, "list"] as const),
+}
+
+export const projectRoleKeys = {
+  all: ["project-roles"] as const,
+  list: (filters?: ProjectRoleListParams) =>
+    filters && Object.keys(filters).length > 0
+      ? ([...projectRoleKeys.all, "list", filters] as const)
+      : ([...projectRoleKeys.all, "list"] as const),
+  detail: (id: number | string) =>
+    [...projectRoleKeys.all, "detail", String(id)] as const,
 }

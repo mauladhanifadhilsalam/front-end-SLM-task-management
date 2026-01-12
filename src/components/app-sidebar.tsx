@@ -72,6 +72,11 @@ const data = {
       icon: IconTimeline,
     },
     {
+      title: "Project Roles",
+      url: "/admin/dashboard/project-roles",
+      icon: IconHierarchy2,
+    },
+    {
       title: "Project Assignments",
       url: "/admin-dashboard/project-assignments",
       icon: IconUsersGroup  ,

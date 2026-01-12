@@ -6,6 +6,10 @@ export type User = {
     email: string
     passwordHash: string
     role: Role
+    projectRole: string | null
+    isActive: boolean
+    createdAt: string
+    updatedAt: string
 }
 
 export type CreateUserPayload = {

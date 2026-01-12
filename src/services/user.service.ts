@@ -24,6 +24,10 @@ const normalizeUsers = (raw: any[]): User[] =>
     email: String(u.email ?? ""),
     passwordHash: String(u.passwordHash ?? ""),
     role: (u.role as Role) ?? "DEVELOPER",
+    projectRole: u.projectRole ?? null,
+    isActive: Boolean(u.isActive ?? true),
+    createdAt: String(u.createdAt ?? ""),
+    updatedAt: String(u.updatedAt ?? ""),
   }))
 
 export type UserListParams = {

@@ -50,6 +50,8 @@ import AdminViewTeamUpdatePage from "../pages/dashboard/admin/team-updates/view-
 import AdminCreateTeamUpdatePage from "../pages/dashboard/admin/team-updates/create-team-update-page"
 import AdminEditTeamUpdatePage from "../pages/dashboard/admin/team-updates/edit-team-update-page"
 
+import AdminProjectRoles from "../pages/dashboard/admin/projectRoles/adminProjectRoles"
+
 export const adminRoutes = (
   <Fragment>
     <Route
@@ -372,6 +374,15 @@ export const adminRoutes = (
       element={
         <ProtectedRoute allowedRoles={["admin"]}>
           <AdminEditTeamUpdatePage />
+        </ProtectedRoute>
+      }
+    />
+
+    <Route
+      path="/admin/dashboard/project-roles"
+      element={
+        <ProtectedRoute allowedRoles={["admin"]}>
+          <AdminProjectRoles />
         </ProtectedRoute>
       }
     />
