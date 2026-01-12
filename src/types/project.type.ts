@@ -19,7 +19,6 @@ export type ProjectPhasePayload = {
 
 export type ProjectAssignmentPayload = {
   userId: number
-  roleInProject: RoleInProject
 }
 
 export type Project = {
@@ -58,7 +57,6 @@ export type ProjectPhaseForm = {
 
 export type ProjectAssignmentForm = {
   userId: number
-  roleInProject: string
 }
 
 

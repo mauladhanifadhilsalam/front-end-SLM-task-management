@@ -135,7 +135,7 @@ export const useCreateProjectForm = (
       ...prev,
       assignments: [
         ...prev.assignments,
-        { userId: 0, roleInProject: "" },
+        { userId: 0 },
       ],
     }))
   }
@@ -199,11 +199,7 @@ export const useCreateProjectForm = (
 
   const hasIncompleteAssignment =
     form.assignments.length > 0 &&
-    form.assignments.some(
-      (a) =>
-        a.userId === 0 ||
-        a.roleInProject.trim() === "",
-    )
+    form.assignments.some((a) => a.userId === 0)
 
   const handleSubmit: React.FormEventHandler<HTMLFormElement> =
     async (e) => {
@@ -305,12 +301,10 @@ export const useCreateProjectForm = (
       const assignments = form.assignments
         .filter(
           (a) =>
-            a.userId > 0 &&
-            a.roleInProject.trim() !== "",
+            a.userId > 0,
         )
         .map((a) => ({
           userId: a.userId,
-          roleInProject: a.roleInProject.trim(),
         }))
 
       const payload = {

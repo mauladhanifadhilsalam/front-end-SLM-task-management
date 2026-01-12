@@ -28,6 +28,7 @@ export type UserLite = {
     fullName: string
     email: string
     role: string
+    projectRole?: string
 }
 
 export type UserProfile = {

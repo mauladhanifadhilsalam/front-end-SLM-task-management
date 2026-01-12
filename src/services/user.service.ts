@@ -111,6 +111,7 @@ export const fetchAssignableUsers = async (): Promise<UserLite[]> => {
       fullName: String(u.fullName ?? u.name ?? ""),
       email: String(u.email ?? ""),
       role: String(u.role ?? ""),
+      projectRole: u.projectRole,
     }))
     .filter(
       (u) =>

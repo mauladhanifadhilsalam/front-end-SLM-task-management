@@ -34,13 +34,6 @@ const phaseSchema = z
 // Assignment
 const assignmentSchema = z.object({
   userId: z.number().positive("User ID harus dipilih"),
-  roleInProject: z.enum([
-    "TECH_LEAD",
-    "BACK_END",
-    "FRONT_END",
-    "DEVOPS",
-    "CLOUD_ENGINEER",
-  ]),
 })
 
 // Create Project
