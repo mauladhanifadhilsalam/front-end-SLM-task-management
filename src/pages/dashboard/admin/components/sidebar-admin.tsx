@@ -13,7 +13,8 @@ import {
   IconActivityHeartbeat,
   IconNotification,
   IconUsersGroup,
-  IconFileDescription
+  IconFileDescription,
+  IconHierarchy2
 } from "@tabler/icons-react"
 
 import { NavDocuments } from "@/components/nav-documents"
