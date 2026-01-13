@@ -7,9 +7,9 @@ import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { IconArrowLeft } from "@tabler/icons-react"
-import { CreateTeamUpdateForm } from "@/features/team-updates/components/create-team-update-form"
+import { ProjectUpdateForm } from "@/features/project-updates/components/project-update-form"
 
-export default function AdminCreateTeamUpdatePage() {
+export default function AdminCreateProjectUpdate() {
   const navigate = useNavigate()
 
   return (
@@ -33,7 +33,7 @@ export default function AdminCreateTeamUpdatePage() {
                     variant="ghost"
                     size="sm"
                     onClick={() =>
-                      navigate("/admin/dashboard/team-updates")
+                      navigate("/admin/dashboard/project-updates")
                     }
                     className="flex items-center gap-2 cursor-pointer"
                   >
@@ -41,13 +41,14 @@ export default function AdminCreateTeamUpdatePage() {
                     Kembali
                   </Button>
                 </div>
-                <h1 className="text-2xl font-semibold">Create Team Update</h1>
+                <h1 className="text-2xl font-semibold">Create Project Update</h1>
               </div>
 
               <div className="px-4 lg:px-6">
-                <CreateTeamUpdateForm
+                <ProjectUpdateForm
+                  mode="create"
                   onSuccess={() =>
-                    navigate("/admin/dashboard/team-updates")
+                    navigate("/admin/dashboard/project-updates")
                   }
                 />
               </div>

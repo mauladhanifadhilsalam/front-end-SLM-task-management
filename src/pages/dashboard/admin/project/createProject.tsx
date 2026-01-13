@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useNavigate } from "react-router-dom"
 import { ArrowLeft, Loader2 } from "lucide-react"
-import { AppSidebar } from "@/components/app-sidebar"
+import { AppSidebar } from "@/pages/dashboard/admin/components/sidebar-admin"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"

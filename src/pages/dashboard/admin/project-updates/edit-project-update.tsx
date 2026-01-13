@@ -8,31 +8,34 @@ import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { IconArrowLeft } from "@tabler/icons-react"
-import { EditTeamUpdateForm } from "@/features/team-updates/components/edit-team-update-form"
-import { fetchTeamUpdateById } from "@/services/team-update.service"
-import { teamUpdateKeys } from "@/lib/query-keys"
-import type { TeamUpdateValues } from "@/schemas/team-update.schema"
+import { ProjectUpdateForm } from "@/features/project-updates/components/project-update-form"
+import { fetchProjectUpdateById } from "@/services/project-update.service"
+import { projectUpdateKeys } from "@/lib/query-keys"
+import type { ProjectUpdateValues } from "@/schemas/project-update.schema"
 
-export default function AdminEditTeamUpdatePage() {
+export default function AdminEditProjectUpdate() {
   const navigate = useNavigate()
   const { id } = useParams()
   const updateId = Number(id)
 
   const updateQuery = useQuery({
-    queryKey: teamUpdateKeys.detail(updateId),
-    queryFn: () => fetchTeamUpdateById(updateId),
+    queryKey: projectUpdateKeys.detail(updateId),
+    queryFn: () => fetchProjectUpdateById(updateId),
     enabled: Number.isFinite(updateId) && updateId > 0,
   })
 
-  const initialValues = React.useMemo<TeamUpdateValues | undefined>(() => {
+  const initialValues = React.useMemo<Partial<ProjectUpdateValues> | undefined>(() => {
     if (!updateQuery.data) return undefined
     return {
       projectId: String(updateQuery.data.projectId),
-      yesterdayWork: updateQuery.data.yesterdayWork ?? "",
-      todayWork: updateQuery.data.todayWork ?? "",
-      blocker: updateQuery.data.blocker ?? "",
-      nextAction: updateQuery.data.nextAction ?? "",
-      status: updateQuery.data.status,
+      phaseId: updateQuery.data.phaseId ? String(updateQuery.data.phaseId) : "",
+      reportDate: updateQuery.data.reportDate
+        ? updateQuery.data.reportDate.split("T")[0]
+        : "",
+      participant: updateQuery.data.participant ?? "",
+      objective: updateQuery.data.objective ?? "",
+      progressHighlight: updateQuery.data.progressHighlight ?? "",
+      teamMood: updateQuery.data.teamMood ?? "",
     }
   }, [updateQuery.data])
 
@@ -57,7 +60,7 @@ export default function AdminEditTeamUpdatePage() {
                     variant="ghost"
                     size="sm"
                     onClick={() =>
-                      navigate("/admin/dashboard/team-updates")
+                      navigate("/admin/dashboard/project-updates")
                     }
                     className="flex items-center gap-2 cursor-pointer"
                   >
@@ -65,7 +68,7 @@ export default function AdminEditTeamUpdatePage() {
                     Kembali
                   </Button>
                 </div>
-                <h1 className="text-2xl font-semibold">Edit Team Update</h1>
+                <h1 className="text-2xl font-semibold">Edit Project Update</h1>
               </div>
 
               <div className="px-4 lg:px-6">
@@ -74,11 +77,12 @@ export default function AdminEditTeamUpdatePage() {
                 ) : updateQuery.error ? (
                   <p className="text-sm text-red-600">Gagal memuat data.</p>
                 ) : updateQuery.data ? (
-                  <EditTeamUpdateForm
+                  <ProjectUpdateForm
+                    mode="edit"
                     updateId={updateId}
                     initialValues={initialValues}
                     onSuccess={() =>
-                      navigate("/admin/dashboard/team-updates")
+                      navigate("/admin/dashboard/project-updates")
                     }
                   />
                 ) : (

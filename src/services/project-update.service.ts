@@ -98,3 +98,9 @@ export const updateProjectUpdate = async (
 export const deleteProjectUpdate = async (id: number): Promise<void> => {
   await api.delete(`/project-updates/${id}`)
 }
+
+export const fetchProjectUpdateById = async (id: number): Promise<ProjectUpdate> => {
+  const { data } = await api.get(`/project-updates/${id}`)
+  const item = (data as any)?.data?.projectUpdate ?? (data as any)?.data?.project_update ?? (data as any)?.data ?? data
+  return mapProjectUpdate(item)
+}

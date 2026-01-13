@@ -2,26 +2,15 @@
 
 import * as React from "react"
 import { useNavigate, useParams } from "react-router-dom"
-
 import { AppSidebar } from "@/pages/dashboard/admin/components/sidebar-admin"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import { ProjectUpdateDetail } from "@/features/project-updates/components/project-update-detail"
 
-import { useTicketDetail } from "@/features/ticket/hooks/use-ticket-detail"
-import { TicketDetailView } from "@/features/ticket/components/ticket-detail-view"
-
-export default function ViewTickets() {
-  const { id } = useParams<{ id: string }>()
+export default function AdminViewProjectUpdate() {
   const navigate = useNavigate()
-
-  const {
-    ticket,
-    loading,
-    error,
-    deleting,
-    formatDate,
-    deleteCurrent,
-  } = useTicketDetail(id)
+  const { id } = useParams()
+  const updateId = Number(id)
 
   return (
     <SidebarProvider
@@ -36,15 +25,12 @@ export default function ViewTickets() {
       <SidebarInset>
         <SiteHeader />
         <div className="flex flex-1 flex-col">
-          <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-            <TicketDetailView
-              ticket={ticket}
-              loading={loading}
-              error={error}
-              deleting={deleting}
-              formatDate={formatDate}
-              onBack={() => navigate("/admin/dashboard/tickets")}
-              onDelete={deleteCurrent}
+          <div className="@container/main flex flex-1 flex-col gap-2">
+            <ProjectUpdateDetail
+              updateId={updateId}
+              title="Project Update Detail"
+              onBack={() => navigate("/admin/dashboard/project-updates")}
+              onEdit={() => navigate(`/admin/dashboard/project-updates/edit/${updateId}`)}
             />
           </div>
         </div>
