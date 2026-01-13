@@ -1,17 +1,12 @@
 "use client"
 
 import * as React from "react"
-import { useNavigate, useParams } from "react-router-dom"
 import { AppSidebar } from "@/pages/dashboard/admin/components/sidebar-admin"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
-import { TeamUpdateDetail } from "@/features/team-updates/components/team-update-detail"
+import { ProjectUpdateTable } from "@/features/project-updates/components/project-update-table"
 
-export default function AdminViewTeamUpdatePage() {
-  const navigate = useNavigate()
-  const { id } = useParams()
-  const updateId = Number(id)
-
+export default function AdminProjectUpdates() {
   return (
     <SidebarProvider
       style={
@@ -26,11 +21,14 @@ export default function AdminViewTeamUpdatePage() {
         <SiteHeader />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
-            <TeamUpdateDetail
-              updateId={updateId}
-              title="Team Update Detail"
-              onBack={() => navigate("/admin/dashboard/team-updates")}
-            />
+            <div className="flex flex-col gap-4 px-4 py-4 md:gap-6 md:py-6 lg:px-6">
+              <ProjectUpdateTable
+                title="Project Updates"
+                description="List update harian project yang dikirimkan tim."
+                createPath="/admin/dashboard/project-updates/create"
+                basePath="/admin/dashboard/project-updates"
+              />
+            </div>
           </div>
         </div>
       </SidebarInset>

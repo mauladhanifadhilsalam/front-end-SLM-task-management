@@ -4,7 +4,7 @@
 import * as React from "react"
 import { useNavigate } from "react-router-dom"
 
-import { AppSidebar } from "@/components/app-sidebar"
+import { AppSidebar } from "@/pages/dashboard/admin/components/sidebar-admin"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { useCreateTicketForm } from "@/features/ticket/hooks/use-create-ticket-form"

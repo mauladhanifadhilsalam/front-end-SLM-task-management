@@ -49,6 +49,11 @@ import AdminTeamUpdates from "../pages/dashboard/admin/team-updates/adminTeamUpd
 import AdminViewTeamUpdatePage from "../pages/dashboard/admin/team-updates/view-team-update-page"
 import AdminCreateTeamUpdatePage from "../pages/dashboard/admin/team-updates/create-team-update-page"
 import AdminEditTeamUpdatePage from "../pages/dashboard/admin/team-updates/edit-team-update-page"
+import AdminDailyCadencePage from "../pages/dashboard/admin/daily-cadence/daily-cadence-page"
+import AdminProjectUpdates from "../pages/dashboard/admin/project-updates/admin-project-updates"
+import AdminCreateProjectUpdate from "../pages/dashboard/admin/project-updates/create-project-update"
+import AdminViewProjectUpdate from "../pages/dashboard/admin/project-updates/view-project-update"
+import AdminEditProjectUpdate from "../pages/dashboard/admin/project-updates/edit-project-update"
 
 import AdminProjectRoles from "../pages/dashboard/admin/projectRoles/adminProjectRoles"
 import CreateProjectRole from "../pages/dashboard/admin/projectRoles/createProjectRole"
@@ -380,7 +385,6 @@ export const adminRoutes = (
         </ProtectedRoute>
       }
     />
-
     <Route
       path="/admin/dashboard/project-roles"
       element={
@@ -413,5 +417,48 @@ export const adminRoutes = (
         </ProtectedRoute>
       }
     />
+
+    <Route
+      path="/admin/dashboard/project-updates"
+      element={
+        <ProtectedRoute allowedRoles={["admin"]}>
+          <AdminProjectUpdates />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/dashboard/project-updates/create"
+      element={
+        <ProtectedRoute allowedRoles={["admin"]}>
+          <AdminCreateProjectUpdate />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/dashboard/project-updates/view/:id"
+      element={
+        <ProtectedRoute allowedRoles={["admin"]}>
+          <AdminViewProjectUpdate />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/dashboard/project-updates/edit/:id"
+      element={
+        <ProtectedRoute allowedRoles={["admin"]}>
+          <AdminEditProjectUpdate />
+        </ProtectedRoute>
+      }
+    />
+
+    <Route
+      path="/admin/dashboard/projects/:projectId/daily-cadence"
+      element={
+        <ProtectedRoute allowedRoles={["admin"]}>
+          <AdminDailyCadencePage />
+        </ProtectedRoute>
+      }
+    />
+
   </Fragment>
 )

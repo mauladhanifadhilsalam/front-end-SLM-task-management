@@ -4,7 +4,7 @@ import * as React from "react"
 import { Link } from "react-router-dom"
 import { IconArrowLeft, IconEdit, IconTrash } from "@tabler/icons-react"
 
-import { AppSidebar } from "@/components/app-sidebar"
+import { AppSidebar } from "@/pages/dashboard/admin/components/sidebar-admin"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import {

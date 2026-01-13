@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { Link } from "react-router-dom"
-import { IconEye, IconEdit } from "@tabler/icons-react"
+import { IconEye, IconEdit} from "@tabler/icons-react"
 import { Badge } from "@/components/ui/badge"
 import { Project } from "@/types/project.type"
 import type { PaginationMeta } from "@/types/pagination"

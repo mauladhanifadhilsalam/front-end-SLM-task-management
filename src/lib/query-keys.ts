@@ -151,6 +151,7 @@ export const projectUpdateKeys = {
     filters && Object.keys(filters).length > 0
       ? ([...projectUpdateKeys.all, "list", filters] as const)
       : ([...projectUpdateKeys.all, "list"] as const),
+  detail: (id: number | string) => [...projectUpdateKeys.all, "detail", String(id)] as const,
 }
 
 export const projectRoleKeys = {

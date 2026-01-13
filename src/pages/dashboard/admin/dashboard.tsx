@@ -1,6 +1,6 @@
 import React from "react"
 
-import { AppSidebar } from "@/components/app-sidebar"
+import { AppSidebar } from "@/pages/dashboard/admin/components/sidebar-admin"
 import { ChartAreaInteractive } from "@/pages/dashboard/admin/components/chart-area-ticket-status"
 import { SiteHeader } from "@/components/site-header"
 import {
