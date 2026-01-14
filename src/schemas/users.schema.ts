@@ -30,6 +30,8 @@ export const createUserSchema = z.object({
       /[!@#$%^&*()_\-+=[\]{};:'",.<>/?\\|`~]/,
       { message: "Harus mengandung karakter spesial." }
     ),
+
+  projectRole: z.string().optional(),
 });
 export type CreateUserValues = z.infer<typeof createUserSchema>;
 export type CreateUserField = keyof CreateUserValues;
@@ -63,19 +65,24 @@ export const editUserSchema = z.object({
         { message: "Harus mengandung karakter spesial." }
       ),
   ]).optional(),
+
+  projectRole: z.string().optional(),
 });
 export type EditUserValues = z.infer<typeof editUserSchema>;
 export type EditUserField = keyof EditUserValues;
 
 
 export function toEditPayload(data: EditUserValues) {
-  const base = {
+  const base: Record<string, unknown> = {
     fullName: data.fullName.trim(),
     email: data.email.trim(),
     role: data.role,
   };
   if (data.password && data.password.length > 0) {
-    return { ...base, password: data.password };
+    base.password = data.password;
+  }
+  if (data.projectRole) {
+    base.projectRole = data.projectRole;
   }
   return base;
 }

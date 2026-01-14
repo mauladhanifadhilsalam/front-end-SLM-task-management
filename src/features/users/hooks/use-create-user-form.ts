@@ -21,6 +21,7 @@ const initialValues: CreateUserValues = {
   email: "",
   role: "PROJECT_MANAGER",
   password: "",
+  projectRole: "",
 }
 
 export const useCreateUserForm = (options?: UseCreateUserFormOptions) => {

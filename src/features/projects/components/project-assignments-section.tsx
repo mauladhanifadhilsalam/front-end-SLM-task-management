@@ -70,7 +70,7 @@ export const ProjectAssignmentsSection: React.FC<Props> = ({
               <Trash2 className="size-4" />
             </Button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
             <div className="space-y-2">
               <Label>User</Label>
               <Select
@@ -99,47 +99,9 @@ export const ProjectAssignmentsSection: React.FC<Props> = ({
                         key={user.id}
                         value={String(user.id)}
                       >
-                        {user.fullName} (
-                        {user.role.replace("_", " ")})
+                        {user.fullName} - {user.projectRole ?? user.role}
                       </SelectItem>
                     ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Role dalam Project</Label>
-              <Select
-                value={assignment.roleInProject}
-                onValueChange={(value) =>
-                  onUpdateAssignment(
-                    i,
-                    "roleInProject",
-                    value,
-                  )
-                }
-                disabled={loading}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Pilih Role..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value="TECH_LEAD">
-                      Tech Lead
-                    </SelectItem>
-                    <SelectItem value="BACK_END">
-                      Backend Developer
-                    </SelectItem>
-                    <SelectItem value="FRONT_END">
-                      Frontend Developer
-                    </SelectItem>
-                    <SelectItem value="DEVOPS">
-                      DevOps
-                    </SelectItem>
-                    <SelectItem value="CLOUD_ENGINEER">
-                      Cloud Engineer
-                    </SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>

@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useQuery } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -24,6 +25,8 @@ import {
   type CreateUserField,
 } from "@/schemas/users.schema"
 import { useCreateUserForm } from "../hooks/use-create-user-form"
+import { fetchProjectRoles } from "@/services/project-role.service"
+import { projectRoleKeys } from "@/lib/query-keys"
 
 type Props = {
   onSuccess?: () => void
@@ -42,6 +45,11 @@ export const CreateUserForm: React.FC<Props> = ({ onSuccess }) => {
     onSuccess: () => {
       if (onSuccess) onSuccess()
     },
+  })
+
+  const { data: projectRoles = [] } = useQuery({
+    queryKey: projectRoleKeys.all,
+    queryFn: () => fetchProjectRoles(),
   })
 
   const handleChange =
@@ -158,6 +166,35 @@ export const CreateUserForm: React.FC<Props> = ({ onSuccess }) => {
               {fieldErrors.password && (
                 <p className="text-xs text-red-600">
                   {fieldErrors.password}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="projectRole">Project Role</Label>
+              <Select
+                value={formData.projectRole || ""}
+                onValueChange={(value) =>
+                  handleInputChange("projectRole", value)
+                }
+                disabled={loading}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih project role (opsional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  {projectRoles.map((pr) => (
+                    <SelectItem key={pr.code} value={pr.code}>
+                      {pr.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {fieldErrors.projectRole && (
+                <p className="text-xs pl-1 text-red-600">
+                  {fieldErrors.projectRole}
                 </p>
               )}
             </div>

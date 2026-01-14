@@ -13,7 +13,8 @@ import {
   IconActivityHeartbeat,
   IconNotification,
   IconUsersGroup,
-  IconFileDescription
+  IconFileDescription,
+  IconHierarchy2
 } from "@tabler/icons-react"
 
 import { NavDocuments } from "@/components/nav-documents"
@@ -63,6 +64,11 @@ const data = {
       title: "Project Phase",
       url: "/admin/dashboard/project-phases",
       icon: IconTimeline,
+    },
+    {
+      title: "Project Roles",
+      url: "/admin/dashboard/project-roles",
+      icon: IconHierarchy2,
     },
     {
       title: "Project Assignments",

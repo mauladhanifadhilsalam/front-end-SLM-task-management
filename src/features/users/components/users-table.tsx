@@ -73,6 +73,9 @@ export const UsersTable: React.FC<Props> = ({
             {columns.role && (
               <th className="px-4 py-3 font-medium">Role</th>
             )}
+            {columns.projectRole && (
+              <th className="px-4 py-3 font-medium">Project Role</th>
+            )}
             {columns.actions && (
               <th className="px-4 py-3 font-medium">Actions</th>
             )}
@@ -98,6 +101,12 @@ export const UsersTable: React.FC<Props> = ({
               {columns.role && (
                 <td className="px-4 py-3">
                   <span>{u.role.replace("_", " ")}</span>
+                </td>
+              )}
+
+              {columns.projectRole && (
+                <td className="px-4 py-3">
+                  <span>{u.projectRole ? u.projectRole.replace("_", " ") : "-"}</span>
                 </td>
               )}
 

@@ -9,11 +9,11 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { UserWithMeta } from "@/types/user.types"
+import { User } from "@/types/user.types"
 import { formatDateTime } from "@/utils/format-date-time"
 
 type Props = {
-  user: UserWithMeta
+  user: User
 }
 
 export const UserDetailCard: React.FC<Props> = ({ user }) => {
@@ -50,6 +50,21 @@ export const UserDetailCard: React.FC<Props> = ({ user }) => {
               Email
             </div>
             <div className="font-medium">{user.email}</div>
+          </div>
+
+          <div>
+            <div className="text-sm text-muted-foreground">
+              Project Role
+            </div>
+            <div className="font-medium">
+              {user.projectRole ? (
+                <Badge variant="outline" className="capitalize">
+                  {user.projectRole.replace(/_/g, " ")}
+                </Badge>
+              ) : (
+                <span className="text-muted-foreground">-</span>
+              )}
+            </div>
           </div>
 
           <div>

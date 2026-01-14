@@ -55,6 +55,11 @@ import AdminCreateProjectUpdate from "../pages/dashboard/admin/project-updates/c
 import AdminViewProjectUpdate from "../pages/dashboard/admin/project-updates/view-project-update"
 import AdminEditProjectUpdate from "../pages/dashboard/admin/project-updates/edit-project-update"
 
+import AdminProjectRoles from "../pages/dashboard/admin/projectRoles/adminProjectRoles"
+import CreateProjectRole from "../pages/dashboard/admin/projectRoles/createProjectRole"
+import ViewProjectRole from "../pages/dashboard/admin/projectRoles/viewProjectRole"
+import EditProjectRole from "../pages/dashboard/admin/projectRoles/editProjectRole"
+
 export const adminRoutes = (
   <Fragment>
     <Route
@@ -381,6 +386,39 @@ export const adminRoutes = (
       }
     />
     <Route
+      path="/admin/dashboard/project-roles"
+      element={
+        <ProtectedRoute allowedRoles={["admin"]}>
+          <AdminProjectRoles />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/dashboard/project-roles/create"
+      element={
+        <ProtectedRoute allowedRoles={["admin"]}>
+          <CreateProjectRole />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/dashboard/project-roles/view/:code"
+      element={
+        <ProtectedRoute allowedRoles={["admin"]}>
+          <ViewProjectRole />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/dashboard/project-roles/edit/:code"
+      element={
+        <ProtectedRoute allowedRoles={["admin"]}>
+          <EditProjectRole />
+        </ProtectedRoute>
+      }
+    />
+
+    <Route
       path="/admin/dashboard/project-updates"
       element={
         <ProtectedRoute allowedRoles={["admin"]}>
@@ -412,6 +450,7 @@ export const adminRoutes = (
         </ProtectedRoute>
       }
     />
+
     <Route
       path="/admin/dashboard/projects/:projectId/daily-cadence"
       element={
@@ -420,5 +459,6 @@ export const adminRoutes = (
         </ProtectedRoute>
       }
     />
+
   </Fragment>
 )

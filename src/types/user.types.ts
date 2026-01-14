@@ -6,6 +6,10 @@ export type User = {
     email: string
     passwordHash: string
     role: Role
+    projectRole: string | null
+    isActive: boolean
+    createdAt: string
+    updatedAt: string
 }
 
 export type CreateUserPayload = {
@@ -13,6 +17,7 @@ export type CreateUserPayload = {
     email: string
     role: string
     password: string
+    projectRole?: string
 }
 
 export type UserWithMeta = User & {
@@ -23,6 +28,7 @@ export type UserLite = {
     fullName: string
     email: string
     role: string
+    projectRole?: string
 }
 
 export type UserProfile = {

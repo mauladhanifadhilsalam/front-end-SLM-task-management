@@ -2,8 +2,6 @@
 
 import * as React from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { IconArrowLeft, IconCheck } from "@tabler/icons-react"
@@ -14,7 +12,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select"
-import type { ProjectLite, UserLite, RoleInProject } from "@/types/project-assignment.type"
+import type { ProjectLite, UserLite } from "@/types/project-assignment.type"
 import type {
   CreateAssignmentFormState,
   CreateAssignmentFormError,
@@ -30,7 +28,6 @@ type Props = {
   saving: boolean
   onBack: () => void
   onChange: (field: keyof CreateAssignmentFormState, value: string) => void
-  onRoleChange: (value: RoleInProject) => void
   onSubmit: (e: React.FormEvent) => void
 }
 
@@ -44,7 +41,6 @@ export const CreateProjectAssignmentForm: React.FC<Props> = ({
   saving,
   onBack,
   onChange,
-  onRoleChange,
   onSubmit,
 }) => {
   return (
@@ -72,7 +68,7 @@ export const CreateProjectAssignmentForm: React.FC<Props> = ({
             <CardHeader>
               <CardTitle>Informasi Assignment</CardTitle>
               <CardDescription>
-                Pilih project, user, dan role dalam project.
+                Pilih project dan user untuk assignment.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -86,7 +82,7 @@ export const CreateProjectAssignmentForm: React.FC<Props> = ({
               >
                 <SelectTrigger
                   id="projectId"
-                  className="w-80 max-w-full h-auto  items-start py-2"
+                  className="w-80 max-w-full h-auto items-start py-2"
                 >
                   <SelectValue
                     className="text-left whitespace-normal break-words leading-snug"
@@ -140,7 +136,7 @@ export const CreateProjectAssignmentForm: React.FC<Props> = ({
                       value={String(u.id)}
                       className="whitespace-normal leading-snug text-left"
                     >
-                      {u.fullName} (ID: {u.id})
+                      {u.fullName} - {u.projectRole}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -152,36 +148,6 @@ export const CreateProjectAssignmentForm: React.FC<Props> = ({
                     )}
                   </div>
                 </div>
-
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div className="space-y-2">
-              <Label>Role in Project *</Label>
-              <Select
-                value={form.roleInProject}
-                onValueChange={(val) =>
-                  onRoleChange(val as RoleInProject)
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Pilih role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="FRONT_END">FRONT_END</SelectItem>
-                  <SelectItem value="BACK_END">BACK_END</SelectItem>
-                        <SelectItem value="TECH_LEAD">TECH_LEAD</SelectItem>
-                        <SelectItem value="DEVOPS">DEVOPS</SelectItem>
-                        <SelectItem value="CLOUD_ENGINEER">
-                          CLOUD_ENGINEER
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {errors.roleInProject && (
-                      <p className="mt-1 text-xs text-red-600">
-                        {errors.roleInProject}
-                  </p>
-                )}
-              </div>
-            </div>
 
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end sm:space-x-3 sm:gap-0">
               <Button
