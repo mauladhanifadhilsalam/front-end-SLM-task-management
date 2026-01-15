@@ -18,6 +18,11 @@ export interface Ticket {
       role: string;
     };
   }>;
+  requester?: {
+    id: number;
+    fullName: string;
+    email: string;
+  };
 }
 
 export type TicketStatus = Ticket["status"];

@@ -133,7 +133,7 @@ export const TaskViewSwitcher = ({
             {ganttMode === "tasks" ? (
               <TaskGanttView tickets={tickets} className="h-full" />
             ) : hasPhases ? (
-              <PhaseGanttView phases={phases} className="h-full" />
+              <PhaseGanttView phases={phases} tickets={tickets} className="h-full" />
             ) : (
               <EmptyState message="Phase belum tersedia untuk ditampilkan." />
             )}
