@@ -19,7 +19,7 @@ import {
   IconAlertCircle,
   IconDownload,
   IconEye,
-  IconPhoto,
+  IconFile,
   IconDotsVertical,
 } from "@tabler/icons-react";
 
@@ -232,7 +232,7 @@ export default function TicketAttachments({ ticketId }: { ticketId: number }) {
                   </button>
                 ) : (
                   <div className="h-32 flex items-center justify-center bg-muted">
-                    <IconPhoto className="h-8 w-8 text-muted-foreground" />
+                    <IconFile className="h-8 w-8 text-muted-foreground" />
                   </div>
                 )}
 

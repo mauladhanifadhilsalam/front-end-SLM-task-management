@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import {
   IconEye,
-  IconPhoto,
+  IconFile,
   IconDotsVertical,
   IconTrash,
   IconPlus,
@@ -111,7 +111,7 @@ export const AdminFileAttachmentsGrid: React.FC<Props> = ({
                             </button>
                             ) : (
                           <div className="h-40 bg-muted flex items-center justify-center">
-                            <IconPhoto className="h-10 w-10 text-muted-foreground" />
+                            <IconFile className="h-10 w-10 text-muted-foreground" />
                           </div>
                         )}
 
