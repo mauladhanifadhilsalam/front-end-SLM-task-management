@@ -113,7 +113,6 @@ export function TeamUpdateTable({
     const isDeveloper = role === "developer"
     const isAdmin = role === "admin"
     const isPm = role === "project_manager"
-    const canExport = isAdmin || isPm
     const currentUserId = getCurrentUserId()
     const basePath = isDeveloper
         ? "/developer-dashboard/daily-updates"
@@ -203,12 +202,6 @@ export function TeamUpdateTable({
             }
             return next
         })
-    }
-
-    // Export handlers (dummy for now)
-    const handleExportExcel = (project: string, data: TeamUpdate[]) => {
-        console.log(`Exporting Excel for ${project}:`, data)
-        alert(`Export Excel untuk "${project}" dengan ${data.length} data`)
     }
 
     const handleCreateUpdate = () => {
@@ -380,24 +373,6 @@ export function TeamUpdateTable({
                             >
                                 <div className="overflow-hidden">
                                     <div className="border-t bg-background">
-                                    {/* Export Buttons */}
-                                    {canExport ? (
-                                        <div className="flex items-center gap-2 p-3 border-b bg-muted/30">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={(e) => {
-                                                    e.stopPropagation()
-                                                    handleExportExcel(projectLabel, updates)
-                                                }}
-                                                className="gap-2"
-                                                disabled={updates.length === 0}
-                                            >
-                                                <IconFileSpreadsheet className="h-4 w-4 text-green-600" />
-                                                Export Excel
-                                            </Button>
-                                        </div>
-                                    ) : null}
 
                                     {/* Table */}
                                     {updates.length === 0 ? (

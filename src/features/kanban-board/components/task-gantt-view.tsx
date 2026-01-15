@@ -12,9 +12,17 @@ type NormalizedTask = Ticket & { start: Date; end: Date };
 
 const DAY_MS = 86_400_000;
 const DAY_WIDTH = 26;
-const LABEL_WIDTH = 260;
+const TASK_WIDTH = 250;
+const OWNER_WIDTH = 150;
+const DATE_WIDTH = 100;
+const DURATION_WIDTH = 70;
+const STATUS_WIDTH = 100;
+
+// Total fixed columns width
+const FIXED_COLS_WIDTH = TASK_WIDTH + OWNER_WIDTH + DATE_WIDTH + DATE_WIDTH + DURATION_WIDTH + STATUS_WIDTH;
 
 const STATUS_COLORS: Record<TicketStatus, string> = {
+  NEW: "bg-slate-300/80 text-slate-900 ring-slate-500/50",
   TO_DO: "bg-slate-300/80 text-slate-900 ring-slate-500/50",
   IN_PROGRESS: "bg-blue-500/80 text-blue-50 ring-blue-600/60",
   IN_REVIEW: "bg-indigo-500/80 text-indigo-50 ring-indigo-600/60",
@@ -56,6 +64,17 @@ function formatDate(value?: Date | string | null) {
     day: "2-digit",
     month: "short",
     year: "numeric",
+  });
+}
+
+function formatDateShort(value?: Date | string | null) {
+  if (!value) return "-";
+  const d = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(d.getTime())) return "-";
+
+  return d.toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
   });
 }
 
@@ -153,6 +172,10 @@ export const TaskGanttView = ({ tickets, className }: TaskGanttViewProps) => {
   const todayIndex = showToday ? diffDays(minDate, today) : -1;
   const todayLeft = showToday ? todayIndex * DAY_WIDTH : 0;
 
+  const gridCols = `${TASK_WIDTH}px ${OWNER_WIDTH}px ${DATE_WIDTH}px ${DATE_WIDTH}px ${DURATION_WIDTH}px ${STATUS_WIDTH}px ${totalWidth}px`;
+
+  const minTableWidth = FIXED_COLS_WIDTH + totalWidth;
+
   return (
     <div className={cn("flex h-full flex-col gap-3", className)}>
       <div className="flex flex-wrap items-center justify-between gap-2 px-1">
@@ -168,12 +191,14 @@ export const TaskGanttView = ({ tickets, className }: TaskGanttViewProps) => {
 
       <div className="relative h-full overflow-hidden rounded-xl border bg-muted/40">
         <div className="absolute inset-0 overflow-auto">
-          <div className="relative min-w-[900px]">
-            {showToday && (
+          <div
+            className="relative"
+            style={{ minWidth: minTableWidth }}>
+          {showToday && (
               <>
                 <div
                   className="pointer-events-none absolute top-2 -translate-x-1/2"
-                  style={{ left: LABEL_WIDTH + todayLeft }}
+                  style={{ left: FIXED_COLS_WIDTH + todayLeft }}
                 >
                   <span className="inline-flex items-center rounded-full bg-purple-600 px-2 py-[2px] text-[10px] font-semibold text-white shadow-sm">
                     Hari ini
@@ -181,18 +206,22 @@ export const TaskGanttView = ({ tickets, className }: TaskGanttViewProps) => {
                 </div>
                 <div
                   className="pointer-events-none absolute inset-y-0 border-l-2 border-purple-500/80"
-                  style={{ left: LABEL_WIDTH + todayLeft }}
+                  style={{ left: FIXED_COLS_WIDTH + todayLeft }}
                 />
               </>
             )}
 
+            {/* Header Row */}
             <div
               className="grid bg-muted text-xs font-semibold text-foreground"
-              style={{
-                gridTemplateColumns: `${LABEL_WIDTH}px ${totalWidth}px`,
-              }}
+              style={{ gridTemplateColumns: gridCols }}
             >
               <div className="border-r px-3 py-2 text-muted-foreground">Task</div>
+              <div className="border-r px-3 py-2 text-muted-foreground">Task Owner</div>
+              <div className="border-r px-3 py-2 text-muted-foreground">Start Date</div>
+              <div className="border-r px-3 py-2 text-muted-foreground">End Date</div>
+              <div className="border-r px-3 py-2 text-muted-foreground">Duration</div>
+              <div className="border-r px-3 py-2 text-muted-foreground">Status</div>
               <div className="flex" style={{ width: totalWidth }}>
                 {monthSegments.map((month, idx) => (
                   <div
@@ -206,12 +235,16 @@ export const TaskGanttView = ({ tickets, className }: TaskGanttViewProps) => {
               </div>
             </div>
 
+            {/* Day Numbers Row */}
             <div
               className="grid border-b text-[10px] text-muted-foreground"
-              style={{
-                gridTemplateColumns: `${LABEL_WIDTH}px ${totalWidth}px`,
-              }}
+              style={{ gridTemplateColumns: gridCols }}
             >
+              <div className="border-r bg-card px-3 py-1" />
+              <div className="border-r bg-card px-3 py-1" />
+              <div className="border-r bg-card px-3 py-1" />
+              <div className="border-r bg-card px-3 py-1" />
+              <div className="border-r bg-card px-3 py-1" />
               <div className="border-r bg-card px-3 py-1" />
               <div className="relative flex" style={{ width: totalWidth }}>
                 {days.map((d, i) => {
@@ -229,6 +262,7 @@ export const TaskGanttView = ({ tickets, className }: TaskGanttViewProps) => {
               </div>
             </div>
 
+            {/* Task Rows */}
             <div>
               {sortedTasks.map((task, rowIndex) => {
                 const startOffset = diffDays(minDate, task.start);
@@ -237,35 +271,58 @@ export const TaskGanttView = ({ tickets, className }: TaskGanttViewProps) => {
                 const width = spanDays * DAY_WIDTH;
                 const isOddRow = rowIndex % 2 === 1;
                 const barTone = STATUS_COLORS[task.status] ?? STATUS_COLORS.TO_DO;
+                const rowBg = isOddRow ? "bg-card" : "bg-background";
 
                 return (
                   <div
                     key={task.id}
                     className="grid"
-                    style={{
-                      gridTemplateColumns: `${LABEL_WIDTH}px ${totalWidth}px`,
-                    }}
+                    style={{ gridTemplateColumns: gridCols }}
                   >
-                    <div
-                      className={`border-r px-3 py-3 ${isOddRow ? "bg-card" : "bg-background"}`}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0 space-y-1">
-                          <p className="line-clamp-1 text-sm font-semibold text-foreground">
-                            {task.title}
-                          </p>
-                          <p className="text-[11px] text-muted-foreground">
-                            {formatDate(task.start)} - {formatDate(task.end)} |{" "}
-                            {durationDaysInclusive(task.start, task.end)} hari
-                          </p>
-                        </div>
-                        <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                          {formatStatus(task.status)}
-                        </span>
-                      </div>
+                    {/* Task Title */}
+                    <div className={`border-r px-3 py-3 ${rowBg}`}>
+                      <p className="line-clamp-2 text-sm font-semibold text-foreground">
+                        {task.title}
+                      </p>
                     </div>
 
-                    <div className={`relative h-12 ${isOddRow ? "bg-card" : "bg-background"}`}>
+                    {/* Task Owner */}
+                    <div className={`border-r px-3 py-3 ${rowBg}`}>
+                      <p className="line-clamp-2 text-sm text-foreground">
+                        {task.requester?.fullName || "Unassigned"}
+                      </p>
+                    </div>
+
+                    {/* Start Date */}
+                    <div className={`border-r px-3 py-3 ${rowBg}`}>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDateShort(task.start)}
+                      </p>
+                    </div>
+
+                    {/* End Date */}
+                    <div className={`border-r px-3 py-3 ${rowBg}`}>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDateShort(task.end)}
+                      </p>
+                    </div>
+
+                    {/* Duration */}
+                    <div className={`border-r px-3 py-3 ${rowBg}`}>
+                      <p className="text-xs text-muted-foreground">
+                        {durationDaysInclusive(task.start, task.end)} hari
+                      </p>
+                    </div>
+
+                    {/* Status */}
+                    <div className={`border-r px-3 py-3 ${rowBg}`}>
+                      <span className="inline-block rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        {formatStatus(task.status)}
+                      </span>
+                    </div>
+
+                    {/* Gantt Bar */}
+                    <div className={`relative h-12 ${rowBg}`}>
                       <div className="absolute inset-0 flex">
                         {days.map((d, i) => {
                           const isWeekend = d.getDay() === 0 || d.getDay() === 6;
