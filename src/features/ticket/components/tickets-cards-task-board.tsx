@@ -9,8 +9,6 @@ import {
   IconUsers,
   IconPaperclip,
 } from "@tabler/icons-react"
-import ReactMarkdown from "react-markdown"
-import remarkGfm from "remark-gfm"
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -172,7 +170,10 @@ export const TicketsCardsTaskBoard: React.FC<Props> = ({
             <AlertDialog key={ticket.id}>
               <article className="flex flex-col justify-between rounded-2xl border bg-card/80 p-4 shadow-sm transition hover:-translate-y-[2px] hover:shadow-md">
                 <div className="flex items-start justify-between">
-                  <h3 className="text-sm font-semibold leading-snug">
+                  <h3 
+                    className="text-sm font-semibold leading-snug cursor-pointer hover:text-primary transition-colors"
+                    onClick={() => onView(ticket.id)}
+                  >
                     {ticket.title}
                   </h3>
 
@@ -244,16 +245,8 @@ export const TicketsCardsTaskBoard: React.FC<Props> = ({
                   </DropdownMenu>
                 </div>
 
-                <div className="space-y-2 mt-2">
-                  {ticket.description && (
-                    <div className="markdown-body prose prose-xs max-w-none line-clamp-2 text-muted-foreground [&>*]:my-1 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {ticket.description}
-                      </ReactMarkdown>
-                    </div>
-                  )}
-
-                  <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
+                <div className="space-y-2 mt-3">
+                  <div className="flex flex-wrap items-center gap-2 text-[11px]">
                     <Badge variant="outline" className="border-primary/60">
                       {normalizeType(ticket.type)}
                     </Badge>
@@ -272,24 +265,9 @@ export const TicketsCardsTaskBoard: React.FC<Props> = ({
                 </div>
 
                 <div className="mt-4 flex items-end justify-between text-[11px] text-muted-foreground">
-                  <div className="space-y-1">
-                    {ticket.projectName && (
-                      <p className="font-medium text-foreground">
-                        {ticket.projectName}
-                      </p>
-                    )}
-
-                    {ticket.requesterName && (
-                      <p>Requested by {ticket.requesterName}</p>
-                    )}
-
-                    <p className="text-[10px]">
-                      {ticket.createdAt && (
-                        <>Created {formatDate(ticket.createdAt)} · </>
-                      )}
-                      {ticket.dueDate && <>Due {formatDate(ticket.dueDate)}</>}
-                    </p>
-                  </div>
+                  {ticket.dueDate && (
+                    <p className="text-[10px]">Due {formatDate(ticket.dueDate)}</p>
+                  )}
 
                   <span className="font-mono text-[10px] text-muted-foreground">
                     #TASK-{ticket.id}

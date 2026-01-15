@@ -118,7 +118,7 @@ export default function DevTaskTicketsPage() {
       )
       const projectId = ticket?.projectId
       if (!projectId) return
-      navigate(`/developer-dashboard/projects/${projectId}/tasks/${id}`)
+      navigate(`/developer-dashboard/projects/${projectId}/tasks/${id}`, { state: { from: true } })
     },
     [filteredAssigned, filteredReported, navigate],
   )

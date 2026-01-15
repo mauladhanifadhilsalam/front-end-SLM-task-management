@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { AppSidebarDev } from "@/pages/dashboard/dev/components/app-sidebardev";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -12,6 +12,7 @@ import { TaskDetailCard } from "@/features/DevDetailTask/components/task-detail-
 export default function DeveloperTaskDetail() {
   const { projectId, taskId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const { task, loading, error, projectName } = useTaskDetail(
     projectId,
@@ -19,7 +20,12 @@ export default function DeveloperTaskDetail() {
   );
 
   const handleBack = () => {
-    navigate(`/developer-dashboard/projects/${projectId}`);
+    // Jika ada dari halaman sebelumnya, gunakan -1 untuk kembali
+    if (location.state?.from) {
+      navigate(-1);
+    } else {
+      navigate(`/developer-dashboard/projects/${projectId}`);
+    }
   };
 
   return (
