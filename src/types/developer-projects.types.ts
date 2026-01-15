@@ -11,8 +11,8 @@ export interface AssignmentCard {
 export interface ProjectAssignment {
   user: {
     id: number;
+    projectRole: string | null;
   };
-  roleInProject: string;
 }
 
 export interface ProjectResponse {
