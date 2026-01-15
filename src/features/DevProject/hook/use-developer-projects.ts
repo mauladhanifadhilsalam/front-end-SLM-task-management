@@ -70,7 +70,7 @@ export function useDeveloperProjects() {
               id: assignment!.user.id + project.id,
               projectId: project.id,
               name: project.name,
-              roleInProject: assignment!.roleInProject,
+              roleInProject: assignment!.user.projectRole ?? "-",
               status: project.status,
               startDate: project.startDate,
               endDate: project.endDate,
