@@ -6,7 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { MoreHorizontal } from "lucide-react"
@@ -21,6 +21,7 @@ interface SortableTaskCardProps {
 }
 
 export const SortableTaskCard = ({ ticket, onEdit, onDelete }: SortableTaskCardProps) => {
+  const navigate = useNavigate()
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
     id: String(ticket.id),
     data: { type: "ticket", ticket },
@@ -37,16 +38,17 @@ export const SortableTaskCard = ({ ticket, onEdit, onDelete }: SortableTaskCardP
   const href = `${basePath}/projects/${ticket.projectId}/tasks/${ticket.id}`
   const assigneeCount = ticket.assignees?.length ?? 0
 
+  const handleTitleClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    navigate(href, { state: { from: true } })
+  }
+
   return (
     <Card
       ref={setNodeRef}
       {...attributes}
       {...listeners}
       style={style}
-      onClick={(e) => {
-        if ((e.target as HTMLElement).closest("a,button")) return
-        onEdit?.(ticket)
-      }}
       className="bg-card border border-border rounded-xl p-3 space-y-3 shadow-md hover:shadow-lg transition duration-150 hover:-translate-y-0.5 select-none"
     >
       <CardHeader className="p-0 flex flex-col items-start space-y-2">
@@ -107,18 +109,17 @@ export const SortableTaskCard = ({ ticket, onEdit, onDelete }: SortableTaskCardP
         </div>
 
         <CardTitle className="text-base font-bold leading-snug w-full">
-          <Link to={href} className="underline decoration-muted-foreground hover:decoration-foreground">
+          <span 
+            onClick={handleTitleClick}
+            className="cursor-pointer hover:text-primary transition-colors"
+          >
             {ticket.title}
-          </Link>
+          </span>
         </CardTitle>
       </CardHeader>
 
       <CardContent className="p-0 space-y-3">
         <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-          <span className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-muted/40 px-2 py-0.5">
-            <span className={`inline-block h-2 w-2 rounded-full ${getStatusColor(ticket.status)}`} />
-            <span className="font-semibold">{ticket.status}</span>
-          </span>
           <span className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-muted/40 px-2 py-0.5">
             <span className="font-semibold text-foreground">{formatDate(ticket.dueDate)}</span>
           </span>
@@ -127,10 +128,6 @@ export const SortableTaskCard = ({ ticket, onEdit, onDelete }: SortableTaskCardP
             <span>assignee</span>
           </span>
         </div>
-
-        <p className="text-xs text-muted-foreground line-clamp-2">
-          {ticket.description || "No description provided."}
-        </p>
       </CardContent>
     </Card>
   )

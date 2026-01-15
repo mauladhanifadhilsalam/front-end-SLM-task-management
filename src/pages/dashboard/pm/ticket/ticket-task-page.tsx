@@ -118,7 +118,7 @@ export default function PmTaskTicketsPage() {
       )
       const projectId = ticket?.projectId
       if (!projectId) return
-      navigate(`/project-manager/dashboard/projects/${projectId}/tasks/${id}`)
+      navigate(`/project-manager/dashboard/projects/${projectId}/tasks/${id}`, { state: { from: true } })
     },
     [filteredAssigned, filteredReported, navigate],
   )

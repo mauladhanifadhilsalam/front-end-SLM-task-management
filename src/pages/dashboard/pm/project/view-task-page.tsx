@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useNavigate, useParams } from "react-router-dom"
+import { useNavigate, useParams, useLocation } from "react-router-dom"
 import { AppSidebarPm } from "../components/sidebar-pm"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
@@ -13,11 +13,15 @@ import { TaskDetailCard } from "@/features/DevDetailTask/components/task-detail-
 export default function PmProjectTaskDetailPage() {
   const { projectId, taskId } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
 
   const { task, loading, error, projectName } = useTaskDetail(projectId, taskId)
 
   const handleBack = () => {
-    if (projectId) {
+    // Jika ada dari halaman sebelumnya, gunakan -1 untuk kembali
+    if (location.state?.from) {
+      navigate(-1)
+    } else if (projectId) {
       navigate(`/project-manager/dashboard/projects/tasks/${projectId}`)
     } else {
       navigate("/project-manager/dashboard/projects")

@@ -219,12 +219,14 @@ export default function NotificationPage() {
           if (upperType === "TASK" && projectId) {
             navigate(
               `/project-manager/dashboard/projects/${projectId}/tasks/${notification.targetId}`,
+              { state: { from: true } }
             )
             return
           }
 
           navigate(
             `/project-manager/dashboard/ticket-issue/view/${notification.targetId}`,
+            { state: { from: true } }
           )
           return
         }
@@ -233,6 +235,7 @@ export default function NotificationPage() {
           if (upperType === "TASK" && projectId) {
             navigate(
               `/developer-dashboard/projects/${projectId}/tasks/${notification.targetId}`,
+              { state: { from: true } }
             )
             return
           }
@@ -240,6 +243,7 @@ export default function NotificationPage() {
           if (projectId) {
             navigate(
               `/developer-dashboard/projects/${projectId}/issues/${notification.targetId}`,
+              { state: { from: true } }
             )
             return
           }
