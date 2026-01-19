@@ -29,8 +29,6 @@ const normalizeStatus = (raw?: string): TicketStatus => {
       return "NEW"
     case "TO_DO":
       return "TO_DO"
-    case "OPEN":
-      return "OPEN"
     case "IN_PROGRESS":
       return "IN_PROGRESS"
     case "IN_REVIEW":
@@ -41,12 +39,7 @@ const normalizeStatus = (raw?: string): TicketStatus => {
       return "RESOLVED"
     case "CLOSED":
       return "CLOSED"
-    case "BLOCKED":
-      return "BLOCKED"
-    case "PENDING":
-      return "PENDING"
     default:
-      // Default to TO_DO instead of OPEN for unknown statuses
       return "TO_DO"
   }
 }

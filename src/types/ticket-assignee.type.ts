@@ -1,14 +1,11 @@
 export type TicketStatus =
   | "NEW"
   | "TO_DO"
-  | "OPEN"
   | "IN_PROGRESS"
   | "IN_REVIEW"
   | "DONE"
   | "RESOLVED"
   | "CLOSED"
-  | "BLOCKED"
-  | "PENDING"
 
 export type TicketPriority = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL"
 
