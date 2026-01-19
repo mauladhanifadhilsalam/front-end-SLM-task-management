@@ -18,24 +18,36 @@ type RawTicket = {
   priority?: string
   type?: string
   createdAt?: string
+  actionPlan?: string
   assignees?: any[]
 }
 
 const normalizeStatus = (raw?: string): TicketStatus => {
-  const value = (raw ?? "OPEN").toUpperCase()
+  const value = (raw ?? "TO_DO").toUpperCase()
   switch (value) {
+    case "NEW":
+      return "NEW"
+    case "TO_DO":
+      return "TO_DO"
     case "OPEN":
       return "OPEN"
     case "IN_PROGRESS":
       return "IN_PROGRESS"
+    case "IN_REVIEW":
+      return "IN_REVIEW"
+    case "DONE":
+      return "DONE"
     case "RESOLVED":
       return "RESOLVED"
     case "CLOSED":
       return "CLOSED"
+    case "BLOCKED":
+      return "BLOCKED"
     case "PENDING":
       return "PENDING"
     default:
-      return "OPEN"
+      // Default to TO_DO instead of OPEN for unknown statuses
+      return "TO_DO"
   }
 }
 
@@ -48,8 +60,8 @@ const normalizePriority = (raw?: string): TicketPriority => {
       return "MEDIUM"
     case "HIGH":
       return "HIGH"
-    case "URGENT":
-      return "URGENT"
+    case "CRITICAL":
+      return "CRITICAL"
     default:
       return "LOW"
   }
@@ -94,6 +106,7 @@ const mapTicketAssignees = (tickets: RawTicket[]): TicketAssignee[] => {
           status: normalizeStatus(ticket.status),
           priority: normalizePriority(ticket.priority),
           type: normalizeType(ticket.type),
+          actionPlan: String(ticket.actionPlan ?? ""),
         },
         user: {
           id: Number(user.id ?? 0),
