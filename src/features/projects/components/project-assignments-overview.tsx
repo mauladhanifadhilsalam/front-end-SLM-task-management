@@ -11,12 +11,10 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { IconUsers, IconUserCheck } from "@tabler/icons-react"
 
-// Sesuaikan dengan tipe assignment di detail project kamu.
-// Kalau kamu sudah punya `ProjectAssignment` di `project.type`, pakai itu saja.
+
 export type ProjectAssignmentView = {
   id: number
   userId: number
-  roleInProject: string
   isActive?: boolean | null
   allocation?: number | null
   notes?: string | null
@@ -25,6 +23,7 @@ export type ProjectAssignmentView = {
     fullName?: string
     email: string
     role?: string
+    projectRole?: string
   }
 }
 
@@ -58,7 +57,7 @@ export const ProjectAssignmentsOverview: React.FC<Props> = ({
       </Card>
     )
   }
-
+  console.log(assignments)
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between gap-2">
@@ -82,9 +81,10 @@ export const ProjectAssignmentsOverview: React.FC<Props> = ({
                 <IconUserCheck className="h-4 w-4 text-muted-foreground" />
                 <div>
                   <p className="font-medium leading-none">
-                    {assignment.user?.fullName ||
-                      assignment.user?.email ||
-                      `User #${assignment.userId}`}
+                    {assignment.user?.fullName}
+                    {assignment.user?.role}
+                    {assignment.user?.projectRole}
+                  
                   </p>
                 </div>
               </div>
@@ -94,7 +94,9 @@ export const ProjectAssignmentsOverview: React.FC<Props> = ({
                   assignment.isActive === false ? "outline" : "default"
                 }
               >
-                {getRoleLabel(assignment.roleInProject)}
+                {assignment.user?.projectRole
+                  ? getRoleLabel(assignment.user.projectRole)
+                  : "Tidak ada role"}
               </Badge>
             </div>
 
