@@ -103,17 +103,21 @@ export function TeamUpdateTable({
 }: TeamUpdateTableProps) {
     const navigate = useNavigate()
     const queryClient = useQueryClient()
-    const { updates, loading, error } = useTeamUpdates()
-    const { projects } = usePmProjects()
-    const [query, setQuery] = React.useState("")
-    const [statusFilter, setStatusFilter] = React.useState<UpdateStatus | "ALL">("ALL")
-    const [expandedProjects, setExpandedProjects] = React.useState<Set<string>>(new Set())
-    const didInitExpansion = React.useRef(false)
     const role = (localStorage.getItem("role") ?? "").toLowerCase()
     const isDeveloper = role === "developer"
     const isAdmin = role === "admin"
     const isPm = role === "project_manager"
     const currentUserId = getCurrentUserId()
+    const { updates, loading, error } = useTeamUpdates()
+    const projectFilters = React.useMemo(
+        () => (isDeveloper && currentUserId ? { assignedUserId: currentUserId } : undefined),
+        [isDeveloper, currentUserId]
+    )
+    const { projects } = usePmProjects(projectFilters)
+    const [query, setQuery] = React.useState("")
+    const [statusFilter, setStatusFilter] = React.useState<UpdateStatus | "ALL">("ALL")
+    const [expandedProjects, setExpandedProjects] = React.useState<Set<string>>(new Set())
+    const didInitExpansion = React.useRef(false)
     const basePath = isDeveloper
         ? "/developer-dashboard/daily-updates"
         : isAdmin
@@ -126,13 +130,21 @@ export function TeamUpdateTable({
         projects.forEach((project) => {
             map.set(project.id, project.name)
         })
-        updates.forEach((item) => {
-            if (!map.has(item.projectId)) {
-                map.set(item.projectId, `Project ${item.projectId}`)
-            }
-        })
+        if (!isDeveloper) {
+            updates.forEach((item) => {
+                if (!map.has(item.projectId)) {
+                    map.set(item.projectId, `Project ${item.projectId}`)
+                }
+            })
+        }
         return map
-    }, [projects, updates])
+    }, [projects, updates, isDeveloper])
+
+    const visibleUpdates = React.useMemo(() => {
+        if (!isDeveloper) return updates
+        const allowedProjectIds = new Set(projects.map((p) => p.id))
+        return updates.filter((item) => allowedProjectIds.has(item.projectId))
+    }, [updates, isDeveloper, projects])
 
     const projectIds = React.useMemo(() => {
         return Array.from(projectLabels.keys())
@@ -149,7 +161,7 @@ export function TeamUpdateTable({
 
     // Group updates by project
     const groupedUpdates = React.useMemo(() => {
-        let filtered = updates
+        let filtered = visibleUpdates
 
         // Filter by search query
         const q = query.trim().toLowerCase()
@@ -175,14 +187,14 @@ export function TeamUpdateTable({
             grouped[projectId] = filtered.filter((u) => u.projectId === numericId)
         }
         return grouped
-    }, [query, statusFilter, updates, projectIds, projectLabels])
+    }, [query, statusFilter, visibleUpdates, projectIds, projectLabels])
 
     // Calculate stats per project
     const projectStats = React.useMemo(() => {
         const stats: Record<string, { done: number; notStarted: number; inProgress: number }> = {}
         for (const projectId of projectIds) {
             const numericId = Number(projectId)
-            const projectUpdates = updates.filter((u) => u.projectId === numericId)
+            const projectUpdates = visibleUpdates.filter((u) => u.projectId === numericId)
             stats[projectId] = {
                 done: projectUpdates.filter((u) => u.status === "DONE").length,
                 notStarted: projectUpdates.filter((u) => u.status === "NOT_STARTED").length,
@@ -190,7 +202,7 @@ export function TeamUpdateTable({
             }
         }
         return stats
-    }, [projectIds, updates])
+    }, [projectIds, visibleUpdates])
 
     const toggleProject = (project: string) => {
         setExpandedProjects((prev) => {
