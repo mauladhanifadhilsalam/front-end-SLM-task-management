@@ -57,7 +57,7 @@ export const ProjectAssignmentsOverview: React.FC<Props> = ({
       </Card>
     )
   }
-  console.log(assignments)
+  console
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between gap-2">
@@ -82,8 +82,6 @@ export const ProjectAssignmentsOverview: React.FC<Props> = ({
                 <div>
                   <p className="font-medium leading-none">
                     {assignment.user?.fullName}
-                    {assignment.user?.role}
-                    {assignment.user?.projectRole}
                   
                   </p>
                 </div>
