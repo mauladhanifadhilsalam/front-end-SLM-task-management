@@ -42,6 +42,7 @@ type TaskFormProps = {
 }
 
 const STATUS_OPTIONS: { value: TicketStatus; label: string }[] = [
+  { value:"NEW",label:"New"},
   { value: "TO_DO", label: "To Do" },
   { value: "IN_PROGRESS", label: "In Progress" },
   { value: "IN_REVIEW", label: "In Review" },
