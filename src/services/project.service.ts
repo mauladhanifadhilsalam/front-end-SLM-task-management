@@ -175,17 +175,20 @@ export const fetchProjectById = async (id: number): Promise<ProjectDetail> => {
 
   const assignments: ProjectAssignment[] = (d.assignments ?? []).map(
     (a: any) => ({
-      roleInProject: String(a.roleInProject ?? a.role_in_project ?? ""),
       user: a.user
         ? {
             id: Number(a.user.id),
             fullName: String(a.user.fullName ?? a.user.full_name ?? ""),
             email: String(a.user.email ?? ""),
+            role: String(a.user.role ?? ""),
+            projectRole: String(a.user.projectRole ?? ""),
           }
         : {
             id: 0,
             fullName: "",
             email: "",
+            role: "",
+            projectRole: "",
           },
     }),
   )
