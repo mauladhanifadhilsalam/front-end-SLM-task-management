@@ -3,14 +3,14 @@
 import { useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 
-import { fetchProjects } from "@/services/project.service"
+import { fetchProjects, type ProjectListParams } from "@/services/project.service"
 import type { Project } from "@/types/project.type"
 import { projectKeys } from "@/lib/query-keys"
 
-export function usePmProjects() {
+export function usePmProjects(filters?: ProjectListParams) {
   const query = useQuery({
-    queryKey: projectKeys.list(),
-    queryFn: fetchProjects,
+    queryKey: projectKeys.list(filters),
+    queryFn: () => fetchProjects(filters),
     staleTime: 60 * 1000,
   })
 
