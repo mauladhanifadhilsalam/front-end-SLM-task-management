@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { IconSearch, IconColumns3, IconPlus } from "@tabler/icons-react"
+import { IconSearch, IconLayoutGrid, IconPlus,IconChevronDown } from "@tabler/icons-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import {
@@ -49,14 +49,13 @@ export const AdminProjectRoleToolbar: React.FC<Props> = ({
       <div className="flex items-center gap-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm">
-              <IconColumns3 className="mr-2 h-4 w-4" />
-              Columns
+            <Button  size="sm" className="self-start sm:self-auto flex items-center gap-2 cursor-pointer">
+              <IconLayoutGrid className="h-4 w-4" />
+              <span>Columns</span>
+              <IconChevronDown className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-40">
-            <DropdownMenuLabel>Toggle Columns</DropdownMenuLabel>
-            <DropdownMenuSeparator />
             <DropdownMenuCheckboxItem
               checked={cols.id}
               onCheckedChange={(checked) => onToggleColumn("id", checked)}
