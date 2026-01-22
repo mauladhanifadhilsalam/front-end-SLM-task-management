@@ -89,8 +89,6 @@ const AdminComment: React.FC = () => {
                     onToggleColumn={handleToggleColumn}
                     onRefresh={reload}
                     onCreate={handleCreateComment}
-                    selectedCount={selectedIds.size}
-                    onClearSelection={clearSelection}
                   />
                 </div>
                 <div className="px-4 lg:px-6">
@@ -104,11 +102,6 @@ const AdminComment: React.FC = () => {
                     pageSize={rowsPerPage}
                     onPageChange={setPage}
                     onPageSizeChange={setRowsPerPage}
-                    selectedIds={selectedIds}
-                    isRowSelected={isRowSelected}
-                    toggleRow={toggleRow}
-                    currentPageAllSelected={currentPageAllSelected}
-                    toggleSelectAllOnPage={toggleSelectAllOnPage}
                     onDelete={handleDelete}
                   />
 
