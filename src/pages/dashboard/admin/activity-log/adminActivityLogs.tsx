@@ -8,6 +8,10 @@ import { useActivityLogs } from "@/features/activity-logs/hooks/use-activity-log
 import { ActivityLogsToolbar } from "@/features/activity-logs/components/activity-logs-toolbar"
 import { ActivityLogsTable } from "@/features/activity-logs/components/activity-logs-table"
 import { DeleteActivityLogDialog } from "@/features/activity-logs/components/delete-activity-log-dialog"
+import {
+  ActivityLogsSearchEmptyState,
+  ActivityLogsEmptyState,
+} from "@/features/activity-logs/components/activity-logs-empty-state"
 
 const AdminActivityLogsPage: React.FC = () => {
   const {
@@ -32,6 +36,8 @@ const AdminActivityLogsPage: React.FC = () => {
     setPage,
     setPageSize,
   } = useActivityLogs()
+
+  const hasData = filteredLogs.length > 0
 
   return (
     <div>
@@ -85,6 +91,17 @@ const AdminActivityLogsPage: React.FC = () => {
                   onPageChange={setPage}
                   onPageSizeChange={setPageSize}
                 />
+
+                {!loading && !error && !hasData && (
+                  search.trim() !== "" ? (
+                    <ActivityLogsSearchEmptyState
+                      query={search}
+                      onClear={() => handleSearchChange("")}
+                    />
+                  ) : (
+                    <ActivityLogsEmptyState />
+                  )
+                )}
               </div>
             </div>
           </div>

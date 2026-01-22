@@ -8,6 +8,10 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { AdminCommentToolbar } from "@/features/comment/components/admin-comment-toolbar"
 import { AdminCommentTable } from "@/features/comment/components/admin-comment-table"
 import { useAdminCommentList } from "@/features/comment/hooks/use-admin-comment-list"
+import {
+  CommentsSearchEmptyState,
+  CommentsEmptyState,
+} from "@/features/comment/components/comments-empty-state"
 
 const AdminComment: React.FC = () => {
   const navigate = useNavigate()
@@ -45,6 +49,12 @@ const AdminComment: React.FC = () => {
     }))
   }
 
+  const hasData = rows.length > 0
+
+  const handleCreateComment = () => {
+    navigate("/admin/dashboard/comments/create")
+  }
+
   return (
     <div>
       <SidebarProvider
@@ -78,11 +88,7 @@ const AdminComment: React.FC = () => {
                     cols={cols}
                     onToggleColumn={handleToggleColumn}
                     onRefresh={reload}
-                    onCreate={() =>
-                      navigate("/admin/dashboard/comments/create")
-                    }
-                    selectedCount={selectedIds.size}
-                    onClearSelection={clearSelection}
+                    onCreate={handleCreateComment}
                   />
                 </div>
                 <div className="px-4 lg:px-6">
@@ -96,13 +102,22 @@ const AdminComment: React.FC = () => {
                     pageSize={rowsPerPage}
                     onPageChange={setPage}
                     onPageSizeChange={setRowsPerPage}
-                    selectedIds={selectedIds}
-                    isRowSelected={isRowSelected}
-                    toggleRow={toggleRow}
-                    currentPageAllSelected={currentPageAllSelected}
-                    toggleSelectAllOnPage={toggleSelectAllOnPage}
                     onDelete={handleDelete}
                   />
+
+                  {!loading && !error && !hasData && (
+                    query.trim() !== "" ? (
+                      <CommentsSearchEmptyState
+                        query={query}
+                        onClear={() => setQuery("")}
+                        onAddComment={handleCreateComment}
+                      />
+                    ) : (
+                      <CommentsEmptyState
+                        onAddComment={handleCreateComment}
+                      />
+                    )
+                  )}
                 </div>
               </div>
             </div>

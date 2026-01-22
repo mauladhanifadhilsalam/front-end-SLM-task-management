@@ -30,11 +30,6 @@ type Props = {
   pageSize: number
   onPageChange: (page: number) => void
   onPageSizeChange: (value: number) => void
-  selectedIds: Set<number>
-  isRowSelected: (id: number) => boolean
-  toggleRow: (id: number) => void
-  currentPageAllSelected: boolean
-  toggleSelectAllOnPage: () => void
   onDelete: (id: number) => void
 }
 
@@ -48,11 +43,6 @@ export const AdminCommentTable: React.FC<Props> = ({
   pageSize,
   onPageChange,
   onPageSizeChange,
-  selectedIds,
-  isRowSelected,
-  toggleRow,
-  currentPageAllSelected,
-  toggleSelectAllOnPage,
   onDelete,
 }) => {
   const colSpan = Object.values(cols).filter(Boolean).length || 7
@@ -63,16 +53,6 @@ export const AdminCommentTable: React.FC<Props> = ({
         <table className="min-w-full divide-y divide-border text-sm">
           <thead className="bg-muted/50">
             <tr className="text-left">
-              {cols.sel && (
-                <th className="px-4 py-3 font-medium">
-                  <input
-                    type="checkbox"
-                    aria-label="Select all on this page"
-                    checked={currentPageAllSelected && rows.length > 0}
-                    onChange={toggleSelectAllOnPage}
-                  />
-                </th>
-              )}
               {cols.id && (
                 <th className="px-4 py-3 font-medium">ID</th>
               )}
@@ -134,16 +114,6 @@ export const AdminCommentTable: React.FC<Props> = ({
 
                 return (
                   <tr key={c.id} className="align-top hover:bg-muted/40">
-                    {cols.sel && (
-                      <td className="px-4 py-3">
-                        <input
-                          type="checkbox"
-                          aria-label={`Select row ${c.id}`}
-                          checked={isRowSelected(c.id)}
-                          onChange={() => toggleRow(c.id)}
-                        />
-                      </td>
-                    )}
                     {cols.id && (
                       <td className="px-4 py-3 text-sm">{c.id}</td>
                     )}
