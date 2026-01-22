@@ -20,6 +20,10 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { NotificationDeleteDialog } from "./notification-delete-dialog"
 import {
+  NotificationsSearchEmptyState,
+  NotificationsEmptyState,
+} from "./notifications-empty-state"
+import {
   IconLayoutGrid,
   IconChevronDown,
   IconEye,
@@ -193,9 +197,17 @@ export const AdminNotificationsTable: React.FC<Props> = ({
                 Memuat data...
               </div>
             ) : !error && notifications.length === 0 ? (
-              <div className="rounded-md border px-4 py-6 text-center text-sm text-muted-foreground">
-                Tidak ada data notifikasi.
-              </div>
+              search.trim() !== "" || stateFilter !== "all" ? (
+                <NotificationsSearchEmptyState
+                  query={search || stateFilter}
+                  onClear={() => {
+                    onSearchChange("")
+                    onStateFilterChange("all")
+                  }}
+                />
+              ) : (
+                <NotificationsEmptyState />
+              )
             ) : !error && notifications.length > 0 ? (
               <div className="overflow-x-auto rounded border">
                 <table className="min-w-full text-sm">
