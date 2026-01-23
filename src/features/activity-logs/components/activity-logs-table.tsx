@@ -9,6 +9,8 @@ import type {
   ActivityLog,
   ActivityLogColumns,
 } from "@/types/activity-log.type"
+import { Skeleton } from "@/components/ui/skeleton"
+
 
 type Props = {
   filteredLogs: ActivityLog[]
@@ -112,15 +114,67 @@ export const ActivityLogsTable: React.FC<Props> = ({
           </thead>
           <tbody className="divide-y divide-border bg-background">
             {loading ? (
-              <tr>
-                <td
-                  colSpan={colSpan}
-                  className="px-4 py-6 text-center"
-                >
-                  Memuat data...
-                </td>
-              </tr>
-            ) : error ? (
+                  Array.from({ length: pageSize }).map((_, i) => (
+                    <tr key={i} className="align-top">
+                      {cols.id && (
+                        <td className="px-4 py-3">
+                          <Skeleton className="h-4 w-8" />
+                        </td>
+                      )}
+
+                      {cols.action && (
+                        <td className="px-4 py-3">
+                          <Skeleton className="h-5 w-24 rounded-full" />
+                        </td>
+                      )}
+
+                      {cols.user && (
+                        <td className="px-4 py-3 min-w-[180px]">
+                          <Skeleton className="h-4 w-32" />
+                          <Skeleton className="h-3 w-40 mt-1" />
+                        </td>
+                      )}
+
+                      {cols.role && (
+                        <td className="px-4 py-3">
+                          <Skeleton className="h-4 w-16 rounded-full" />
+                        </td>
+                      )}
+
+                      {cols.targetType && (
+                        <td className="px-4 py-3">
+                          <Skeleton className="h-4 w-24" />
+                        </td>
+                      )}
+
+                      {cols.targetId && (
+                        <td className="px-4 py-3">
+                          <Skeleton className="h-4 w-16" />
+                        </td>
+                      )}
+
+                      {cols.details && (
+                        <td className="px-4 py-3 max-w-[260px]">
+                          <Skeleton className="h-3 w-full" />
+                          <Skeleton className="h-3 w-5/6 mt-1" />
+                          <Skeleton className="h-3 w-4/6 mt-1" />
+                        </td>
+                      )}
+
+                      {cols.occurredAt && (
+                        <td className="px-4 py-3">
+                          <Skeleton className="h-4 w-28" />
+                        </td>
+                      )}
+
+                      {cols.actions && (
+                        <td className="px-4 py-3">
+                          <Skeleton className="h-8 w-8 rounded-md" />
+                        </td>
+                      )}
+                    </tr>
+                  ))
+                ) : error ? (
               <tr>
                 <td
                   colSpan={colSpan}

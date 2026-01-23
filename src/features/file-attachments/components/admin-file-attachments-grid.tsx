@@ -37,6 +37,8 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog"
+import { Skeleton } from "@/components/ui/skeleton"
+
 
 type Props = {
   attachments: Attachment[]
@@ -79,7 +81,32 @@ export const AdminFileAttachmentsGrid: React.FC<Props> = ({
           </CardHeader>
 
           <CardContent>
-            {loading && <p className="text-sm">Loading…</p>}
+            {loading && (
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {Array.from({ length: 1 }).map((_, i) => (
+                  <Card key={i} className="overflow-hidden">
+                    <CardContent className="p-0">
+                      {/* Preview skeleton */}
+                      <Skeleton className="h-40 w-full rounded-none" />
+
+                      {/* Content skeleton */}
+                      <div className="p-3 space-y-2">
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-4 w-1/2" />
+
+                        <div className="flex gap-1">
+                          <Skeleton className="h-4 w-16 rounded-full" />
+                          <Skeleton className="h-4 w-20 rounded-full" />
+                        </div>
+
+                        <Skeleton className="h-3 w-24" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+
 
             {error && (
               <div className="text-sm text-red-600 bg-red-50 p-2 border border-red-200 rounded">

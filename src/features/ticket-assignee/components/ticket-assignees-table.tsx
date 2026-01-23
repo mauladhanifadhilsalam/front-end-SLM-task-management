@@ -18,6 +18,8 @@ import type {
   TicketAssignee,
   TicketAssigneeColumns,
 } from "@/types/ticket-assignee.type"
+import { Skeleton } from "@/components/ui/skeleton"
+
 
 type Props = {
   assignees: TicketAssignee[]
@@ -148,11 +150,55 @@ export const TicketAssigneesTable: React.FC<Props> = ({
         </thead>
         <tbody>
           {loading ? (
-            <tr>
-              <td colSpan={colSpan} className="px-4 py-6 text-center">
-                Memuat data dari server...
-              </td>
-            </tr>
+            Array.from({ length: 5 }).map((_, i) => (
+              <tr key={i} className="border-t text-center">
+                {cols.id && (
+                  <td className="px-4 py-3">
+                    <Skeleton className="h-4 w-10 mx-auto" />
+                  </td>
+                )}
+                {cols.ticket && (
+                  <td className="px-4 py-3 text-left space-y-1">
+                    <Skeleton className="h-4 w-44" />
+                    <Skeleton className="h-3 w-24" />
+                  </td>
+                )}
+                {cols.assignee && (
+                  <td className="px-4 py-3 text-left space-y-1">
+                    <Skeleton className="h-4 w-36" />
+                    <Skeleton className="h-3 w-40" />
+                  </td>
+                )}
+                {cols.type && (
+                  <td className="px-4 py-3">
+                    <Skeleton className="h-4 w-16 mx-auto" />
+                  </td>
+                )}
+                {cols.priority && (
+                  <td className="px-4 py-3">
+                    <Skeleton className="h-4 w-20 mx-auto" />
+                  </td>
+                )}
+                {cols.status && (
+                  <td className="px-4 py-3">
+                    <Skeleton className="h-4 w-24 mx-auto" />
+                  </td>
+                )}
+                {cols.createdAt && (
+                  <td className="px-4 py-3">
+                    <Skeleton className="h-4 w-24 mx-auto" />
+                  </td>
+                )}
+                {cols.actions && (
+                  <td className="px-4 py-3">
+                    <div className="flex justify-center gap-3">
+                      <Skeleton className="h-4 w-4" />
+                      <Skeleton className="h-4 w-4" />
+                    </div>
+                  </td>
+                )}
+              </tr>
+            ))
           ) : error ? (
             <tr>
               <td colSpan={colSpan} className="px-4 py-6 text-center text-red-600">
@@ -171,14 +217,10 @@ export const TicketAssigneesTable: React.FC<Props> = ({
                 key={a.id}
                 className="border-t text-center hover:bg-muted/50 transition-colors"
               >
-                {cols.id && (
-                  <td className="px-4 py-3">{a.id}</td>
-                )}
+                {cols.id && <td className="px-4 py-3">{a.id}</td>}
                 {cols.ticket && (
                   <td className="px-4 py-3 text-left">
-                    <div className="font-medium">
-                      {a.ticket.title}
-                    </div>
+                    <div className="font-medium">{a.ticket.title}</div>
                     <div className="text-xs text-muted-foreground">
                       Ticket #{a.ticket.id}
                     </div>
@@ -186,9 +228,7 @@ export const TicketAssigneesTable: React.FC<Props> = ({
                 )}
                 {cols.assignee && (
                   <td className="px-4 py-3 text-left">
-                    <div className="font-medium">
-                      {a.user.fullName}
-                    </div>
+                    <div className="font-medium">{a.user.fullName}</div>
                     <div className="text-xs text-muted-foreground">
                       {a.user.email}
                     </div>
@@ -196,11 +236,7 @@ export const TicketAssigneesTable: React.FC<Props> = ({
                 )}
                 {cols.type && (
                   <td className="px-4 py-3">
-                    <Badge
-                      variant={
-                        typeVariant(a.ticket.type) as any
-                      }
-                    >
+                    <Badge variant={typeVariant(a.ticket.type) as any}>
                       {a.ticket.type || "-"}
                     </Badge>
                   </td>
@@ -208,11 +244,7 @@ export const TicketAssigneesTable: React.FC<Props> = ({
                 {cols.priority && (
                   <td className="px-4 py-3">
                     <Badge
-                      variant={
-                        priorityVariant(
-                          a.ticket.priority,
-                        ) as any
-                      }
+                      variant={priorityVariant(a.ticket.priority) as any}
                     >
                       {a.ticket.priority || "-"}
                     </Badge>
@@ -221,11 +253,7 @@ export const TicketAssigneesTable: React.FC<Props> = ({
                 {cols.status && (
                   <td className="px-4 py-3">
                     <Badge
-                      variant={
-                        statusVariant(
-                          a.ticket.status,
-                        ) as any
-                      }
+                      variant={statusVariant(a.ticket.status) as any}
                     >
                       {a.ticket.status}
                     </Badge>
@@ -239,17 +267,12 @@ export const TicketAssigneesTable: React.FC<Props> = ({
                 {cols.actions && (
                   <td className="px-4 py-3">
                     <div className="flex justify-center gap-3">
-                      <Link
-                        to={`/admin/dashboard/ticket-assignees/view/${a.ticket.id}`}
-                      >
+                      <Link to={`/admin/dashboard/ticket-assignees/view/${a.ticket.id}`}>
                         <IconEye className="h-4 w-4" />
                       </Link>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <button
-                            className="text-red-600 hover:text-red-700"
-                            onClick={(e) => e.stopPropagation()}
-                          >
+                          <button className="text-red-600 hover:text-red-700">
                             <IconTrash className="h-4 w-4" />
                           </button>
                         </AlertDialogTrigger>
@@ -267,19 +290,14 @@ export const TicketAssigneesTable: React.FC<Props> = ({
                               <span className="font-semibold">
                                 "{a.ticket.title}"
                               </span>
-                              . Tindakan ini tidak dapat
-                              dibatalkan.
+                              .
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel>
-                              Batal
-                            </AlertDialogCancel>
+                            <AlertDialogCancel>Batal</AlertDialogCancel>
                             <AlertDialogAction
                               className="bg-red-600 hover:bg-red-700"
-                              onClick={() =>
-                                onDelete(a.id)
-                              }
+                              onClick={() => onDelete(a.id)}
                             >
                               Hapus
                             </AlertDialogAction>
@@ -293,6 +311,7 @@ export const TicketAssigneesTable: React.FC<Props> = ({
             ))
           )}
         </tbody>
+
       </table>
     </div>
   )

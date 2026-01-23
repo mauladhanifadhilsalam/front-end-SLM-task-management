@@ -56,6 +56,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { teamUpdateKeys } from "@/lib/query-keys"
 import { getCurrentUserId } from "@/utils/get-current-user"
+import { Skeleton } from "@/components/ui/skeleton"
+
 
 type UpdateStatus = TeamUpdateStatus
 
@@ -305,10 +307,73 @@ export function TeamUpdateTable({
 
             <CardContent className="px-4 pb-6 space-y-4">
                 {loading ? (
-                    <div className="text-sm text-muted-foreground px-4 py-8 text-center">
-                        Memuat team updates...
-                    </div>
-                ) : error ? (
+                                <div className="space-y-4">
+                                    {Array.from({ length: 3 }).map((_, i) => (
+                                    <div
+                                        key={i}
+                                        className="rounded-xl border overflow-hidden"
+                                    >
+                                        {/* Project Header Skeleton */}
+                                        <div className="flex items-center justify-between p-4 bg-muted/50">
+                                        <div className="flex items-center gap-3">
+                                            <Skeleton className="h-5 w-5 rounded-full" />
+                                            <Skeleton className="h-4 w-40" />
+                                            <Skeleton className="h-4 w-20" />
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <Skeleton className="h-3 w-6" />
+                                            <Skeleton className="h-3 w-6" />
+                                            <Skeleton className="h-3 w-6" />
+                                        </div>
+                                        </div>
+
+                                        {/* Table Skeleton */}
+                                        <div className="overflow-x-auto">
+                                        <Table>
+                                            <TableBody>
+                                            {Array.from({ length: 3 }).map((_, rowIdx) => (
+                                                <TableRow key={rowIdx}>
+                                                <TableCell className="pl-4">
+                                                    <Skeleton className="h-4 w-24" />
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="flex items-center gap-2">
+                                                    <Skeleton className="h-8 w-8 rounded-full" />
+                                                    <Skeleton className="h-4 w-32" />
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Skeleton className="h-4 w-20" />
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Skeleton className="h-4 w-40" />
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Skeleton className="h-4 w-40" />
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Skeleton className="h-4 w-32" />
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Skeleton className="h-4 w-24" />
+                                                </TableCell>
+                                                <TableCell className="pr-4">
+                                                    <div className="flex justify-end gap-2">
+                                                    <Skeleton className="h-8 w-8 rounded-md" />
+                                                    <Skeleton className="h-8 w-8 rounded-md" />
+                                                    <Skeleton className="h-8 w-8 rounded-md" />
+                                                    </div>
+                                                </TableCell>
+                                                </TableRow>
+                                            ))}
+                                            </TableBody>
+                                        </Table>
+                                        </div>
+                                    </div>
+                                    ))}
+                                </div>
+                                )
+                                : error ? (
                     <div className="text-sm text-red-600 px-4 py-8 text-center">
                         {error}
                     </div>

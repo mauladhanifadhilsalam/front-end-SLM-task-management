@@ -29,6 +29,8 @@ import {
 import type { Notification, NotificationState } from "@/types/notification.type"
 import type { PaginationMeta } from "@/types/pagination"
 import { TablePaginationControls } from "@/components/table-pagination-controls"
+import { Skeleton } from "@/components/ui/skeleton"
+
 
 type ColState = {
   id: boolean
@@ -189,8 +191,89 @@ export const AdminNotificationsTable: React.FC<Props> = ({
             )}
 
             {loading ? (
-              <div className="rounded-md border px-4 py-6 text-sm text-muted-foreground">
-                Memuat data...
+              <div className="overflow-x-auto rounded border">
+                <table className="min-w-full text-sm">
+                  <thead className="bg-muted/50">
+                    <tr className="text-center">
+                      {cols.id && <th className="px-4 py-3 font-medium">ID</th>}
+                      {cols.subject && <th className="px-4 py-3 font-medium">Subject</th>}
+                      {cols.message && <th className="px-4 py-3 font-medium">Pesan</th>}
+                      {cols.target && <th className="px-4 py-3 font-medium">Target</th>}
+                      {cols.recipient && <th className="px-4 py-3 font-medium">Penerima</th>}
+                      {cols.state && <th className="px-4 py-3 font-medium">Status Baca</th>}
+                      {cols.emailStatus && (
+                        <th className="px-4 py-3 font-medium">Status Pengiriman</th>
+                      )}
+                      {cols.createdAt && <th className="px-4 py-3 font-medium">Dikirim</th>}
+                      {cols.readAt && <th className="px-4 py-3 font-medium">Dibaca</th>}
+                      {cols.actions && <th className="px-4 py-3 font-medium">Aksi</th>}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Array.from({ length: pageSize }).map((_, i) => (
+                      <tr key={i} className="border-t text-center">
+                        {cols.id && (
+                          <td className="px-4 py-3">
+                            <Skeleton className="h-4 w-10 mx-auto" />
+                          </td>
+                        )}
+                        {cols.subject && (
+                          <td className="px-4 py-3 text-left">
+                            <Skeleton className="h-4 w-40" />
+                            <Skeleton className="h-4 w-32 mt-1" />
+                          </td>
+                        )}
+                        {cols.message && (
+                          <td className="px-4 py-3 text-left">
+                            <Skeleton className="h-4 w-full max-w-[420px]" />
+                            <Skeleton className="h-4 w-3/4 mt-1" />
+                          </td>
+                        )}
+                        {cols.target && (
+                          <td className="px-4 py-3">
+                            <Skeleton className="h-4 w-28 mx-auto" />
+                          </td>
+                        )}
+                        {cols.recipient && (
+                          <td className="px-4 py-3 text-left">
+                            <Skeleton className="h-4 w-32" />
+                            <Skeleton className="h-3 w-40 mt-1" />
+                            <Skeleton className="h-4 w-16 rounded-full mt-1" />
+                          </td>
+                        )}
+                        {cols.state && (
+                          <td className="px-4 py-3">
+                            <Skeleton className="h-4 w-20 mx-auto" />
+                          </td>
+                        )}
+                        {cols.emailStatus && (
+                          <td className="px-4 py-3">
+                            <Skeleton className="h-4 w-28 mx-auto" />
+                          </td>
+                        )}
+                        {cols.createdAt && (
+                          <td className="px-4 py-3">
+                            <Skeleton className="h-4 w-24 mx-auto" />
+                          </td>
+                        )}
+                        {cols.readAt && (
+                          <td className="px-4 py-3">
+                            <Skeleton className="h-4 w-24 mx-auto" />
+                          </td>
+                        )}
+                        {cols.actions && (
+                          <td className="px-4 py-3">
+                            <div className="flex justify-center gap-2">
+                              <Skeleton className="h-8 w-8 rounded-md" />
+                              <Skeleton className="h-8 w-8 rounded-md" />
+                              <Skeleton className="h-8 w-16 rounded-md" />
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             ) : !error && notifications.length === 0 ? (
               <div className="rounded-md border px-4 py-6 text-center text-sm text-muted-foreground">
