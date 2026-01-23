@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { useQuery } from "@tanstack/react-query"
+import { useNavigate } from "react-router-dom"
 import {
   Card,
   CardContent,
@@ -18,7 +19,7 @@ import { usePmProjects } from "@/pages/dashboard/pm/hooks/use-pm-projects"
 
 type Props = {
   updateId: number
-  onBack: () => void
+  onBack?: () => void
   title: string
 }
 
@@ -48,7 +49,12 @@ const statusStyles: Record<string, string> = {
 }
 
 export function TeamUpdateDetail({ updateId, onBack, title }: Props) {
+  const navigate = useNavigate()
   const { projects } = usePmProjects()
+
+  const handleBack = () => {
+    navigate(-1)
+  }
 
   const updateQuery = useQuery({
     queryKey: teamUpdateKeys.detail(updateId),
@@ -71,7 +77,7 @@ export function TeamUpdateDetail({ updateId, onBack, title }: Props) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={onBack}
+            onClick={handleBack}
             className="flex items-center gap-2 cursor-pointer"
           >
             <IconArrowLeft className="h-4 w-4" />

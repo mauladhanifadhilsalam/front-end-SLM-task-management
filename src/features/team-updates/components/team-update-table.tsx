@@ -44,6 +44,7 @@ import {
     IconEye,
     IconFileSpreadsheet,
     IconFolder,
+    IconList,
     IconPlus,
     IconTrash,
 } from "@tabler/icons-react"
@@ -141,9 +142,24 @@ export function TeamUpdateTable({
     }, [projects, updates, isDeveloper])
 
     const visibleUpdates = React.useMemo(() => {
-        if (!isDeveloper) return updates
-        const allowedProjectIds = new Set(projects.map((p) => p.id))
-        return updates.filter((item) => allowedProjectIds.has(item.projectId))
+        // Get today's date at start of day
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        
+        // Filter updates to only show today's updates
+        let filtered = updates.filter((item) => {
+            const updateDate = new Date(item.updatedAt || item.createdAt)
+            updateDate.setHours(0, 0, 0, 0)
+            return updateDate.getTime() === today.getTime()
+        })
+        
+        // For developers, filter by assigned projects
+        if (isDeveloper) {
+            const allowedProjectIds = new Set(projects.map((p) => p.id))
+            filtered = filtered.filter((item) => allowedProjectIds.has(item.projectId))
+        }
+        
+        return filtered
     }, [updates, isDeveloper, projects])
 
     const projectIds = React.useMemo(() => {
@@ -220,6 +236,17 @@ export function TeamUpdateTable({
         navigate(createPath)
     }
 
+    const handleViewProjectDetail = (projectId: string) => {
+        // Navigate to project detail page based on role
+        if (isDeveloper) {
+            navigate(`/developer-dashboard/project-daily-updates/${projectId}`)
+        } else if (isAdmin) {
+            navigate(`/admin/dashboard/project-team-updates/${projectId}`)
+        } else {
+            navigate(`/project-manager/dashboard/project-team-update/${projectId}`)
+        }
+    }
+
     const deleteMutation = useMutation({
         mutationFn: deleteTeamUpdate,
         onSuccess: async () => {
@@ -259,13 +286,23 @@ export function TeamUpdateTable({
         <Card className="overflow-hidden">
             <CardHeader className="flex flex-col gap-3 pb-4 bg-gradient-to-r from-primary/5 via-transparent to-transparent">
                 <div className="flex flex-col gap-2">
-                    <div>
-                        <CardTitle className="flex items-center gap-2 text-lg">
-                            {title}
-                        </CardTitle>
-                        <CardDescription>
-                            {description}
-                        </CardDescription>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <CardTitle className="flex items-center gap-2 text-lg">
+                                {title}
+                                <Badge variant="outline" className="ml-2 text-xs font-normal">
+                                    {new Intl.DateTimeFormat("id-ID", {
+                                        weekday: "long",
+                                        day: "numeric",
+                                        month: "long",
+                                        year: "numeric",
+                                    }).format(new Date())}
+                                </Badge>
+                            </CardTitle>
+                            <CardDescription>
+                                {description} - Menampilkan update hari ini
+                            </CardDescription>
+                        </div>
                     </div>
                 </div>
 
@@ -314,7 +351,15 @@ export function TeamUpdateTable({
                     </div>
                 ) : projectIds.length === 0 ? (
                     <div className="text-sm text-muted-foreground px-4 py-8 text-center">
-                        Belum ada team updates.
+                        <div className="flex flex-col items-center gap-2">
+                            <IconFolder className="h-12 w-12 text-muted-foreground/40" />
+                            <p className="font-medium">Belum ada team updates hari ini</p>
+                            <p className="text-xs">Tidak ada update yang dibuat pada {new Intl.DateTimeFormat("id-ID", {
+                                day: "numeric",
+                                month: "long",
+                                year: "numeric",
+                            }).format(new Date())}</p>
+                        </div>
                     </div>
                 ) : projectIds.map((projectId) => {
                     const projectLabel = projectLabels.get(Number(projectId)) ?? `Project ${projectId}`
@@ -332,16 +377,17 @@ export function TeamUpdateTable({
                                 isExpanded ? "shadow-md" : "shadow-sm hover:shadow-md"
                             )}
                         >
-                            {/* Project Header - Clickable */}
-                            <button
-                                onClick={() => toggleProject(projectId)}
+                            {/* Project Header */}
+                            <div
                                 className={cn(
-                                    "w-full flex items-center justify-between p-4 transition-colors",
-                                    colors.bg,
-                                    "hover:brightness-95 dark:hover:brightness-110"
+                                    "flex items-center justify-between p-4 transition-colors",
+                                    colors.bg
                                 )}
                             >
-                                <div className="flex items-center gap-3">
+                                <button
+                                    onClick={() => toggleProject(projectId)}
+                                    className="flex items-center gap-3 flex-1 hover:brightness-95 dark:hover:brightness-110 transition-all"
+                                >
                                     <IconChevronRight 
                                         className={cn(
                                             "h-5 w-5 text-muted-foreground transition-transform duration-300 ease-in-out",
@@ -353,28 +399,42 @@ export function TeamUpdateTable({
                                     <Badge variant="secondary" className="ml-2">
                                         {updates.length} updates
                                     </Badge>
+                                </button>
+                                
+                                <div className="flex items-center gap-3">
+                                    {/* Stats */}
+                                    <div className="flex items-center gap-3 text-xs">
+                                        {stats?.done > 0 && (
+                                            <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                                                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                                                {stats.done}
+                                            </span>
+                                        )}
+                                        {stats?.inProgress > 0 && (
+                                            <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
+                                                <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+                                                {stats.inProgress}
+                                            </span>
+                                        )}
+                                        {stats?.notStarted > 0 && (
+                                            <span className="flex items-center gap-1 text-slate-600 dark:text-slate-400">
+                                                <span className="h-2 w-2 rounded-full bg-slate-500" />
+                                                {stats.notStarted}
+                                            </span>
+                                        )}
+                                    </div>
+                                    
+                                    {/* View Detail All Updates Button */}
+                                    <Button
+                                        size="sm"
+                                        onClick={() => handleViewProjectDetail(projectId)}
+                                        className="h-8 gap-1.5"
+                                    >
+                                        <IconList className="h-3.5 w-3.5" />
+                                        View All Updates
+                                    </Button>
                                 </div>
-                                <div className="flex items-center gap-3 text-xs">
-                                    {stats?.done > 0 && (
-                                        <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
-                                            <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                                            {stats.done}
-                                        </span>
-                                    )}
-                                    {stats?.inProgress > 0 && (
-                                        <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
-                                            <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
-                                            {stats.inProgress}
-                                        </span>
-                                    )}
-                                    {stats?.notStarted > 0 && (
-                                        <span className="flex items-center gap-1 text-slate-600 dark:text-slate-400">
-                                            <span className="h-2 w-2 rounded-full bg-slate-500" />
-                                            {stats.notStarted}
-                                        </span>
-                                    )}
-                                </div>
-                            </button>
+                            </div>
 
                             {/* Expanded Content with smooth animation */}
                             <div 
@@ -389,7 +449,7 @@ export function TeamUpdateTable({
                                     {/* Table */}
                                     {updates.length === 0 ? (
                                         <div className="text-sm text-muted-foreground px-4 py-8 text-center">
-                                            Tidak ada update yang ditemukan untuk project ini.
+                                            Tidak ada update hari ini untuk project ini.
                                         </div>
                                     ) : (
                                         <div className="overflow-x-auto">
