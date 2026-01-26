@@ -35,6 +35,7 @@ import NotificationPage from "../pages/notification/notification"
 import IssueEscalationPage from "@/pages/dashboard/pm/project/issue-escalation"
 import ViewIssueEscalationPage from "@/pages/dashboard/pm/project/detail-issue-escalation"
 import EditIssueEscalationPage from "@/pages/dashboard/pm/project/edit-issue-escalation"
+import InboxLeaderboardPage from "@/pages/dashboard/pm/leaderboard/inboxLeaderboard"
 
 export const pmRoutes = (
   <Fragment>
@@ -254,6 +255,14 @@ export const pmRoutes = (
       element={
         <ProtectedRoute allowedRoles={["project_manager"]}>
           <EditIssueEscalationPage />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/project-manager/dashboard/leaderboard"
+      element={
+        <ProtectedRoute allowedRoles={["project_manager"]}>
+          <InboxLeaderboardPage />
         </ProtectedRoute>
       }
     />

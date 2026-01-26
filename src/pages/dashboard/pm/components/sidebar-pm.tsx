@@ -6,6 +6,7 @@ import {
   IconFolder,
   IconTicket,
   IconMessage,
+  IconTrophy,
 } from "@tabler/icons-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -61,6 +62,11 @@ const data = {
       title: "Team Update",
       url: "/project-manager/dashboard/team-update",
       icon: IconMessage,
+    },
+    {
+      title: "Leaderboard",
+      url: "/project-manager/dashboard/leaderboard",
+      icon: IconTrophy,
     },
   ],
 }
