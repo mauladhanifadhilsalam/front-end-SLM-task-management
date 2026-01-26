@@ -141,7 +141,14 @@ export default function IssueEscalationPage() {
   }
 
   return (
-    <SidebarProvider>
+    <SidebarProvider
+      style={
+        {
+          "--sidebar-width": "calc(var(--spacing) * 72)",
+          "--header-height": "calc(var(--spacing) * 12)",
+        } as React.CSSProperties
+      }
+    >
       <AppSidebarPm variant="inset" />
       <SidebarInset className="overflow-x-hidden"> 
         <SiteHeader />

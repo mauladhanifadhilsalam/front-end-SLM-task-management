@@ -22,8 +22,6 @@ type Props = {
   onToggleColumn: (key: keyof AdminCommentColumnState, value: boolean) => void
   onRefresh: () => void
   onCreate: () => void
-  selectedCount: number
-  onClearSelection: () => void
 }
 
 export const AdminCommentToolbar: React.FC<Props> = ({
@@ -33,33 +31,18 @@ export const AdminCommentToolbar: React.FC<Props> = ({
   onToggleColumn,
   onRefresh,
   onCreate,
-  selectedCount,
-  onClearSelection,
 }) => {
   return (
     <div className="flex flex-col gap-3">
-      {/* Row 1: Search/Clear + Refresh + Columns */}
+      {/* Row 1: Search + Refresh + Columns */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3 lg:justify-between">
-        {/* Left Group: Search & Clear Selection */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3 sm:flex-1">
-          <Input
-            placeholder="Filter by message, user, email, role, ticket title/project…"
-            value={query}
-            onChange={(e) => onQueryChange(e.target.value)}
-            className="w-full sm:flex-1 lg:max-w-md"
-          />
-          {selectedCount > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onClearSelection}
-              title="Clear selection"
-              className="w-full sm:w-auto"
-            >
-              Clear selection
-            </Button>
-          )}
-        </div>
+        {/* Left Group: Search */}
+        <Input
+          placeholder="Filter by message, user, email, role, ticket title/project…"
+          value={query}
+          onChange={(e) => onQueryChange(e.target.value)}
+          className="w-full sm:flex-1 lg:max-w-md"
+        />
 
         {/* Right Group: Refresh + Columns (+ Add Comment on Desktop) */}
         <div className="flex items-center gap-2">
@@ -81,12 +64,6 @@ export const AdminCommentToolbar: React.FC<Props> = ({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuCheckboxItem
-                checked={cols.sel}
-                onCheckedChange={(v) => onToggleColumn("sel", !!v)}
-              >
-                Selection
-              </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
                 checked={cols.id}
                 onCheckedChange={(v) => onToggleColumn("id", !!v)}

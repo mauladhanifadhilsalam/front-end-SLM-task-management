@@ -8,6 +8,10 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { AdminProjectRoleToolbar } from "@/features/project-roles/components/admin-project-role-toolbar"
 import { AdminProjectRoleTable } from "@/features/project-roles/components/admin-project-role-table"
 import { useAdminProjectRoles } from "@/features/project-roles/hooks/use-admin-project-roles"
+import {
+  ProjectRolesSearchEmptyState,
+  ProjectRolesEmptyState,
+} from "@/features/project-roles/components/project-roles-empty-state"
 
 const AdminProjectRolesPage: React.FC = () => {
   const navigate = useNavigate()
@@ -26,6 +30,12 @@ const AdminProjectRolesPage: React.FC = () => {
     setPage,
     setPageSize,
   } = useAdminProjectRoles()
+
+  const hasData = projectRoles.length > 0
+
+  const handleCreateRole = () => {
+    navigate("/admin/dashboard/project-roles/create")
+  }
 
   return (
     <div>
@@ -60,7 +70,7 @@ const AdminProjectRolesPage: React.FC = () => {
                     onQueryChange={setSearch}
                     cols={columns}
                     onToggleColumn={toggleColumn}
-                    onCreateClick={() => navigate("/admin/dashboard/project-roles/create")}
+                    onCreateClick={handleCreateRole}
                   />
                   <AdminProjectRoleTable
                     projectRoles={projectRoles}
@@ -74,6 +84,18 @@ const AdminProjectRolesPage: React.FC = () => {
                     onPageChange={setPage}
                     onPageSizeChange={setPageSize}
                   />
+
+                  {!loading && !error && !hasData && (
+                    search.trim() !== "" ? (
+                      <ProjectRolesSearchEmptyState
+                        query={search}
+                        onClear={() => setSearch("")}
+                        onAddRole={handleCreateRole}
+                      />
+                    ) : (
+                      <ProjectRolesEmptyState onAddRole={handleCreateRole} />
+                    )
+                  )}
                 </div>
               </div>
             </div>

@@ -8,6 +8,10 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { useAdminUsers } from "@/features/users/hooks/use-admin-user"
 import { UsersToolbar } from "@/features/users/components/users-toolbar"
 import { UsersTable } from "@/features/users/components/users-table"
+import {
+  UsersSearchEmptyState,
+  UsersEmptyState,
+} from "@/features/users/components/users-empty-state"
 
 export default function AdminUsers() {
   const navigate = useNavigate()
@@ -29,6 +33,12 @@ export default function AdminUsers() {
     setPage,
     setPageSize,
   } = useAdminUsers()
+
+  const hasData = users.length > 0
+
+  const handleAddUser = () => {
+    navigate("/admin/dashboard/users/create")
+  }
 
   return (
     <div>
@@ -65,9 +75,7 @@ export default function AdminUsers() {
                     onRoleFilterChange={setRoleFilter}
                     columns={columns}
                     onToggleColumn={toggleColumn}
-                    onAddUser={() =>
-                      navigate("/admin/dashboard/users/create")
-                    }
+                    onAddUser={handleAddUser}
                   />
 
                   <UsersTable
@@ -82,6 +90,18 @@ export default function AdminUsers() {
                     onPageChange={setPage}
                     onPageSizeChange={setPageSize}
                   />
+
+                  {!loading && !error && !hasData && (
+                    search.trim() !== "" ? (
+                      <UsersSearchEmptyState
+                        query={search}
+                        onClear={() => setSearch("")}
+                        onAddUser={handleAddUser}
+                      />
+                    ) : (
+                      <UsersEmptyState onAddUser={handleAddUser} />
+                    )
+                  )}
                 </div>
               </div>
             </div>

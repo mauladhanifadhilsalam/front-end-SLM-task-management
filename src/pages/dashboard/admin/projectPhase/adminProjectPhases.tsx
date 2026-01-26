@@ -8,6 +8,10 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AdminProjectPhaseToolbar } from "@/features/project-phases/components/admin-project-phase-toolbar";
 import { AdminProjectPhaseTable } from "@/features/project-phases/components/admin-project-phase-table";
 import { useAdminProjectPhaseList } from "@/features/project-phases/hooks/use-admin-project-phase-list";
+import {
+  ProjectPhasesSearchEmptyState,
+  ProjectPhasesEmptyState,
+} from "@/features/project-phases/components/project-phases-empty-state";
 
 const AdminProjectPhasePage: React.FC = () => {
   const navigate = useNavigate();
@@ -29,6 +33,12 @@ const AdminProjectPhasePage: React.FC = () => {
     setPage,
     setPageSize,
   } = useAdminProjectPhaseList();
+
+  const hasData = phases.length > 0;
+
+  const handleCreatePhase = () => {
+    navigate("/admin/dashboard/project-phases/create");
+  };
 
   return (
     <div>
@@ -65,9 +75,7 @@ const AdminProjectPhasePage: React.FC = () => {
                     onQueryChange={setQuery}
                     cols={cols}
                     onToggleColumn={toggleColumn}
-                    onCreateClick={() =>
-                      navigate("/admin/dashboard/project-phases/create")
-                    }
+                    onCreateClick={handleCreatePhase}
                   />
                   <AdminProjectPhaseTable
                     phases={phases}
@@ -83,6 +91,20 @@ const AdminProjectPhasePage: React.FC = () => {
                     onPageChange={setPage}
                     onPageSizeChange={setPageSize}
                   />
+
+                  {!loading && !error && !hasData && (
+                    query.trim() !== "" ? (
+                      <ProjectPhasesSearchEmptyState
+                        query={query}
+                        onClear={() => setQuery("")}
+                        onAddPhase={handleCreatePhase}
+                      />
+                    ) : (
+                      <ProjectPhasesEmptyState
+                        onAddPhase={handleCreatePhase}
+                      />
+                    )
+                  )}
                 </div>
               </div>
             </div>

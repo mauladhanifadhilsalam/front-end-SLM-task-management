@@ -8,6 +8,10 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { useTicketAssignees } from "@/features/ticket-assignee/hooks/use-ticket-assignees"
 import { TicketAssigneesToolbar } from "@/features/ticket-assignee/components/ticket-assignees-toolbar"
 import { TicketAssigneesTable } from "@/features/ticket-assignee/components/ticket-assignees-table"
+import {
+  TicketAssigneeSearchEmptyState,
+  TicketAssigneeEmptyState,
+} from "@/features/ticket-assignee/components/ticket-assignee-empty-state"
 
 const AdminTicketAssignees: React.FC = () => {
   const navigate = useNavigate()
@@ -26,6 +30,8 @@ const AdminTicketAssignees: React.FC = () => {
     handleToggleColumn,
     handleDeleteAssignee,
   } = useTicketAssignees()
+
+  const hasData = filteredAssignees.length > 0
 
   const handleAssignTicket = () => {
     navigate("/admin/dashboard/ticket-assignees/create")
@@ -82,6 +88,23 @@ const AdminTicketAssignees: React.FC = () => {
                     onDelete={handleDeleteAssignee}
                   />
                 </div>
+
+                {!loading && !error && !hasData && (
+                  search.trim() !== "" || statusFilter !== "all" ? (
+                    <TicketAssigneeSearchEmptyState
+                      query={search || statusFilter}
+                      onClear={() => {
+                        handleSearchChange("")
+                        handleStatusFilterChange("all")
+                      }}
+                      onAssignTicket={handleAssignTicket}
+                    />
+                  ) : (
+                    <TicketAssigneeEmptyState
+                      onAssignTicket={handleAssignTicket}
+                    />
+                  )
+                )}
               </div>
             </div>
           </div>

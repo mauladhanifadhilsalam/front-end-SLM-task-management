@@ -4,6 +4,7 @@ import * as React from "react"
 import { useNavigate } from "react-router-dom"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
+import { Input } from "@/components/ui/input"
 import {
   Card,
   CardContent,
@@ -44,6 +45,10 @@ import { projectUpdateKeys } from "@/lib/query-keys"
 import type { ProjectUpdate } from "@/types/project-update.type"
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+  ProjectUpdatesSearchEmptyState,
+  ProjectUpdatesEmptyState,
+} from "./project-updates-empty-state"
 
 type Props = {
   title?: string
@@ -64,12 +69,37 @@ export function ProjectUpdateTable({
   const queryClient = useQueryClient()
   const [page, setPage] = React.useState(1)
   const [pageSize, setPageSize] = React.useState(10)
+  const [search, setSearch] = React.useState("")
   const [deleteTarget, setDeleteTarget] = React.useState<ProjectUpdate | null>(null)
 
   const { updates, pagination, loading, error } = useProjectUpdates({
     page,
     pageSize,
   })
+
+  // Filter updates based on search
+  const filteredUpdates = React.useMemo(() => {
+    if (!search.trim()) return updates
+
+    const query = search.toLowerCase()
+    return updates.filter((update) => {
+      const searchableText = [
+        update.reportDate,
+        update.projectId?.toString(),
+        update.phase?.name,
+        update.facilitator?.fullName,
+        update.participant,
+        update.objective,
+        update.progressHighlight,
+        update.teamMood,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+
+      return searchableText.includes(query)
+    })
+  }, [updates, search])
 
   const deleteMutation = useMutation({
     mutationFn: deleteProjectUpdate,
@@ -134,6 +164,13 @@ export function ProjectUpdateTable({
             </Button>
           )}
         </div>
+        {/* Search Input */}
+        <Input
+          placeholder="Cari berdasarkan project, phase, facilitator, atau objective..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full lg:max-w-md"
+        />
       </CardHeader>
 
       <CardContent className="px-0 pb-0">
@@ -199,14 +236,14 @@ export function ProjectUpdateTable({
                     {error}
                   </TableCell>
                 </TableRow>
-              ) : updates.length === 0 ? (
+              ) : filteredUpdates.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={9} className="text-center">
-                    Tidak ada data ditemukan.
+                    {/* Empty state will be rendered outside table */}
                   </TableCell>
                 </TableRow>
               ) : (
-                updates.map((update) => (
+                filteredUpdates.map((update) => (
                   <TableRow key={update.id}>
                     <TableCell className="font-medium">
                       {formatDate(update.reportDate)}
@@ -277,6 +314,22 @@ export function ProjectUpdateTable({
             </TableBody>
           </Table>
         </div>
+
+        {/* Empty States */}
+        {!loading && !error && filteredUpdates.length === 0 && (
+          search.trim() !== "" ? (
+            <ProjectUpdatesSearchEmptyState
+              query={search}
+              onClear={() => setSearch("")}
+              onAddUpdate={() => navigate(createPath)}
+            />
+          ) : updates.length === 0 ? (
+            <ProjectUpdatesEmptyState
+              onAddUpdate={() => navigate(createPath)}
+            />
+          ) : null
+        )}
+
         <TablePaginationControls
           total={pagination.total}
           page={pagination.page}
