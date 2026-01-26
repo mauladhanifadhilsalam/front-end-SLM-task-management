@@ -35,10 +35,20 @@ export default function Page() {
               
 
               {loading && (
-                <div className="px-4 text-sm text-muted-foreground">
-                  Loading overview…
+                <div className="px-4 lg:px-6 grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="rounded-lg border p-4 space-y-3"
+                    >
+                      <div className="h-4 w-24 rounded bg-accent animate-pulse" />
+                      <div className="h-7 w-32 rounded bg-accent animate-pulse" />
+                      <div className="h-2 w-full rounded bg-accent animate-pulse" />
+                    </div>
+                  ))}
                 </div>
               )}
+
 
               {error && (
                 <div className="px-4 text-sm text-destructive">

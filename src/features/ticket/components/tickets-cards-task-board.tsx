@@ -158,13 +158,17 @@ export const TicketsCardsTaskBoard: React.FC<Props> = ({
         )}
       </div>
 
-      {taskTickets.length === 0 ? (
-        <div className="rounded-2xl border bg-background/40 p-6 text-sm text-muted-foreground">
-          {loading
-            ? "Memuat task..."
-            : emptyMessage ?? "Belum ada task yang ditugaskan ke kamu."}
-        </div>
-      ) : (
+{loading ? (
+  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+    {Array.from({ length: 6 }).map((_, i) => (
+      <TaskTicketCardSkeleton key={i} />
+    ))}
+  </div>
+) : taskTickets.length === 0 ? (
+  <div className="rounded-2xl border bg-background/40 p-6 text-sm text-muted-foreground">
+    {emptyMessage ?? "Belum ada task yang ditugaskan ke kamu."}
+  </div>
+): (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {taskTickets.map((ticket) => (
             <AlertDialog key={ticket.id}>
@@ -308,5 +312,25 @@ export const TicketsCardsTaskBoard: React.FC<Props> = ({
         initialTicketTitle={assignContext.ticketTitle}
       />
     </section>
+  )
+}
+
+function TaskTicketCardSkeleton() {
+  return (
+    <div className="flex h-48 flex-col justify-between rounded-2xl border bg-card/80 p-4 animate-pulse">
+      <div className="space-y-2">
+        <div className="h-4 w-4/5 rounded bg-muted/40" />
+        <div className="flex gap-2">
+          <div className="h-4 w-14 rounded bg-muted/30" />
+          <div className="h-4 w-16 rounded bg-muted/30" />
+          <div className="h-4 w-12 rounded bg-muted/30" />
+        </div>
+      </div>
+
+      <div className="flex items-end justify-between">
+        <div className="h-3 w-24 rounded bg-muted/30" />
+        <div className="h-3 w-16 rounded bg-muted/30" />
+      </div>
+    </div>
   )
 }

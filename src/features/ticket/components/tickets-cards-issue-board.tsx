@@ -153,25 +153,24 @@ export const TicketsCardsBoard: React.FC<Props> = ({
   }
 
   if (loading) {
-    return (
-      <section className="space-y-3 mr-7 ml-7">
-        <div className="space-y-1">
-          <h2 className="text-lg font-semibold">{title}</h2>
-          {subtitle && (
-            <p className="text-xs text-muted-foreground">{subtitle}</p>
-          )}
-        </div>
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="h-48 rounded-2xl border bg-muted/40 animate-pulse"
-            />
-          ))}
-        </div>
-      </section>
-    )
-  }
+  return (
+    <section className="space-y-3 mr-7 ml-7">
+      <div className="space-y-1">
+        <div className="h-5 w-48 rounded bg-muted/40 animate-pulse" />
+        {subtitle && (
+          <div className="h-3 w-64 rounded bg-muted/30 animate-pulse" />
+        )}
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <TicketCardSkeleton key={i} />
+        ))}
+      </div>
+    </section>
+  )
+}
+
 
   return (
     <section className="space-y-3 mr-7 ml-7">
@@ -330,5 +329,25 @@ export const TicketsCardsBoard: React.FC<Props> = ({
         initialTicketTitle={assignContext.ticketTitle}
       />
     </section>
+  )
+}
+
+function TicketCardSkeleton() {
+  return (
+    <div className="flex h-48 flex-col justify-between rounded-2xl border bg-card/80 p-4 animate-pulse">
+      <div className="space-y-2">
+        <div className="h-4 w-4/5 rounded bg-muted/40" />
+        <div className="flex gap-2">
+          <div className="h-4 w-14 rounded bg-muted/30" />
+          <div className="h-4 w-16 rounded bg-muted/30" />
+          <div className="h-4 w-12 rounded bg-muted/30" />
+        </div>
+      </div>
+
+      <div className="flex items-end justify-between">
+        <div className="h-3 w-24 rounded bg-muted/30" />
+        <div className="h-3 w-14 rounded bg-muted/30" />
+      </div>
+    </div>
   )
 }
