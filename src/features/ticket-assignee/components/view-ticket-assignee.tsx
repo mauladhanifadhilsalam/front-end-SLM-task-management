@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/alert-dialog"
 
 import type { TicketAssigneeTicketDetail, TicketPriority, TicketStatus, TicketType } from "@/types/ticket-assignee.type"
+import { ViewTicketAssigneeSkeleton } from "./view-ticket-assignee-skeleton"
 
 type Props = {
   ticket: TicketAssigneeTicketDetail | null
@@ -42,9 +43,6 @@ type Props = {
 
 const statusVariant = (status?: TicketStatus) => {
   switch (status) {
-    case "OPEN":
-    case "PENDING":
-      return "secondary"
     case "IN_PROGRESS":
       return "default"
     case "RESOLVED":
@@ -63,8 +61,6 @@ const priorityVariant = (priority?: TicketPriority) => {
       return "secondary"
     case "HIGH":
       return "default"
-    case "URGENT":
-      return "destructive"
     default:
       return "secondary"
   }
@@ -191,7 +187,7 @@ export function ViewTicketAssigneeLayout({
           </p>
 
           {loading ? (
-            <div className="p-6">Memuat data tiket...</div>
+            <div className="p-6"><ViewTicketAssigneeSkeleton /></div>
           ) : error ? (
             <div className="p-6 text-red-600">{error}</div>
           ) : !ticket ? (

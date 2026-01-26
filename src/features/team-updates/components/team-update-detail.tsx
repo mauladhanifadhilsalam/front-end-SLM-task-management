@@ -15,7 +15,7 @@ import { IconArrowLeft } from "@tabler/icons-react"
 import { fetchTeamUpdateById } from "@/services/team-update.service"
 import { teamUpdateKeys } from "@/lib/query-keys"
 import { usePmProjects } from "@/pages/dashboard/pm/hooks/use-pm-projects"
-
+import { TeamUpdateDetailSkeleton } from "./team-update-detail-skeleton"
 type Props = {
   updateId: number
   onBack: () => void
@@ -89,7 +89,7 @@ export function TeamUpdateDetail({ updateId, onBack, title }: Props) {
           </CardHeader>
           <CardContent className="space-y-6 text-sm">
             {updateQuery.isLoading ? (
-              <p className="text-muted-foreground">Memuat data...</p>
+              <TeamUpdateDetailSkeleton />
             ) : updateQuery.error ? (
               <p className="text-red-600">Gagal memuat data.</p>
             ) : updateQuery.data ? (

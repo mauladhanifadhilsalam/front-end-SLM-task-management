@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge"
 import { IconArrowLeft, IconEdit } from "@tabler/icons-react"
 import { fetchProjectUpdateById } from "@/services/project-update.service"
 import { projectUpdateKeys } from "@/lib/query-keys"
+import { ProjectUpdateDetailSkeleton } from "./project-update-detail-skeleton"
 
 type Props = {
   updateId: number
@@ -79,7 +80,7 @@ export const ProjectUpdateDetail: React.FC<Props> = ({
 
       <div className="px-4 lg:px-6">
         {query.isLoading ? (
-          <p className="text-sm text-muted-foreground">Memuat data...</p>
+          <ProjectUpdateDetailSkeleton />
         ) : query.error ? (
           <p className="text-sm text-red-600">Gagal memuat data.</p>
         ) : !update ? (

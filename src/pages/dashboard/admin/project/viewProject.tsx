@@ -15,6 +15,10 @@ import { ProjectDeleteDialog } from "@/features/projects/components/project-dele
 import { ProjectPhasesOverview } from "@/features/projects/components/project-phases-overview"
 import { ProjectAssignmentsOverview } from "@/features/projects/components/project-assignments-overview"
 
+import { ProjectDetailCardSkeleton } from "@/features/projects/components/project-detail-card-skeleton"
+import { ProjectPhasesOverviewSkeleton } from "@/features/projects/components/project-phase-overview-skeleton"
+import { ProjectAssignmentsOverviewSkeleton } from "@/features/projects/components/project-assignment-overview-skeleton"
+
 import type { UserLite } from "@/types/user.types"
 import { fetchUsers } from "@/services/user.service"
 import {
@@ -36,13 +40,19 @@ export default function ViewProject() {
   const [savingAssignment, setSavingAssignment] = React.useState(false)
 
   const loadUsers = React.useCallback(async () => {
-    try {
-      const users = await fetchUsers()
-      setAllUsers(users)
-    } catch (err) {
-      console.error(err)
-    }
-  }, [])
+  try {
+    const users = await fetchUsers()
+    setAllUsers(
+      users.map((u) => ({
+        ...u,
+        projectRole: u.projectRole ?? undefined,
+      }))
+    )
+  } catch (err) {
+    console.error(err)
+  }
+}, [])
+
 
   React.useEffect(() => {
     loadUsers()
@@ -126,7 +136,15 @@ const handleRemove = async (assignmentId: number) => {
             Lihat informasi lengkap project yang sedang dikelola.
           </p>
 
-          {loading && <div className="p-6">Memuat data...</div>}
+                    {loading && <div className="p-6">
+                        <ProjectDetailCardSkeleton />
+                        
+          
+                        <div className="mt-6 grid gap-6 lg:grid-cols-2">
+                          <ProjectPhasesOverviewSkeleton />
+                          <ProjectAssignmentsOverviewSkeleton /> 
+                        </div>
+                    </div>}
           {!loading && error && (
             <div className="p-6 text-red-600">{error}</div>
           )}

@@ -10,6 +10,8 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { useTicketDetail } from "@/features/ticket/hooks/use-ticket-detail"
 import { TicketDetailView } from "@/features/ticket/components/ticket-detail-view"
 
+import { TicketDetailViewSkeleton } from "@/features/ticket/components/ticket-detail-view-skeleton"
+
 export default function ViewTickets() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -37,15 +39,19 @@ export default function ViewTickets() {
         <SiteHeader />
         <div className="flex flex-1 flex-col">
           <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-            <TicketDetailView
-              ticket={ticket}
-              loading={loading}
-              error={error}
-              deleting={deleting}
-              formatDate={formatDate}
-              onBack={() => navigate("/admin/dashboard/tickets")}
-              onDelete={deleteCurrent}
-            />
+            {loading ? (
+              <TicketDetailViewSkeleton />
+            ) : (
+              <TicketDetailView
+                ticket={ticket}
+                loading={false}
+                error={error}
+                deleting={deleting}
+                formatDate={formatDate}
+                onBack={() => navigate("/admin/dashboard/tickets")}
+                onDelete={deleteCurrent}
+              />
+            )}
           </div>
         </div>
       </SidebarInset>

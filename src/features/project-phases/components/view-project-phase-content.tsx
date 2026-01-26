@@ -9,6 +9,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import type { Phase } from "@/types/project-phases.type";
 import { formatDateLong } from "@/utils/format-date-time";
+import { ViewProjectPhaseSkeleton } from "./view-project-phase-skeleton";
 
 type Props = {
   phase: Phase | null;
@@ -23,15 +24,7 @@ export const ViewProjectPhaseContent: React.FC<Props> = ({
 }) => {
   if (loading) {
     return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="animate-pulse space-y-3">
-            <div className="h-6 w-48 bg-muted/30 rounded" />
-            <div className="h-4 w-full bg-muted/30 rounded" />
-            <div className="h-4 w-full bg-muted/30 rounded" />
-          </div>
-        </CardContent>
-      </Card>
+      <ViewProjectPhaseSkeleton />
     );
   }
 

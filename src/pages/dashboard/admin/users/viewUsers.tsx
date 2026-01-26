@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { UserDeleteDialog } from "@/features/users/components/users-delete-dialog"
 import { UserDetailCard } from "@/features/users/components/users-detail-card"
 import { useViewUser } from "@/features/users/hooks/use-view-user"
+import { UserDetailCardSkeleton } from "@/features/users/components/user-detail-card-skeleton"
 
 export default function ViewUserPage() {
   const navigate = useNavigate()
@@ -96,29 +97,22 @@ export default function ViewUserPage() {
                   </p>
                 </div>
 
-                <div className="px-4 lg:px-6">
-                  {loading ? (
-                    <Card>
-                      <CardContent>
-                        <div className="animate-pulse space-y-4">
-                          <div className="h-6 w-1/3 bg-muted/30 rounded" />
-                          <div className="h-4 w-full bg-muted/30 rounded" />
-                          <div className="h-4 w-full bg-muted/30 rounded" />
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ) : error ? (
-                    <div className="rounded border p-6 text-red-600">
-                      {error}
-                    </div>
-                  ) : !user ? (
-                    <div className="rounded border p-6">
-                      User tidak ditemukan.
-                    </div>
-                  ) : (
-                    <UserDetailCard user={user} />
-                  )}
-                </div>
+                  <div className="px-4 lg:px-6">
+                    {loading ? (
+                      <UserDetailCardSkeleton />
+                    ) : error ? (
+                      <div className="rounded border p-6 text-red-600">
+                        {error}
+                      </div>
+                    ) : !user ? (
+                      <div className="rounded border p-6">
+                        User tidak ditemukan.
+                      </div>
+                    ) : (
+                      <UserDetailCard user={user} />
+                    )}
+                  </div>
+
               </div>
             </div>
           </div>
