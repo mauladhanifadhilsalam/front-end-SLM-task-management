@@ -289,20 +289,20 @@ export function ProjectTeamUpdateDetailPage() {
                                                         value={query}
                                                         onChange={(e) => setQuery(e.target.value)}
                                                         placeholder="Cari developer atau task..."
-                                                        className="max-w-[200px] bg-zinc-900 border-zinc-700 hover:bg-zinc-800 focus:bg-zinc-800"
+                                                        className="max-w-[200px] bg-background text-foreground"
                                                     />
                                                     <Input
                                                         type="date"
                                                         value={dateFilter}
                                                         onChange={(e) => setDateFilter(e.target.value)}
-                                                        className="w-[160px] bg-zinc-900 border-zinc-700 hover:bg-zinc-800 focus:bg-zinc-800"
+                                                        className="w-[160px] bg-background text-foreground"
                                                     />
                                                     <div className="flex flex-col gap-2">
                                                         <Select
                                                             value={statusFilter}
                                                             onValueChange={(val) => setStatusFilter(val as UpdateStatus | "ALL")}
                                                         >
-                                                            <SelectTrigger className="w-[140px] bg-zinc-900 border-zinc-700 hover:bg-zinc-800">
+                                                            <SelectTrigger className="w-[140px] bg-background text-foreground">
                                                                 <SelectValue placeholder="Filter Status" />
                                                             </SelectTrigger>
                                                             <SelectContent>
@@ -344,23 +344,23 @@ export function ProjectTeamUpdateDetailPage() {
                                             ) : (
                                                 <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
                                                     <Table>
-                                                        <TableHeader className="bg-[#0a0a0a]">
-                                                            <TableRow className="hover:bg-[#0a0a0a] border-b border-slate-800/20">
-                                                                <TableHead className="min-w-[90px] first:rounded-tl-lg text-white font-medium uppercase text-xs">Tanggal</TableHead>
-                                                                <TableHead className="min-w-[140px] text-white font-medium uppercase text-xs">Developer</TableHead>
-                                                                <TableHead className="min-w-[90px] text-white font-medium uppercase text-xs">Status</TableHead>
-                                                                <TableHead className="min-w-[200px] text-white font-medium uppercase text-xs">Kemarin</TableHead>
-                                                                <TableHead className="min-w-[200px] text-white font-medium uppercase text-xs">Hari Ini</TableHead>
-                                                                <TableHead className="min-w-[200px] text-white font-medium uppercase text-xs">Blocker</TableHead>
-                                                                <TableHead className="min-w-[120px] text-white font-medium uppercase text-xs">Next Action</TableHead>
-                                                                <TableHead className="min-w-[120px] text-right last:rounded-tr-lg text-white font-medium uppercase text-xs">Actions</TableHead>
+                                                        <TableHeader className="bg-slate-100 dark:bg-[#0a0a0a]">
+                                                            <TableRow className="hover:bg-slate-100 dark:hover:bg-[#0a0a0a] border-b border-slate-200 dark:border-slate-800/20">
+                                                                <TableHead className="min-w-[90px] first:rounded-tl-lg text-slate-700 dark:text-white font-medium uppercase text-xs">Tanggal</TableHead>
+                                                                <TableHead className="min-w-[140px] text-slate-700 dark:text-white font-medium uppercase text-xs">Developer</TableHead>
+                                                                <TableHead className="min-w-[90px] text-slate-700 dark:text-white font-medium uppercase text-xs">Status</TableHead>
+                                                                <TableHead className="min-w-[200px] text-slate-700 dark:text-white font-medium uppercase text-xs">Kemarin</TableHead>
+                                                                <TableHead className="min-w-[200px] text-slate-700 dark:text-white font-medium uppercase text-xs">Hari Ini</TableHead>
+                                                                <TableHead className="min-w-[200px] text-slate-700 dark:text-white font-medium uppercase text-xs">Blocker</TableHead>
+                                                                <TableHead className="min-w-[120px] text-slate-700 dark:text-white font-medium uppercase text-xs">Next Action</TableHead>
+                                                                <TableHead className="min-w-[120px] text-right last:rounded-tr-lg text-slate-700 dark:text-white font-medium uppercase text-xs">Actions</TableHead>
                                                             </TableRow>
                                                         </TableHeader>
                                                         <TableBody>
                                                             {projectUpdates.map((item) => (
                                                                 <TableRow
                                                                     key={item.id}
-                                                                    className="bg-black border-b border-slate-800/30 transition-all duration-200 hover:bg-[#0a0a0a]"
+                                                                    className="bg-white dark:bg-black border-b border-slate-200 dark:border-slate-800/30 transition-all duration-200 hover:bg-slate-50 dark:hover:bg-[#0a0a0a]"
                                                                 >
                                                                     <TableCell className="font-medium text-muted-foreground text-sm">
                                                                         {formatDate(item.updatedAt || item.createdAt)}
