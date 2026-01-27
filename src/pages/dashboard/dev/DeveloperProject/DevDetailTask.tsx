@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useTaskDetail } from "@/features/DevDetailTask/hook/use-task-detail";
 import { TaskDetailCard } from "@/features/DevDetailTask/components/task-detail-card";
+import { TaskDetailSkeleton } from "@/features/DevDetailTask/components/task-detail-skeleton";
 
 export default function DeveloperTaskDetail() {
   const { projectId, taskId } = useParams();
@@ -20,7 +21,6 @@ export default function DeveloperTaskDetail() {
   );
 
   const handleBack = () => {
-    // Jika ada dari halaman sebelumnya, gunakan -1 untuk kembali
     if (location.state?.from) {
       navigate(-1);
     } else {
@@ -64,7 +64,7 @@ export default function DeveloperTaskDetail() {
 
           {/* Content */}
           {loading ? (
-            <p className="text-muted-foreground">Memuat detail task...</p>
+            <p className="text-muted-foreground"><TaskDetailSkeleton /></p>
           ) : error ? (
             <p className="text-red-500">Error: {error}</p>
           ) : !task ? (
