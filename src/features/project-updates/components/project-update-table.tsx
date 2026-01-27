@@ -44,6 +44,7 @@ import { deleteProjectUpdate } from "@/services/project-update.service"
 import { projectUpdateKeys } from "@/lib/query-keys"
 import type { ProjectUpdate } from "@/types/project-update.type"
 import { cn } from "@/lib/utils"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   ProjectUpdatesSearchEmptyState,
   ProjectUpdatesEmptyState,
@@ -190,12 +191,43 @@ export function ProjectUpdateTable({
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow>
-                  <TableCell colSpan={9} className="text-center">
-                    Memuat data...
-                  </TableCell>
-                </TableRow>
-              ) : error ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell>
+                        <Skeleton className="h-4 w-24" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-12" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-24" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-32" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-40" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-44" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-44" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-20" />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Skeleton className="h-8 w-8 rounded-md" />
+                          <Skeleton className="h-8 w-8 rounded-md" />
+                          <Skeleton className="h-8 w-8 rounded-md" />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )
+                : error ? (
                 <TableRow>
                   <TableCell
                     colSpan={9}

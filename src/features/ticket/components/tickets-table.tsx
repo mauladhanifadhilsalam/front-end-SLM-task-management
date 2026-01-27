@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/alert-dialog"
 
 import type { AdminTicket,AdminTicketColumns,TicketStatus, TicketPriority, TicketType } from "@/types/ticket-type"
+import { Skeleton } from "@/components/ui/skeleton"
 
 type Props = {
   tickets: AdminTicket[]
@@ -329,11 +330,64 @@ export function TicketsTable({
           </thead>
           <tbody>
             {loading ? (
-              <tr>
-                <td colSpan={10} className="px-4 py-6 text-center">
-                  Memuat data...
-                </td>
-              </tr>
+              Array.from({ length: 5 }).map((_, i) => (
+                <tr key={i} className="border-t text-center">
+                  {cols.id && (
+                    <td className="px-4 py-3">
+                      <Skeleton className="h-4 w-10 mx-auto" />
+                    </td>
+                  )}
+                  {cols.title && (
+                    <td className="px-4 py-3">
+                      <Skeleton className="h-4 w-44 mx-auto" />
+                    </td>
+                  )}
+                  {cols.type && (
+                    <td className="px-4 py-3">
+                      <Skeleton className="h-4 w-20 mx-auto" />
+                    </td>
+                  )}
+                  {cols.priority && (
+                    <td className="px-4 py-3">
+                      <Skeleton className="h-4 w-20 mx-auto" />
+                    </td>
+                  )}
+                  {cols.status && (
+                    <td className="px-4 py-3">
+                      <Skeleton className="h-4 w-24 mx-auto" />
+                    </td>
+                  )}
+                  {cols.requester && (
+                    <td className="px-4 py-3">
+                      <Skeleton className="h-4 w-32 mx-auto" />
+                    </td>
+                  )}
+                  {cols.project && (
+                    <td className="px-4 py-3">
+                      <Skeleton className="h-4 w-36 mx-auto" />
+                    </td>
+                  )}
+                  {cols.startDate && (
+                    <td className="px-4 py-3">
+                      <Skeleton className="h-4 w-24 mx-auto" />
+                    </td>
+                  )}
+                  {cols.dueDate && (
+                    <td className="px-4 py-3">
+                      <Skeleton className="h-4 w-24 mx-auto" />
+                    </td>
+                  )}
+                  {cols.actions && (
+                    <td className="px-4 py-3">
+                      <div className="flex justify-center gap-2">
+                        <Skeleton className="h-4 w-4" />
+                        <Skeleton className="h-4 w-4" />
+                        <Skeleton className="h-4 w-4" />
+                      </div>
+                    </td>
+                  )}
+                </tr>
+              ))
             ) : error ? (
               <tr>
                 <td colSpan={10} className="px-4 py-6 text-center text-red-600">
@@ -347,7 +401,9 @@ export function TicketsTable({
                   {cols.title && <td className="px-4 py-3">{t.title}</td>}
                   {cols.type && (
                     <td className="px-4 py-3">
-                      <Badge variant={typeLabelVariant(t.type)}>{t.type || "-"}</Badge>
+                      <Badge variant={typeLabelVariant(t.type)}>
+                        {t.type || "-"}
+                      </Badge>
                     </td>
                   )}
                   {cols.priority && (
@@ -359,7 +415,9 @@ export function TicketsTable({
                   )}
                   {cols.status && (
                     <td className="px-4 py-3">
-                      <Badge variant={statusVariant(t.status)}>{t.status}</Badge>
+                      <Badge variant={statusVariant(t.status)}>
+                        {t.status}
+                      </Badge>
                     </td>
                   )}
                   {cols.requester && (
@@ -381,24 +439,15 @@ export function TicketsTable({
                   {cols.actions && (
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-center gap-2">
-                        <Link
-                          to={`/admin/dashboard/tickets/view/${t.id}`}
-                          className="px-2 py-1 rounded"
-                        >
+                        <Link to={`/admin/dashboard/tickets/view/${t.id}`}>
                           <IconEye className="h-4 w-4" />
                         </Link>
-                        <Link
-                          to={`/admin/dashboard/tickets/edit/${t.id}`}
-                          className="px-2 py-1 rounded"
-                        >
+                        <Link to={`/admin/dashboard/tickets/edit/${t.id}`}>
                           <IconEdit className="h-4 w-4" />
                         </Link>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <button
-                              className="px-2 py-1 rounded text-red-600 hover:text-red-700 cursor-pointer"
-                              onClick={(e) => e.stopPropagation()}
-                            >
+                            <button className="text-red-600 hover:text-red-700">
                               <IconTrash className="h-4 w-4" />
                             </button>
                           </AlertDialogTrigger>
@@ -408,8 +457,7 @@ export function TicketsTable({
                                 Hapus ticket "{t.title}"?
                               </AlertDialogTitle>
                               <AlertDialogDescription>
-                                Tindakan ini tidak dapat dibatalkan. Ticket akan
-                                dihapus secara permanen dari sistem.
+                                Tindakan ini tidak dapat dibatalkan.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -430,6 +478,7 @@ export function TicketsTable({
               ))
             )}
           </tbody>
+
         </table>
 
         {!loading && tickets.length === 0 && (

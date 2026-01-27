@@ -12,6 +12,9 @@ import { ProjectDetailCard } from "@/features/projects/components/project-detail
 import { ProjectDeleteDialog } from "@/features/projects/components/project-delete-dialog"
 import { ProjectPhasesOverview } from "@/features/projects/components/project-phases-overview"
 import { ProjectAssignmentsOverview } from "@/features/projects/components/project-assignments-overview"
+import { ProjectDetailCardSkeleton } from "@/features/projects/components/project-detail-card-skeleton"
+import { ProjectPhasesOverviewSkeleton } from "@/features/projects/components/project-phase-overview-skeleton"
+import { ProjectAssignmentsOverviewSkeleton } from "@/features/projects/components/project-assignment-overview-skeleton"
 export default function ViewProjectPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -76,7 +79,15 @@ export default function ViewProjectPage() {
             Lihat informasi lengkap project yang sedang dikelola.
           </p>
 
-          {loading && <div className="p-6">Memuat data...</div>}
+          {loading && <div className="p-6">
+              <ProjectDetailCardSkeleton />
+              
+
+              <div className="mt-6 grid gap-6 lg:grid-cols-2">
+                <ProjectPhasesOverviewSkeleton />
+                <ProjectAssignmentsOverviewSkeleton /> 
+              </div>
+          </div>}
           {!loading && error && (
             <div className="p-6 text-red-600">{error}</div>
           )}

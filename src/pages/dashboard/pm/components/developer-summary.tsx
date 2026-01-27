@@ -3,7 +3,7 @@
 import * as React from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { PmDeveloperHighlight } from "@/types/pm-overview.type"
-
+import { Skeleton } from "@/components/ui/skeleton"
 type Props = {
   data?: PmDeveloperHighlight[] | null
   loading?: boolean
@@ -76,9 +76,11 @@ function MetricCard({
       </CardHeader>
       <CardContent className="pt-0">
         {loading ? (
-          <div className=" w-16 animate-pulse rounded bg-muted" />
+          <Skeleton className="h-7 w-20" />
         ) : (
-          <div className="text-2xl font-bold tabular-nums">{value}</div>
+          <div className="text-2xl font-bold tabular-nums">
+            {value ?? "-"}
+          </div>
         )}
       </CardContent>
     </Card>

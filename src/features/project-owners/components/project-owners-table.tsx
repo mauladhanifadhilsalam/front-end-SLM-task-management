@@ -9,6 +9,7 @@ import type { PaginationMeta } from "@/types/pagination"
 import { TablePaginationControls } from "@/components/table-pagination-controls"
 import { ProjectOwnerColumns } from "../hooks/use-admin-project-owners"
 import { ProjectOwnerDeleteDialog } from "./project-owner-delete-dialog"
+import { Skeleton } from "@/components/ui/skeleton"
 
 type Props = {
   owners: ProjectOwner[]
@@ -65,11 +66,49 @@ export const ProjectOwnersTable: React.FC<Props> = ({
         </thead>
         <tbody>
           {loading ? (
-            <tr>
-              <td colSpan={colSpan} className="px-4 py-6 text-center">
-                Memuat data...
-              </td>
-            </tr>
+            Array.from({ length: pageSize }).map((_, i) => (
+              <tr key={i} className="border-t text-center">
+                {columns.id && (
+                  <td className="px-4 py-3">
+                    <Skeleton className="h-4 w-10 mx-auto" />
+                  </td>
+                )}
+                {columns.name && (
+                  <td className="px-4 py-3">
+                    <Skeleton className="h-4 w-32 mx-auto" />
+                  </td>
+                )}
+                {columns.company && (
+                  <td className="px-4 py-3">
+                    <Skeleton className="h-4 w-28 mx-auto" />
+                  </td>
+                )}
+                {columns.email && (
+                  <td className="px-4 py-3">
+                    <Skeleton className="h-4 w-40 mx-auto" />
+                  </td>
+                )}
+                {columns.phone && (
+                  <td className="px-4 py-3">
+                    <Skeleton className="h-4 w-28 mx-auto" />
+                  </td>
+                )}
+                {columns.address && (
+                  <td className="px-4 py-3">
+                    <Skeleton className="h-4 w-36 mx-auto" />
+                  </td>
+                )}
+                {columns.actions && (
+                  <td className="px-4 py-3">
+                    <div className="flex justify-center gap-2">
+                      <Skeleton className="h-4 w-4" />
+                      <Skeleton className="h-4 w-4" />
+                      <Skeleton className="h-4 w-4" />
+                    </div>
+                  </td>
+                )}
+              </tr>
+            ))
           ) : error ? (
             <tr>
               <td
@@ -79,6 +118,15 @@ export const ProjectOwnersTable: React.FC<Props> = ({
                 {error}
               </td>
             </tr>
+          ) : owners.length === 0 ? (
+            <tr>
+              <td
+                colSpan={colSpan}
+                className="px-4 py-6 text-center text-muted-foreground"
+              >
+                Belum ada data.
+              </td>
+            </tr>
           ) : (
             owners.map((o) => (
               <tr key={o.id} className="border-t text-center">
@@ -86,33 +134,19 @@ export const ProjectOwnersTable: React.FC<Props> = ({
                 {columns.name && <td className="px-4 py-3">{o.name}</td>}
                 {columns.company && (
                   <td className="px-4 py-3">
-                    <Badge variant="secondary">
-                      {o.company || "-"}
-                    </Badge>
+                    <Badge variant="secondary">{o.company || "-"}</Badge>
                   </td>
                 )}
-                {columns.email && (
-                  <td className="px-4 py-3">{o.email}</td>
-                )}
-                {columns.phone && (
-                  <td className="px-4 py-3">{o.phone || "-"}</td>
-                )}
-                {columns.address && (
-                  <td className="px-4 py-3">{o.address || "-"}</td>
-                )}
+                {columns.email && <td className="px-4 py-3">{o.email}</td>}
+                {columns.phone && <td className="px-4 py-3">{o.phone || "-"}</td>}
+                {columns.address && <td className="px-4 py-3">{o.address || "-"}</td>}
                 {columns.actions && (
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-center gap-2">
-                      <Link
-                        to={`${basePath}/project-owners/view/${o.id}`}
-                        className="px-2 py-1 rounded"
-                      >
+                      <Link to={`${basePath}/project-owners/view/${o.id}`}>
                         <IconEye className="h-4 w-4" />
                       </Link>
-                      <Link
-                        to={`${basePath}/project-owners/edit/${o.id}`}
-                        className="px-2 py-1 rounded"
-                      >
+                      <Link to={`${basePath}/project-owners/edit/${o.id}`}>
                         <IconEdit className="h-4 w-4" />
                       </Link>
                       <ProjectOwnerDeleteDialog
@@ -127,6 +161,7 @@ export const ProjectOwnersTable: React.FC<Props> = ({
             ))
           )}
         </tbody>
+
       </table>
 
       <TablePaginationControls

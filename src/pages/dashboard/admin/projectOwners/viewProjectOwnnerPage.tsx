@@ -11,7 +11,7 @@ import { IconArrowLeft, IconEdit } from "@tabler/icons-react"
 import { useViewProjectOwner } from "@/features/project-owners/hooks/use-view-project-owner"
 import { ProjectOwnerDetailCard } from "@/features/project-owners/components/project-owner-deatil-card"
 import { ProjectOwnerDeleteDialog } from "@/features/project-owners/components/project-owner-delete-dialog"
-
+import { ProjectOwnerDetailCardSkeleton } from "@/features/project-owners/components/project-owner-detail-card-skeleton"
 export default function ViewProjectOwnerPage() {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
@@ -96,29 +96,21 @@ export default function ViewProjectOwnerPage() {
                   </p>
                 </div>
 
-                <div className="px-4 lg:px-6">
-                  {loading ? (
-                    <Card>
-                      <CardContent>
-                        <div className="animate-pulse space-y-3">
-                          <div className="h-6 w-48 bg-muted/30 rounded" />
-                          <div className="h-4 w-full bg-muted/30 rounded" />
-                          <div className="h-4 w-full bg-muted/30 rounded" />
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ) : error ? (
-                    <div className="rounded border p-6 text-red-600">
-                      {error}
-                    </div>
-                  ) : !owner ? (
-                    <div className="rounded border p-6">
-                      Owner tidak ditemukan.
-                    </div>
-                  ) : (
-                    <ProjectOwnerDetailCard owner={owner} />
-                  )}
-                </div>
+<div className="px-4 lg:px-6">
+                {loading ? (
+                  <ProjectOwnerDetailCardSkeleton />
+                ) : error ? (
+                  <div className="rounded border p-6 text-red-600">
+                    {error}
+                  </div>
+                ) : !owner ? (
+                  <div className="rounded border p-6">
+                    Owner tidak ditemukan.
+                  </div>
+                ) : (
+                  <ProjectOwnerDetailCard owner={owner} />
+                )}
+              </div>
               </div>
             </div>
           </div>

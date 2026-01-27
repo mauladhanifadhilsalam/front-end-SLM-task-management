@@ -32,6 +32,7 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import type { PmDeveloperHighlight } from "@/types/pm-overview.type"
 import { useDeveloperHighlights } from "../hooks/use-developer-highlights"
+import { Skeleton } from "@/components/ui/skeleton"
 
 type SortKey = "workload" | "highPriority" | "overdue"
 type FilterKey = "all" | "highPriority" | "overdue" | "dueSoon"

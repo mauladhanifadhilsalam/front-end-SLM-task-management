@@ -9,6 +9,7 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card"
+import { ViewProjectRoleSkeleton } from "./view-project-role-skeleton"
 
 type Props = {
   projectRole: ProjectRole | undefined
@@ -23,11 +24,7 @@ export const ViewProjectRoleContent: React.FC<Props> = ({
 }) => {
   if (loading) {
     return (
-      <Card className="max-w-xl">
-        <CardContent className="py-6">
-          <p className="text-muted-foreground">Loading project role...</p>
-        </CardContent>
-      </Card>
+      <ViewProjectRoleSkeleton />
     )
   }
 

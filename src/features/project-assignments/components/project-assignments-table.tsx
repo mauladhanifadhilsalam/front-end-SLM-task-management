@@ -23,6 +23,7 @@ import type {
 } from "@/features/project-assignments/hooks/use-admin-project-assignments"
 import type { PaginationMeta } from "@/types/pagination"
 import { TablePaginationControls } from "@/components/table-pagination-controls"
+import { Skeleton } from "@/components/ui/skeleton"
 
 type Props = {
   assignments: ProjectAssignment[]
@@ -230,73 +231,93 @@ export const ProjectAssignmentsTable: React.FC<Props> = ({
             </tr>
           </thead>
           <tbody>
-            {loading ? (
-              <tr>
-                <td
-                  colSpan={7}
-                  className="px-4 py-6 text-center"
-                >
-                  Memuat data...
+        {loading ? (
+          Array.from({ length: 5 }).map((_, i) => (
+            <tr key={i} className="border-t text-center">
+              {columns.id && (
+                <td className="px-4 py-3">
+                  <Skeleton className="h-4 w-10 mx-auto" />
                 </td>
-              </tr>
-            ) : error ? (
-              <tr>
-                <td
-                  colSpan={7}
-                  className="px-4 py-6 text-center text-red-600"
-                >
-                  {error}
+              )}
+              {columns.project && (
+                <td className="px-4 py-3">
+                  <Skeleton className="h-4 w-36 mx-auto" />
                 </td>
-              </tr>
-            ) : (
-              assignments.map((a) => (
-                <tr
-                  key={a.id}
-                  className="border-t text-center"
-                >
-                  {columns.id && (
-                    <td className="px-4 py-3">{a.id}</td>
+              )}
+              {columns.assignee && (
+                <td className="px-4 py-3">
+                  <Skeleton className="h-4 w-32 mx-auto" />
+                </td>
+              )}
+              {columns.roleInProject && (
+                <td className="px-4 py-3">
+                  <Skeleton className="h-4 w-24 mx-auto" />
+                </td>
+              )}
+              {columns.actions && (
+                <td className="px-4 py-3">
+                  <div className="flex justify-center gap-2">
+                    <Skeleton className="h-4 w-4" />
+                    <Skeleton className="h-4 w-4" />
+                  </div>
+                </td>
+              )}
+            </tr>
+          ))
+        ) : error ? (
+          <tr>
+            <td
+              colSpan={7}
+              className="px-4 py-6 text-center text-red-600"
+            >
+              {error}
+            </td>
+          </tr>
+        ) : (
+          assignments.map((a) => (
+            <tr key={a.id} className="border-t text-center">
+              {columns.id && <td className="px-4 py-3">{a.id}</td>}
+              {columns.project && (
+                <td className="px-4 py-3">
+                  {a.projectName || "-"}
+                </td>
+              )}
+              {columns.assignee && (
+                <td className="px-4 py-3">
+                  {a.assigneeName || "-"}
+                </td>
+              )}
+              {columns.roleInProject && (
+                <td className="px-4 py-3">
+                  {a.roleInProject ? (
+                    <Badge variant="secondary">
+                      {a.roleInProject}
+                    </Badge>
+                  ) : (
+                    "-"
                   )}
-                  {columns.project && (
-                    <td className="px-4 py-3">
-                      {a.projectName || "-"}
-                    </td>
-                  )}
-                  {columns.assignee && (
-                    <td className="px-4 py-3">
-                      {a.assigneeName || "-"}
-                    </td>
-                  )}
-                  {columns.roleInProject && (
-                    <td className="px-4 py-3">
-                      {a.roleInProject ? (
-                        <Badge variant="secondary">
-                          {a.roleInProject}
-                        </Badge>
-                      ) : (
-                        "-"
-                      )}
-                    </td>
-                  )}
-                  {columns.actions && (
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-center gap-2">
-                        <Button
-                          type="button"
-                          size="icon"
-                          variant="none"
-                          className="cursor-pointer rounded text-red-600 hover:text-red-700"
-                          onClick={() => onRequestDelete(a.id)}
-                        >
-                          <IconTrash className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  )}
-                </tr>
-              ))
-            )}
-          </tbody>
+                </td>
+              )}
+              {columns.actions && (
+                <td className="px-4 py-3">
+                  <div className="flex items-center justify-center gap-2">
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="none"
+                      className="cursor-pointer rounded text-red-600 hover:text-red-700"
+                      onClick={() => onRequestDelete(a.id)}
+                    >
+                      <IconTrash className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </td>
+              )}
+            </tr>
+          ))
+        )}
+      </tbody>
+
         </table>
 
         {!loading && assignments.length === 0 && (

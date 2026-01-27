@@ -22,6 +22,8 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { IconArrowLeft, IconEdit, IconTrash, IconEye } from "@tabler/icons-react"
 import type { AdminComment } from "@/types/comment.type"
+import { ViewCommentContentSkeleton } from "./view-comment-content-skeleton"
+
 
 type Props = {
   comment: AdminComment | null
@@ -127,15 +129,7 @@ export const ViewCommentContent: React.FC<Props> = ({
 
       <div className="px-4 lg:px-6">
         {loading ? (
-          <Card>
-            <CardContent className="p-6">
-              <div className="animate-pulse space-y-3">
-                <div className="h-6 w-48 bg-muted/30 rounded" />
-                <div className="h-4 w-full bg-muted/30 rounded" />
-                <div className="h-4 w-2/3 bg-muted/30 rounded" />
-              </div>
-            </CardContent>
-          </Card>
+          <ViewCommentContentSkeleton />
         ) : error ? (
           <div className="rounded border p-6 text-red-600">
             {error}

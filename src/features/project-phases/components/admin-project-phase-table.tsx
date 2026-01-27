@@ -19,6 +19,7 @@ import { formatDate } from "@/utils/format-date-time";
 import type { ProjectStatus } from "@/types/project.type";
 import type { PaginationMeta } from "@/types/pagination";
 import { TablePaginationControls } from "@/components/table-pagination-controls";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Props = {
   phases: Phase[];
@@ -198,32 +199,84 @@ export const AdminProjectPhaseTable: React.FC<Props> = ({
     </table>
   );
 
-  if (loading || error || phases.length === 0) {
-    const message = loading
-      ? "Loading..."
-      : error
-        ? error
-        : "No phases found";
-
-    const messageClass = error ? "text-red-600" : "text-muted-foreground";
-
-    return (
-      <div className="overflow-x-auto rounded-md border">
-        <table className="min-w-full divide-y divide-border">
-          <tbody>
-            <tr>
-              <td
-                colSpan={colSpan}
-                className={`px-4 py-6 text-center ${loading ? "" : messageClass}`.trim()}
-              >
-                {message}
-              </td>
+if (loading) {
+  return (
+    <div className="overflow-x-auto rounded-md border">
+      <table className="min-w-full divide-y divide-border">
+        <tbody>
+          {Array.from({ length: pageSize }).map((_, i) => (
+            <tr key={i} className="text-center">
+              {cols.id && (
+                <td className="px-4 py-3">
+                  <Skeleton className="h-4 w-12 mx-auto" />
+                </td>
+              )}
+              {cols.name && (
+                <td className="px-4 py-3">
+                  <Skeleton className="h-4 w-32 mx-auto" />
+                </td>
+              )}
+              {cols.projectName && (
+                <td className="px-4 py-3">
+                  <Skeleton className="h-4 w-28 mx-auto" />
+                </td>
+              )}
+              {cols.phaseStart && (
+                <td className="px-4 py-3">
+                  <Skeleton className="h-4 w-24 mx-auto" />
+                </td>
+              )}
+              {cols.phaseEnd && (
+                <td className="px-4 py-3">
+                  <Skeleton className="h-4 w-24 mx-auto" />
+                </td>
+              )}
+              {cols.projectDates && (
+                <td className="px-4 py-3">
+                  <Skeleton className="h-4 w-40 mx-auto" />
+                </td>
+              )}
+              {cols.status && (
+                <td className="px-4 py-3">
+                  <Skeleton className="h-4 w-20 mx-auto" />
+                </td>
+              )}
+              {cols.actions && (
+                <td className="px-4 py-3">
+                  <div className="flex justify-center gap-2">
+                    <Skeleton className="h-8 w-8 rounded-md" />
+                    <Skeleton className="h-8 w-8 rounded-md" />
+                    <Skeleton className="h-8 w-8 rounded-md" />
+                  </div>
+                </td>
+              )}
             </tr>
-          </tbody>
-        </table>
-      </div>
-    );
-  }
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+if (error || phases.length === 0) {
+  const message = error || "No phases found";
+  const messageClass = error ? "text-red-600" : "text-muted-foreground";
+
+  return (
+    <div className="overflow-x-auto rounded-md border">
+      <table className="min-w-full divide-y divide-border">
+        <tbody>
+          <tr>
+            <td colSpan={colSpan} className={`px-4 py-6 text-center ${messageClass}`}>
+              {message}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 
   return (
     <div className="overflow-x-auto rounded-md border">

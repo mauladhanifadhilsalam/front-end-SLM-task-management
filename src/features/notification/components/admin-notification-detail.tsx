@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-
+import { AdminNotificationDetailSkeleton } from "./admin-notification-detail-skeleton"
 import type {
   NotificationState,
   NotifyStatusType,
@@ -138,10 +138,12 @@ export const AdminNotificationDetail: React.FC<Props> = ({ rawId, onBack }) => {
               </CardHeader>
 
               <CardContent className="space-y-6">
-                {loading && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <IconBell className="h-4 w-4 animate-pulse" />
-                    Loading notification…
+                {loading && <AdminNotificationDetailSkeleton />}
+
+                {!loading && error && (
+                  <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+                    <IconAlertCircle className="mt-0.5 h-4 w-4" />
+                    <p>{error}</p>
                   </div>
                 )}
 

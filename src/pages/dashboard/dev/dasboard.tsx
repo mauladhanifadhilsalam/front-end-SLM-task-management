@@ -13,6 +13,12 @@ import { DevCharts } from "@/pages/dashboard/dev/components/dev-charts"
 import { ActivityCards } from "@/pages/dashboard/dev/components/activity-cards"
 import { ProjectsOverview } from "@/pages/dashboard/dev/components/projects-overview"
 
+import { SkeletonPerformanceCard } from "@/pages/dashboard/dev/components/skeleton-performance-card"
+import { SkeletonQuickStats } from "@/pages/dashboard/dev/components/skeleton-quick-stats"
+import { SkeletonDevCharts } from "@/pages/dashboard/dev/components/skeleton-dev-charts"
+import { SkeletonActivityCards } from "@/pages/dashboard/dev/components/skeleton-activity-cards"
+import { SkeletonProjectsOverview } from "@/pages/dashboard/dev/components/skeleton-projects-overview"
+
 import {
   calculatePerformanceRating,
   getPerformanceLevel,
@@ -39,11 +45,33 @@ function LoadingPage() {
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
 
-              <div className="flex items-center justify-center h-[300px]">
-                <div className="text-center space-y-4">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-                  <p className="text-muted-foreground">Loading dashboard...</p>
+              {/* Welcome Skeleton */}
+              <div className="px-4 lg:px-6 space-y-2">
+                <div className="h-8 w-64 bg-muted rounded animate-pulse" />
+                <div className="h-4 w-96 bg-muted rounded animate-pulse" />
+              </div>
+
+              {/* Performance + Stats Skeleton */}
+              <div className="px-4 lg:px-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  <SkeletonPerformanceCard />
+                  <SkeletonQuickStats />
                 </div>
+              </div>
+
+              {/* Charts Skeleton */}
+              <div className="px-4 lg:px-6">
+                <SkeletonDevCharts />
+              </div>
+
+              {/* Activity Cards Skeleton */}
+              <div className="px-4 lg:px-6">
+                <SkeletonActivityCards />
+              </div>
+
+              {/* Projects Section Skeleton */}
+              <div className="px-4 lg:px-6">
+                <SkeletonProjectsOverview />
               </div>
 
             </div>

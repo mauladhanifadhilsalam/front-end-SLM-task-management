@@ -8,6 +8,7 @@ import type { PaginationMeta } from "@/types/pagination"
 import { TablePaginationControls } from "@/components/table-pagination-controls"
 import { UserTableColumns } from "../hooks/use-admin-user"
 import { UserDeleteDialog } from "./users-delete-dialog"
+import { Skeleton } from "@/components/ui/skeleton"
 
 type Props = {
   users: User[]
@@ -43,17 +44,13 @@ export const UsersTable: React.FC<Props> = ({
 
   const canDelete = !isPm
 
-  if (loading) {
-    return <div className="rounded border p-6">Memuat data...</div>
-  }
+
 
   if (error) {
     return <div className="rounded border p-6 text-red-600">{error}</div>
   }
 
-  if (users.length === 0) {
-    return <div className="rounded border p-6">Belum ada data.</div>
-  }
+
 
   return (
     <div className="overflow-x-auto rounded border">
@@ -82,63 +79,104 @@ export const UsersTable: React.FC<Props> = ({
           </tr>
         </thead>
         <tbody>
-          {users.map((u) => (
-            <tr key={u.id} className="border-t text-center">
-              {columns.id && <td className="px-4 py-3">{u.id}</td>}
-
-              {columns.fullName && (
-                <td className="px-4 py-3">{u.fullName}</td>
+  {loading ? (
+    Array.from({ length: 5 }).map((_, i) => (
+      <tr key={i} className="border-t text-center">
+        {columns.id && (
+          <td className="px-4 py-3">
+            <Skeleton className="h-4 w-10 mx-auto" />
+          </td>
+        )}
+        {columns.fullName && (
+          <td className="px-4 py-3">
+            <Skeleton className="h-4 w-32 mx-auto" />
+          </td>
+        )}
+        {columns.email && (
+          <td className="px-4 py-3">
+            <Skeleton className="h-4 w-44 mx-auto" />
+          </td>
+        )}
+        {columns.passwordHash && (
+          <td className="px-4 py-3">
+            <Skeleton className="h-4 w-40 mx-auto" />
+          </td>
+        )}
+        {columns.role && (
+          <td className="px-4 py-3">
+            <Skeleton className="h-4 w-24 mx-auto" />
+          </td>
+        )}
+        {columns.projectRole && (
+          <td className="px-4 py-3">
+            <Skeleton className="h-4 w-28 mx-auto" />
+          </td>
+        )}
+        {columns.actions && (
+          <td className="px-4 py-3">
+            <div className="flex justify-center gap-2">
+              <Skeleton className="h-4 w-4" />
+              <Skeleton className="h-4 w-4" />
+              <Skeleton className="h-4 w-4" />
+            </div>
+          </td>
+        )}
+      </tr>
+    ))
+  ) : error ? (
+    <tr>
+      <td colSpan={7} className="p-6 text-center text-red-600">
+        {error}
+      </td>
+    </tr>
+  ) : users.length === 0 ? (
+    <tr>
+      <td colSpan={7} className="p-6 text-center text-muted-foreground">
+        Belum ada data.
+      </td>
+    </tr>
+  ) : (
+    users.map((u) => (
+      <tr key={u.id} className="border-t text-center">
+        {columns.id && <td className="px-4 py-3">{u.id}</td>}
+        {columns.fullName && <td className="px-4 py-3">{u.fullName}</td>}
+        {columns.email && <td className="px-4 py-3">{u.email}</td>}
+        {columns.passwordHash && (
+          <td className="px-4 py-3">{u.passwordHash}</td>
+        )}
+        {columns.role && (
+          <td className="px-4 py-3">
+            {u.role.replace("_", " ")}
+          </td>
+        )}
+        {columns.projectRole && (
+          <td className="px-4 py-3">
+            {u.projectRole ? u.projectRole.replace("_", " ") : "-"}
+          </td>
+        )}
+        {columns.actions && (
+          <td className="px-4 py-3">
+            <div className="flex justify-center gap-2">
+              <Link to={`${basePath}/view/${u.id}`}>
+                <IconEye className="h-4 w-4" />
+              </Link>
+              <Link to={`${basePath}/edit/${u.id}`}>
+                <IconEdit className="h-4 w-4" />
+              </Link>
+              {canDelete && (
+                <UserDeleteDialog
+                  userId={u.id}
+                  onConfirm={() => onDeleteUser(u.id)}
+                />
               )}
+            </div>
+          </td>
+        )}
+      </tr>
+    ))
+  )}
+</tbody>
 
-              {columns.email && (
-                <td className="px-4 py-3">{u.email}</td>
-              )}
-
-              {columns.passwordHash && (
-                <td className="px-4 py-3">{u.passwordHash}</td>
-              )}
-
-              {columns.role && (
-                <td className="px-4 py-3">
-                  <span>{u.role.replace("_", " ")}</span>
-                </td>
-              )}
-
-              {columns.projectRole && (
-                <td className="px-4 py-3">
-                  <span>{u.projectRole ? u.projectRole.replace("_", " ") : "-"}</span>
-                </td>
-              )}
-
-              {columns.actions && (
-                <td className="px-4 py-3">
-                  <div className="flex justify-center items-center gap-2">
-                    <Link
-                      to={`${basePath}/view/${u.id}`}
-                      className="inline-flex"
-                    >
-                      <IconEye className="h-4 w-4" />
-                    </Link>
-
-                    <Link
-                      to={`${basePath}/edit/${u.id}`}
-                      className="inline-flex"
-                    >
-                      <IconEdit className="h-4 w-4" />
-                    </Link>
-
-                    {canDelete && (
-                      <UserDeleteDialog
-                        userId={u.id}
-                        onConfirm={() => onDeleteUser(u.id)}
-                      />
-                    )}
-                  </div>
-                </td>
-              )}
-            </tr>
-          ))}
-        </tbody>
       </table>
 
       <TablePaginationControls

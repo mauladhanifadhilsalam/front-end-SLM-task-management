@@ -141,10 +141,67 @@ export function ProjectOwnerTable({ projects, loading, error }: Props) {
       </CardHeader>
       <CardContent className="px-2 pb-4 sm:px-5 space-y-3">
         {loading ? (
-          <div className="text-sm text-muted-foreground px-2 py-4">
-            Memuat data proyek...
-          </div>
-        ) : error ? (
+  <div className="overflow-hidden rounded-2xl border border-border/60 bg-card/60">
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Project Name</TableHead>
+          <TableHead>Client Name</TableHead>
+          {columns.startDate && <TableHead>Start Date</TableHead>}
+          {columns.endDate && <TableHead>Deadline</TableHead>}
+          {columns.status && <TableHead>Status</TableHead>}
+          {columns.progress && <TableHead>Progress</TableHead>}
+        </TableRow>
+      </TableHeader>
+
+      <TableBody>
+        {Array.from({
+          length: projects.length || 5,
+        }).map((_, i) => (
+          <TableRow key={i}>
+            <TableCell>
+              <div className="h-4 w-40 rounded bg-accent animate-pulse" />
+            </TableCell>
+
+            <TableCell>
+              <div className="flex items-center gap-2">
+                <div className="h-9 w-9 rounded-full bg-accent animate-pulse" />
+                <div className="space-y-1">
+                  <div className="h-3 w-24 rounded bg-accent animate-pulse" />
+                  <div className="h-2 w-16 rounded bg-accent animate-pulse" />
+                </div>
+              </div>
+            </TableCell>
+
+            {columns.startDate && (
+              <TableCell>
+                <div className="h-3 w-20 rounded bg-accent animate-pulse" />
+              </TableCell>
+            )}
+
+            {columns.endDate && (
+              <TableCell>
+                <div className="h-3 w-20 rounded bg-accent animate-pulse" />
+              </TableCell>
+            )}
+
+            {columns.status && (
+              <TableCell>
+                <div className="h-5 w-20 rounded-full bg-accent animate-pulse" />
+              </TableCell>
+            )}
+
+            {columns.progress && (
+              <TableCell>
+                <div className="h-2 w-full rounded bg-accent animate-pulse" />
+              </TableCell>
+            )}
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  </div>
+) : error ? (
           <div className="text-sm text-destructive px-2 py-4">{error}</div>
         ) : rows.length === 0 ? (
           <div className="text-sm text-muted-foreground px-2 py-4">
