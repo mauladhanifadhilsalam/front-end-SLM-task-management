@@ -18,7 +18,6 @@ export default function PmProjectTaskDetailPage() {
   const { task, loading, error, projectName } = useTaskDetail(projectId, taskId)
 
   const handleBack = () => {
-    // Jika ada dari halaman sebelumnya, gunakan -1 untuk kembali
     if (location.state?.from) {
       navigate(-1)
     } else if (projectId) {

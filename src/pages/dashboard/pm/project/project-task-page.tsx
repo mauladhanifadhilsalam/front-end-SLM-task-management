@@ -88,52 +88,61 @@ export default function ProjectTaskPage() {
     return (
       <div className="flex h-full flex-col">
         {taskCreation.isFormOpen ? (
-          <div className="fixed inset-0 z-40 flex items-center justify-center bg-background/70 p-4 animate-in fade-in duration-200">
-            <div className="w-full max-w-6xl overflow-y-auto animate-in zoom-in-95 slide-in-from-top-4 duration-200">
-              <TaskForm
-                projectName={projectName}
-                defaultStatus={taskCreation.defaultStatus}
-                assignees={taskCreation.assignees}
-                loadingAssignees={taskCreation.loadingAssignees}
-                submitting={taskCreation.submitting}
-                errorMessage={taskCreation.error}
-                assigneeError={taskCreation.assigneeError}
-                statusLocked
-                onCancel={taskCreation.closeForm}
-                onSubmit={taskCreation.handleSubmit}
-              />
-            </div>
-          </div>
-        ) : null}
+                <div
+                  className="fixed inset-0 z-40 flex items-center justify-center bg-background/70 p-4 animate-in fade-in duration-200"
+                  onClick={taskCreation.closeForm}
+                >
+                  <div
+                    className="w-full max-w-6xl overflow-y-auto animate-in zoom-in-95 slide-in-from-top-4 duration-200"
+                    onClick={(e) => e.stopPropagation()} 
+                  >
+                    <TaskForm
+                      projectName={projectName}
+                      defaultStatus={taskCreation.defaultStatus}
+                      assignees={taskCreation.assignees}
+                      loadingAssignees={taskCreation.loadingAssignees}
+                      submitting={taskCreation.submitting}
+                      errorMessage={taskCreation.error}
+                      assigneeError={taskCreation.assigneeError}
+                      statusLocked
+                      onCancel={taskCreation.closeForm}
+                      onSubmit={taskCreation.handleSubmit}
+                    />
+                  </div>
+                </div>
+              ) : null}
+
 
         {taskEditor.isOpen || taskEditor.isClosing ? (
-          <div
-            className={`fixed inset-0 z-40 flex items-center justify-center bg-background/70 p-4 transition duration-200 ${
-              taskEditor.isClosing ? "animate-out fade-out" : "animate-in fade-in"
-            }`}
-          >
-            <div
-              className={`w-full max-w-6xl overflow-y-auto transition duration-200 ${
-                taskEditor.isClosing
-                  ? "animate-out zoom-out-95 slide-out-to-top-4"
-                  : "animate-in zoom-in-95 slide-in-from-top-4"
-              }`}
-            >
-              <TaskEditForm
-                projectName={projectName}
-                assignees={taskEditor.assignees}
-                loadingAssignees={taskEditor.loadingAssignees}
-                submitting={false}
-                errorMessage={taskEditor.error}
-                assigneeError={taskEditor.assigneeError}
-                statusLocked={false}
-                initialValues={initialEditValues}
-                onCancel={taskEditor.close}
-                onSubmit={taskEditor.handleSubmit}
-              />
-            </div>
-          </div>
-        ) : null}
+              <div
+                className={`fixed inset-0 z-40 flex items-center justify-center bg-background/70 p-4 transition duration-200 ${
+                  taskEditor.isClosing ? "animate-out fade-out" : "animate-in fade-in"
+                }`}
+                onClick={taskEditor.close} 
+              >
+                <div
+                  className={`w-full max-w-6xl overflow-y-auto transition duration-200 ${
+                    taskEditor.isClosing
+                      ? "animate-out zoom-out-95 slide-out-to-top-4"
+                      : "animate-in zoom-in-95 slide-in-from-top-4"
+                  }`}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <TaskEditForm
+                    projectName={projectName}
+                    assignees={taskEditor.assignees}
+                    loadingAssignees={taskEditor.loadingAssignees}
+                    submitting={false}
+                    errorMessage={taskEditor.error}
+                    assigneeError={taskEditor.assigneeError}
+                    statusLocked={false}
+                    initialValues={initialEditValues}
+                    onCancel={taskEditor.close}
+                    onSubmit={taskEditor.handleSubmit}
+                  />
+                </div>
+              </div>
+            ) : null}
 
         <div className={`${isMobile ? "px-4 pb-6" : "px-6 pb-6"} flex-1 space-y-4`}>
           <TaskViewSwitcher
