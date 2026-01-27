@@ -9,9 +9,10 @@ import {
 import { Link, useNavigate } from "react-router-dom"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import { MoreHorizontal } from "lucide-react"
+import { MoreHorizontal, Eye, Pencil, Trash2 } from "lucide-react"
 import { Ticket } from "@/types/project-tasks.types"
 import { formatDate, getStatusColor, getPriorityVariant, getPriorityClassName } from "@/utils/format.utils"
+
 
 interface SortableTaskCardProps {
   ticket: Ticket
@@ -71,40 +72,63 @@ export const SortableTaskCard = ({ ticket, onEdit, onDelete }: SortableTaskCardP
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="text-lg leading-none text-muted-foreground hover:text-foreground p-1 rounded-full hover:bg-muted"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition"
                   aria-label="Menu task"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <MoreHorizontal className="h-4 w-4" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-44">
+
+              <DropdownMenuContent
+                align="end"
+                className="w-48 rounded-xl border border-border bg-popover p-1 shadow-lg"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* View */}
                 <DropdownMenuItem asChild>
-                  <Link to={href}>Buka detail task</Link>
+                  <Link
+                    to={href}
+                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm cursor-pointer"
+                  >
+                    <Eye className="h-4 w-4 text-muted-foreground" />
+                    Buka detail task
+                  </Link>
                 </DropdownMenuItem>
-                {onEdit ? (
+
+                {/* Edit */}
+                {onEdit && (
                   <DropdownMenuItem
+                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm cursor-pointer"
                     onSelect={(e) => {
                       e.stopPropagation()
                       onEdit(ticket)
                     }}
                   >
+                    <Pencil className="h-4 w-4 text-muted-foreground" />
                     Edit task
                   </DropdownMenuItem>
-                ) : null}
-                {onDelete ? (
+                )}
+
+                {/* Divider */}
+                {onDelete && <div className="my-1 h-px bg-border" />}
+
+                {/* Delete */}
+                {onDelete && (
                   <DropdownMenuItem
-                    className="text-destructive"
+                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer"
                     onSelect={(e) => {
                       e.stopPropagation()
                       onDelete(ticket)
                     }}
                   >
+                    <Trash2 className="h-4 w-4" />
                     Hapus task
                   </DropdownMenuItem>
-                ) : null}
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
+
           </div>
         </div>
 
