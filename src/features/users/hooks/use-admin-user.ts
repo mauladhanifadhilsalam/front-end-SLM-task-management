@@ -13,6 +13,7 @@ import {
   type UserListParams,
   type FetchUsersResult,
   emptyUserPagination,
+  updateUser
 } from "@/services/user.service"
 import { userKeys } from "@/lib/query-keys"
 import { buildSearchText, normalizeSearch } from "@/utils/search.util"
@@ -27,6 +28,7 @@ export type UserTableColumns = {
     passwordHash: boolean
     role: boolean
     projectRole: boolean
+    isActive: boolean
     actions: boolean
 }
 
@@ -44,6 +46,7 @@ export const useAdminUsers = () => {
         passwordHash: false,
         role: true,
         projectRole: true,
+        isActive: true,
         actions: true,
 })
 
@@ -163,6 +166,59 @@ const deleteMutation = useMutation({
     },
 })
 
+const toggleStatusMutation = useMutation({
+  mutationFn: ({
+    id,
+    isActive,
+  }: {
+    id: number
+    isActive: boolean
+  }) => updateUser(id, {isActive}),
+
+  onMutate: async ({ id, isActive }) => {
+    await queryClient.cancelQueries({ queryKey })
+
+    const previous =
+      queryClient.getQueryData<FetchUsersResult>(queryKey)
+
+    queryClient.setQueryData<FetchUsersResult>(queryKey, (current) => {
+      if (!current) return current
+      return {
+        ...current,
+        users: current.users.map((u) =>
+          u.id === id ? { ...u, isActive } : u,
+        ),
+      }
+    })
+
+    return { previous }
+  },
+
+  onError: (_err, _vars, context) => {
+    if (context?.previous) {
+      queryClient.setQueryData(queryKey, context.previous)
+    }
+    toast.error("Gagal mengubah status user")
+  },
+
+  onSuccess: (_, { isActive }) => {
+    toast.success(
+      isActive ? "User diaktifkan" : "User dinonaktifkan",
+    )
+  },
+
+  onSettled: () => {
+    queryClient.invalidateQueries({ queryKey })
+  },
+})
+
+const handleToggleUserStatus = React.useCallback(
+  async (id: number, isActive: boolean) => {
+    await toggleStatusMutation.mutateAsync({ id, isActive })
+  },
+  [toggleStatusMutation],
+)
+
 const handleDeleteUser = React.useCallback(
     async (id: number) => {
         try {
@@ -207,6 +263,7 @@ return {
         columns,
         toggleColumn,
         handleDeleteUser,
+        handleToggleUserStatus,
         refetch: usersQuery.refetch,
     }
 }

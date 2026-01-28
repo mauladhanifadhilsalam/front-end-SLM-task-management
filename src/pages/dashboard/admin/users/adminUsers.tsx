@@ -32,6 +32,7 @@ export default function AdminUsers() {
     pageSize,
     setPage,
     setPageSize,
+    handleToggleUserStatus,
   } = useAdminUsers()
 
   const hasData = users.length > 0
@@ -84,6 +85,7 @@ export default function AdminUsers() {
                     loading={loading}
                     error={error}
                     onDeleteUser={handleDeleteUser}
+                    onToggleUserStatus={handleToggleUserStatus}
                     pagination={pagination}
                     page={page}
                     pageSize={pageSize}
