@@ -61,7 +61,6 @@ export function TicketStatusDonut({
                   content={
                     <ChartTooltipContent
                       indicator="dot"
-                      labelFormatter={(val) => String(val)}
                     />
                   }
                 />
