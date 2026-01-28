@@ -74,24 +74,6 @@
   --sidebar-accent-foreground: oklch(0.9751 0.0127 244.2507);
   --sidebar-border: oklch(0.3600 0 0);
   --sidebar-ring: oklch(0.7282 0.1206 226.3084);
-  --font-sans: ui-sans-serif, system-ui, sans-serif;
-  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  --radius: 0.5rem;
-  --shadow-x: 0px;
-  --shadow-y: 4px;
-  --shadow-blur: 10px;
-  --shadow-spread: 0px;
-  --shadow-opacity: 0.3;
-  --shadow-color: #0f6ab0;
-  --shadow-2xs: 0px 4px 10px 0px hsl(206.0870 84.2932% 37.4510% / 0.15);
-  --shadow-xs: 0px 4px 10px 0px hsl(206.0870 84.2932% 37.4510% / 0.15);
-  --shadow-sm: 0px 4px 10px 0px hsl(206.0870 84.2932% 37.4510% / 0.30), 0px 1px 2px -1px hsl(206.0870 84.2932% 37.4510% / 0.30);
-  --shadow: 0px 4px 10px 0px hsl(206.0870 84.2932% 37.4510% / 0.30), 0px 1px 2px -1px hsl(206.0870 84.2932% 37.4510% / 0.30);
-  --shadow-md: 0px 4px 10px 0px hsl(206.0870 84.2932% 37.4510% / 0.30), 0px 2px 4px -1px hsl(206.0870 84.2932% 37.4510% / 0.30);
-  --shadow-lg: 0px 4px 10px 0px hsl(206.0870 84.2932% 37.4510% / 0.30), 0px 4px 6px -1px hsl(206.0870 84.2932% 37.4510% / 0.30);
-  --shadow-xl: 0px 4px 10px 0px hsl(206.0870 84.2932% 37.4510% / 0.30), 0px 8px 10px -1px hsl(206.0870 84.2932% 37.4510% / 0.30);
-  --shadow-2xl: 0px 4px 10px 0px hsl(206.0870 84.2932% 37.4510% / 0.75);
 }
 
 @theme inline {
@@ -209,4 +191,3 @@ input[type="password"] {
   margin-top: 0.25rem;
   margin-bottom: 0.25rem;
 }
-
