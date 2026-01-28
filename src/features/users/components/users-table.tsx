@@ -9,6 +9,7 @@ import { TablePaginationControls } from "@/components/table-pagination-controls"
 import { UserTableColumns } from "../hooks/use-admin-user"
 import { UserDeleteDialog } from "./users-delete-dialog"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Switch } from "@/components/ui/switch"
 
 type Props = {
   users: User[]
@@ -21,6 +22,7 @@ type Props = {
   pageSize: number
   onPageChange: (page: number) => void
   onPageSizeChange: (size: number) => void
+  onToggleUserStatus: (id: number, isActive: boolean) => void
 }
 
 export const UsersTable: React.FC<Props> = ({
@@ -34,6 +36,7 @@ export const UsersTable: React.FC<Props> = ({
   pageSize,
   onPageChange,
   onPageSizeChange,
+  onToggleUserStatus,
 }) => {
   const role = (localStorage.getItem("role") || "ADMIN") as Role
   const isPm = role === "PROJECT_MANAGER"
@@ -72,6 +75,9 @@ export const UsersTable: React.FC<Props> = ({
             )}
             {columns.projectRole && (
               <th className="px-4 py-3 font-medium">Project Role</th>
+            )}
+            {columns.isActive && (
+                  <th className="px-4 py-3 font-medium">Status</th>
             )}
             {columns.actions && (
               <th className="px-4 py-3 font-medium">Actions</th>
@@ -112,6 +118,12 @@ export const UsersTable: React.FC<Props> = ({
             <Skeleton className="h-4 w-28 mx-auto" />
           </td>
         )}
+        {columns.isActive && (
+          <td className="px-4 py-3">
+            <Skeleton className="h-4 w-16 mx-auto" />
+          </td>
+        )}
+
         {columns.actions && (
           <td className="px-4 py-3">
             <div className="flex justify-center gap-2">
@@ -154,6 +166,23 @@ export const UsersTable: React.FC<Props> = ({
             {u.projectRole ? u.projectRole.replace("_", " ") : "-"}
           </td>
         )}
+        {columns.isActive && (
+          <td className="px-4 py-3">
+            <div className="flex justify-center items-center gap-2">
+              <Switch
+                checked={u.isActive}
+                disabled={isPm}
+                onCheckedChange={(checked) =>
+                  onToggleUserStatus(u.id, checked)
+                }
+              />
+              <span className="text-xs text-muted-foreground">
+                {u.isActive ? "Active" : "Inactive"}
+              </span>
+            </div>
+          </td>
+        )}
+
         {columns.actions && (
           <td className="px-4 py-3">
             <div className="flex justify-center gap-2">
