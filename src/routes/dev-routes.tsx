@@ -16,7 +16,7 @@ import DailyUpdatesPage from "@/pages/dashboard/dev/daily-updates/daily-updates-
 import CreateDailyUpdatePage from "@/pages/dashboard/dev/daily-updates/create-daily-update-page"
 import ViewDailyUpdatePage from "@/pages/dashboard/dev/daily-updates/view-daily-update-page"
 import EditDailyUpdatePage from "@/pages/dashboard/dev/daily-updates/edit-daily-update-page"
-import { ProjectTeamUpdateDetailPage } from "@/features/team-updates/components/project-team-update-detail"
+import DevProjectTeamUpdateDetailPage from "@/pages/dashboard/dev/daily-updates/project-team-update-detail-page"
 
 export const devRoutes = (
   <Fragment>
@@ -151,7 +151,7 @@ export const devRoutes = (
             path="/developer-dashboard/project-daily-updates/:id"
             element={
               <ProtectedRoute allowedRoles={["developer"]}>
-                <ProjectTeamUpdateDetailPage />
+                <DevProjectTeamUpdateDetailPage />
               </ProtectedRoute>
             }
           />

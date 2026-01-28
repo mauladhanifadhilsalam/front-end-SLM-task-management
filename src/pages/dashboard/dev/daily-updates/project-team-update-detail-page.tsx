@@ -1,0 +1,36 @@
+import * as React from "react"
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import { AppSidebarDev } from "../components/app-sidebardev"
+import { SiteHeader } from "@/components/site-header"
+import { ProjectTeamUpdateDetail } from "@/features/team-updates/components/project-team-update-detail"
+
+export default function DevProjectTeamUpdateDetailPage() {
+  return (
+    <SidebarProvider
+      style={
+        {
+          "--sidebar-width": "calc(var(--spacing) * 72)",
+          "--header-height": "calc(var(--spacing) * 12)",
+        } as React.CSSProperties
+      }
+    >
+      <AppSidebarDev variant="inset" />
+      <SidebarInset>
+        <SiteHeader />
+        <div className="flex flex-1 flex-col">
+          <div className="@container/main flex flex-1 flex-col gap-2">
+            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+              <div className="px-4 lg:px-6">
+                <ProjectTeamUpdateDetail
+                  title="Daily Updates"
+                  description="Daily updates per project"
+                  basePath="/developer-dashboard/daily-updates"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
+  )
+}
