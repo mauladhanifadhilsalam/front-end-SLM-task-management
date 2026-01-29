@@ -1,22 +1,22 @@
-import { Link } from "react-router-dom";
+import { Link } from "react-router-dom"
 import {
   Card,
   CardHeader,
   CardTitle,
   CardContent,
   CardFooter,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { IconEye, IconCalendar } from "@tabler/icons-react";
-import { AssignmentCard } from "@/types/developer-projects.types";
+} from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { IconEye, IconCalendar } from "@tabler/icons-react"
+import { AssignmentCard } from "@/types/developer-projects.types"
 
 interface DeveloperProjectCardProps {
-  assignment: AssignmentCard;
+  assignment: AssignmentCard
 }
 
 const formatStatus = (status: string) =>
-  status.replace(/_/g, " ").toLowerCase();
+  status.replace(/_/g, " ").toLowerCase()
 
 const formatDate = (iso?: string) =>
   iso
@@ -25,17 +25,18 @@ const formatDate = (iso?: string) =>
         month: "short",
         year: "numeric",
       })
-    : "-";
+    : "-"
 
-const formatRole = (role: string) => role.replace(/_/g, " ").toLowerCase();
+const formatRole = (role: string) =>
+  role.replace(/_/g, " ").toLowerCase()
 
 export function DeveloperProjectCard({
   assignment,
 }: DeveloperProjectCardProps) {
   return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base font-semibold line-clamp-2">
+    <Card className="flex flex-col h-full hover:shadow-md transition-shadow">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base font-semibold line-clamp-2 min-h-[3rem]">
           {assignment.name}
         </CardTitle>
         <Badge variant="secondary" className="w-fit text-xs capitalize mt-1">
@@ -43,7 +44,7 @@ export function DeveloperProjectCard({
         </Badge>
       </CardHeader>
 
-      <CardContent className="space-y-2 text-sm">
+      <CardContent className="flex-1 grid grid-rows-2 gap-3 text-sm">
         <div className="flex justify-between items-center">
           <span className="text-muted-foreground">Status</span>
           <Badge variant="outline" className="capitalize">
@@ -56,13 +57,14 @@ export function DeveloperProjectCard({
             <IconCalendar className="h-3.5 w-3.5" />
             Periode
           </span>
-          <span>
-            {formatDate(assignment.startDate)} - {formatDate(assignment.endDate)}
+          <span className="text-right">
+            {formatDate(assignment.startDate)} –{" "}
+            {formatDate(assignment.endDate)}
           </span>
         </div>
       </CardContent>
 
-      <CardFooter className="pt-2">
+      <CardFooter className="pt-3">
         <Link
           to={`/developer-dashboard/projects/${assignment.projectId}`}
           className="w-full"
@@ -74,5 +76,5 @@ export function DeveloperProjectCard({
         </Link>
       </CardFooter>
     </Card>
-  );
+  )
 }
