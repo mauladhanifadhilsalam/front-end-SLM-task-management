@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { toast } from "sonner"
+import { useQueryClient } from "@tanstack/react-query"
 import {
   projectOwnerSchema,
   type ProjectOwnerValues,
@@ -11,6 +12,7 @@ import {
   getProjectOwnerById,
   updateProjectOwner,
 } from "@/services/project-owner.service"
+import { projectOwnerKeys } from "@/lib/query-keys"
 
 type FieldErrors = Partial<Record<ProjectOwnerField, string>>
 
@@ -31,6 +33,7 @@ export const useEditProjectOwnerForm = (
   options: UseEditProjectOwnerFormOptions,
 ) => {
   const { ownerId, onSuccess } = options
+  const queryClient = useQueryClient()
 
   const [form, setForm] = React.useState<ProjectOwnerValues>(initialValues)
   const [errors, setErrors] = React.useState<FieldErrors>({})
@@ -148,6 +151,15 @@ export const useEditProjectOwnerForm = (
 
         await updateProjectOwner(ownerId, payload)
 
+        await queryClient.invalidateQueries({
+          queryKey: projectOwnerKeys.all,
+        })
+        if (ownerId) {
+          await queryClient.invalidateQueries({
+            queryKey: projectOwnerKeys.detail(ownerId),
+          })
+        }
+
         toast.success("Perubahan berhasil disimpan", {
           description: `Owner "${payload.name}" telah diperbarui.`,
         })
@@ -166,7 +178,7 @@ export const useEditProjectOwnerForm = (
         setSaving(false)
       }
     },
-    [form, ownerId, onSuccess, validateAll],
+    [form, ownerId, onSuccess, queryClient, validateAll],
   )
 
   return {

@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { toast } from "sonner"
+import { useQueryClient } from "@tanstack/react-query"
 import {
   createTicketSchema,
   type CreateTicketValues,
@@ -14,6 +15,7 @@ import {
   type TicketFormProjectOption,
   type TicketFormRequesterOption,
 } from "@/services/ticket.service"
+import { ticketKeys } from "@/lib/query-keys"
 
 type UseCreateTicketFormReturn = {
   form: CreateTicketValues
@@ -28,6 +30,7 @@ type UseCreateTicketFormReturn = {
 }
 
 export function useCreateTicketForm(): UseCreateTicketFormReturn {
+  const queryClient = useQueryClient()
   const [projects, setProjects] = React.useState<TicketFormProjectOption[]>([])
   const [requesters, setRequesters] =
     React.useState<TicketFormRequesterOption[]>([])
@@ -126,6 +129,8 @@ export function useCreateTicketForm(): UseCreateTicketFormReturn {
 
       try {
         await createTicket(payload)
+
+        await queryClient.invalidateQueries({ queryKey: ticketKeys.all })
 
         toast.success("Ticket berhasil dibuat", {
           description: "Ticket baru sudah tersimpan.",

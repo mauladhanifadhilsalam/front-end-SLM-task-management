@@ -4,6 +4,7 @@ import * as React from "react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 import axios from "axios"
+import { useQueryClient } from "@tanstack/react-query"
 import {
   ProjectLite,
   UserLite,
@@ -11,6 +12,7 @@ import {
 } from "@/types/project-assignment.type"
 import { projectAssignmentCreateSchema, ProjectAssignmentCreateForm } from "@/schemas/project-assignment.schema"
 import { createProjectAssignment } from "@/services/project-assignment.service"
+import { projectAssignmentKeys } from "@/lib/query-keys"
 
 const API_BASE = import.meta.env.VITE_API_BASE
 
@@ -35,6 +37,7 @@ type UseCreateProjectAssignmentFormResult = {
 export const useCreateProjectAssignmentForm =
   (): UseCreateProjectAssignmentFormResult => {
     const navigate = useNavigate()
+    const queryClient = useQueryClient()
 
     const [projects, setProjects] = React.useState<ProjectLite[]>([])
     const [users, setUsers] = React.useState<UserLite[]>([])
@@ -140,6 +143,10 @@ export const useCreateProjectAssignmentForm =
       try {
         setSaving(true)
         await createProjectAssignment(payload)
+
+        await queryClient.invalidateQueries({
+          queryKey: projectAssignmentKeys.all,
+        })
 
         toast.success("Project assignment berhasil dibuat", {
           description: "Project assignment baru sudah tersimpan.",

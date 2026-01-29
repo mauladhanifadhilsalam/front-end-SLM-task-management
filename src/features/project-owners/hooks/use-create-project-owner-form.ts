@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { toast } from "sonner"
+import { useQueryClient } from "@tanstack/react-query"
 import {
   projectOwnerSchema,
   type ProjectOwnerValues,
@@ -9,6 +10,7 @@ import {
 } from "@/schemas/project-owner.schema"
 import { createProjectOwner } from "@/services/project-owner.service"
 import { ProjectOwner } from "@/types/project-owner.type"
+import { projectOwnerKeys } from "@/lib/query-keys"
 
 type FieldErrors = Partial<Record<ProjectOwnerField, string>>
 
@@ -27,6 +29,7 @@ const initialValues: ProjectOwnerValues = {
 export const useCreateProjectOwnerForm = (
   options?: UseCreateProjectOwnerFormOptions,
 ) => {
+  const queryClient = useQueryClient()
   const [form, setForm] = React.useState<ProjectOwnerValues>(initialValues)
   const [errors, setErrors] = React.useState<FieldErrors>({})
   const [saving, setSaving] = React.useState(false)
@@ -97,6 +100,10 @@ export const useCreateProjectOwnerForm = (
         }
 
         const created = await createProjectOwner(payload)
+
+        await queryClient.invalidateQueries({
+          queryKey: projectOwnerKeys.all,
+        })
 
         toast.success("Project owner berhasil dibuat", {
           description: `Owner "${payload.name}" berhasil ditambahkan.`,

@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { toast } from "sonner"
+import { useQueryClient } from "@tanstack/react-query"
 import {
   editTicketSchema,
   type EditTicketField,
@@ -16,6 +17,7 @@ import {
   type TicketFormRequesterOption,
 } from "@/services/ticket.service"
 import type { EditTicketAssigneeTicket } from "@/types/ticket-assignee.type"
+import { ticketKeys } from "@/lib/query-keys"
 
 const OPTIONS_TTL_MS = 5 * 60 * 1000
 
@@ -66,6 +68,7 @@ const toLocalInput = (iso?: string | null) => {
 }
 
 export function useEditTicketForm(ticketId?: string): UseEditTicketFormReturn {
+  const queryClient = useQueryClient()
   const [projects, setProjects] = React.useState<TicketFormProjectOption[]>([])
   const [requesters, setRequesters] =
     React.useState<TicketFormRequesterOption[]>([])
@@ -285,6 +288,12 @@ export function useEditTicketForm(ticketId?: string): UseEditTicketFormReturn {
 
     try {
       await updateTicket(ticketId, payload)
+      await queryClient.invalidateQueries({ queryKey: ticketKeys.all })
+      if (ticketId) {
+        await queryClient.invalidateQueries({
+          queryKey: ticketKeys.detail(ticketId),
+        })
+      }
       toast.success("Perubahan ticket disimpan", {
         description: "Update ticket berhasil tersimpan.",
       })
