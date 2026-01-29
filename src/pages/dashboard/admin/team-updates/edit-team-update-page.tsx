@@ -56,9 +56,7 @@ export default function AdminEditTeamUpdatePage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() =>
-                      navigate("/admin/dashboard/team-updates")
-                    }
+                    onClick={() => navigate(-1)}
                     className="flex items-center gap-2 cursor-pointer"
                   >
                     <IconArrowLeft className="h-4 w-4" />

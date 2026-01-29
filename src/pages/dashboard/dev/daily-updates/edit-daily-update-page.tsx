@@ -56,9 +56,7 @@ export default function EditDailyUpdatePage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() =>
-                      navigate("/developer-dashboard/daily-updates")
-                    }
+                    onClick={() => navigate(-1)}
                     className="flex items-center gap-2 cursor-pointer"
                   >
                     <IconArrowLeft className="h-4 w-4" />
