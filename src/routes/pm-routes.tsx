@@ -8,7 +8,7 @@ import TeamUpdatePage from "@/pages/dashboard/pm/team-updates/team-update-page"
 import ViewTeamUpdatePage from "@/pages/dashboard/pm/team-updates/view-team-update-page"
 import CreateTeamUpdatePage from "@/pages/dashboard/pm/team-updates/create-team-update-page"
 import EditTeamUpdatePage from "@/pages/dashboard/pm/team-updates/edit-team-update-page"
-import { ProjectTeamUpdateDetailPage } from "@/features/team-updates/components/project-team-update-detail"
+import PmProjectTeamUpdateDetailPage from "@/pages/dashboard/pm/team-updates/project-team-update-detail-page"
 
 
 import ViewProjectOwnerPage from "@/pages/dashboard/pm/project-owners/view-project-owner-page"
@@ -204,7 +204,7 @@ export const pmRoutes = (
       path="/project-manager/dashboard/project-team-update/:id"
       element={
         <ProtectedRoute allowedRoles={["project_manager"]}>
-          <ProjectTeamUpdateDetailPage />
+          <PmProjectTeamUpdateDetailPage />
         </ProtectedRoute>
       }
     />

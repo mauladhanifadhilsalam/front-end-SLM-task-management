@@ -272,9 +272,10 @@ export function TeamUpdateTable({
     }
 
     const handleDeleteUpdate = (item: TeamUpdate) => {
-        if (isDeveloper && item.userId !== currentUserId) return
-        if (!isDeveloper && !isAdmin && !isPm) return
-        setDeleteTarget(item)
+        // Only Admin or the creator of the update can delete
+        if (isAdmin || item.userId === currentUserId) {
+            setDeleteTarget(item)
+        }
     }
 
     const confirmDelete = () => {
@@ -633,32 +634,7 @@ export function TeamUpdateTable({
                                                                     >
                                                                         <IconEye className="h-4 w-4" />
                                                                     </Button>
-                                                                    {isDeveloper && item.userId === currentUserId ? (
-                                                                        <>
-                                                                            <Button
-                                                                                type="button"
-                                                                                variant="ghost"
-                                                                                size="icon"
-                                                                                className="h-8 w-8"
-                                                                                onClick={() => handleEditUpdate(item.id)}
-                                                                                aria-label="Edit update"
-                                                                            >
-                                                                                <IconEdit className="h-4 w-4" />
-                                                                            </Button>
-                                                                            <Button
-                                                                                type="button"
-                                                                                variant="ghost"
-                                                                                size="icon"
-                                                                                className="h-8 w-8 text-red-600 hover:text-red-700"
-                                                                                onClick={() => handleDeleteUpdate(item)}
-                                                                                aria-label="Delete update"
-                                                                                disabled={deleteMutation.isPending}
-                                                                            >
-                                                                                <IconTrash className="h-4 w-4" />
-                                                                            </Button>
-                                                                        </>
-                                                                    ) : null}
-                                                                    {isAdmin || isPm ? (
+                                                                    {(isAdmin || item.userId === currentUserId) ? (
                                                                         <>
                                                                             <Button
                                                                                 type="button"
