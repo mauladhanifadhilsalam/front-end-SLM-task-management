@@ -88,7 +88,7 @@ export default function IssueEscalationPage() {
   React.useEffect(() => {
     setLoading(true)
     axios
-      .get("http://localhost:3000/tickets")
+      .get("http://localhost:3000/api/tickets")
       .then((res) => {
         setTickets(
           res.data.data.filter(
@@ -117,7 +117,7 @@ export default function IssueEscalationPage() {
 
   const handleDelete = async (id: number) => {
     try {
-      await axios.delete(`http://localhost:3000/tickets/${id}`)
+      await axios.delete(`http://localhost:3000/api/tickets/${id}`)
       setTickets((p) => p.filter((t) => t.id !== id))
     } catch (err) {
       setError("Gagal menghapus issue")

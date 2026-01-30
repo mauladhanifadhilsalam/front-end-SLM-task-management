@@ -8,7 +8,13 @@ import {
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { IconEye, IconCalendar } from "@tabler/icons-react"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu"
+import { IconEye, IconCalendar, IconDotsVertical, IconListDetails, IconInfoCircle } from "@tabler/icons-react"
 import { AssignmentCard } from "@/types/developer-projects.types"
 
 interface DeveloperProjectCardProps {
@@ -35,8 +41,27 @@ export function DeveloperProjectCard({
 }: DeveloperProjectCardProps) {
   return (
     <Card className="flex flex-col h-full hover:shadow-md transition-shadow">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base font-semibold line-clamp-2 min-h-[3rem]">
+      <CardHeader className="pb-3 relative">
+        <div className="absolute right-4 top-4">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <IconDotsVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent align="end" className="w-52">
+              <DropdownMenuItem asChild>
+                <Link to={`/developer-dashboard/projects/view/${assignment.projectId}`}>
+                  <IconInfoCircle className="h-3.5 w-3.5 mr-2" />
+                  Project Details
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        <CardTitle className="text-base font-semibold line-clamp-2 min-h-[3rem] pr-10">
           {assignment.name}
         </CardTitle>
         <Badge variant="secondary" className="w-fit text-xs capitalize mt-1">
