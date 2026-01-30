@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 import { fetchProjects } from "@/services/project.service";
 import {
   fetchProjectPhaseById,
@@ -10,6 +11,7 @@ import type { Project } from "@/types/project.type";
 import type { EditProjectPhasePayload } from "@/types/project-phases.type";
 import { editProjectPhaseSchema } from "@/schemas/project-phase.schema";
 import { toInputDate } from "@/utils/date-input-util";
+import { projectPhaseKeys } from "@/lib/query-keys";
 
 export type EditProjectPhaseField =
   | "name"
@@ -29,6 +31,7 @@ type FieldErrors = Partial<Record<EditProjectPhaseField, string>>;
 export const useEditProjectPhaseForm = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const queryClient = useQueryClient();
 
   const [projects, setProjects] = React.useState<Project[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -151,6 +154,15 @@ export const useEditProjectPhaseForm = () => {
 
     try {
       await updateProjectPhase(Number(id), payload);
+
+      await queryClient.invalidateQueries({
+        queryKey: projectPhaseKeys.all,
+      });
+      if (id) {
+        await queryClient.invalidateQueries({
+          queryKey: projectPhaseKeys.detail(id),
+        });
+      }
 
       toast.success("Project phase updated", {
         description: "Project phase updated successfully.",

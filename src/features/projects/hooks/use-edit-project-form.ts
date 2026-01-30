@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { toast } from "sonner"
+import { useQueryClient } from "@tanstack/react-query"
 
 import {
   ProjectStatus,
@@ -17,6 +18,7 @@ import {
   syncProjectPhases,
   type EditProjectPhaseForm,
 } from "@/services/project-phase.service"
+import { projectKeys, projectPhaseKeys } from "@/lib/query-keys"
 
 type FormData = {
   name: string
@@ -46,6 +48,7 @@ export const useEditProjectForm = ({
   projectId,
   onSuccess,
 }: UseEditProjectFormOptions) => {
+  const queryClient = useQueryClient()
   const [formData, setFormData] = React.useState<FormData>({
     name: "",
     categories: [],
@@ -306,6 +309,16 @@ export const useEditProjectForm = ({
         phases,
         deletedPhaseIds,
       )
+
+      await queryClient.invalidateQueries({ queryKey: projectKeys.all })
+      if (projectId) {
+        await queryClient.invalidateQueries({
+          queryKey: projectKeys.detail(projectId),
+        })
+      }
+      await queryClient.invalidateQueries({
+        queryKey: projectPhaseKeys.all,
+      })
 
       toast.success("Project berhasil diperbarui", {
         description: "Perubahan project dan phases berhasil disimpan.",

@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { toast } from "sonner"
+import { useQueryClient } from "@tanstack/react-query"
 import {
   editUserSchema,
   type EditUserValues,
@@ -10,6 +11,7 @@ import {
   toEditPayload,
 } from "@/schemas/users.schema"
 import { getUserById, updateUser } from "@/services/user.service"
+import { userKeys } from "@/lib/query-keys"
 
 type FieldErrors = Partial<Record<EditUserField, string>>
 
@@ -30,6 +32,7 @@ const normalizeRole = (value: unknown): EditUserValues["role"] => {
 
 export const useEditUserForm = (options: UseEditUserFormOptions) => {
   const { userId, onSuccess } = options
+  const queryClient = useQueryClient()
 
   const [form, setForm] = React.useState<EditUserValues>({
     fullName: "",
@@ -122,6 +125,13 @@ export const useEditUserForm = (options: UseEditUserFormOptions) => {
       try {
         await updateUser(userId, payload)
 
+        await queryClient.invalidateQueries({ queryKey: userKeys.all })
+        if (userId) {
+          await queryClient.invalidateQueries({
+            queryKey: userKeys.detail(userId),
+          })
+        }
+
         toast.success("Perubahan disimpan", {
           description: "Perubahan user berhasil disimpan.",
         })
@@ -177,7 +187,7 @@ export const useEditUserForm = (options: UseEditUserFormOptions) => {
         setSaving(false)
       }
     },
-    [form, onSuccess, userId],
+    [form, onSuccess, queryClient, userId],
   )
 
 return {

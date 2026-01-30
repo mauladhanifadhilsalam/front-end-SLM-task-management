@@ -1,11 +1,13 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 import { fetchProjects } from "@/services/project.service";
 import { createProjectPhase } from "@/services/project-phase.service";
 import type { Project } from "@/types/project.type";
 import type { CreateProjectPhasePayload } from "@/types/project-phases.type";
 import { createProjectPhaseSchema } from "@/schemas/project-phase.schema";
+import { projectPhaseKeys } from "@/lib/query-keys";
 
 export type CreateProjectPhaseField =
   | "name"
@@ -24,6 +26,7 @@ type FieldErrors = Partial<Record<CreateProjectPhaseField, string>>;
 
 export const useCreateProjectPhaseForm = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [projects, setProjects] = React.useState<Project[]>([]);
   const [loadingProjects, setLoadingProjects] = React.useState(false);
@@ -119,6 +122,10 @@ export const useCreateProjectPhaseForm = () => {
 
     try {
       await createProjectPhase(payload);
+
+      await queryClient.invalidateQueries({
+        queryKey: projectPhaseKeys.all,
+      });
 
       toast.success("Project phase created", {
         description: "Project phase created successfully.",

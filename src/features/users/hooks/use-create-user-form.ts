@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { toast } from "sonner"
+import { useQueryClient } from "@tanstack/react-query"
 import {
   createUserSchema,
   type CreateUserValues,
@@ -9,6 +10,7 @@ import {
 } from "@/schemas/users.schema"
 import { createUser } from "@/services/user.service"
 import { User } from "@/types/user.types"
+import { userKeys } from "@/lib/query-keys"
 
 type UseCreateUserFormOptions = {
   onSuccess?: (user: User) => void
@@ -25,6 +27,7 @@ const initialValues: CreateUserValues = {
 }
 
 export const useCreateUserForm = (options?: UseCreateUserFormOptions) => {
+  const queryClient = useQueryClient()
   const [formData, setFormData] = React.useState<CreateUserValues>(
     initialValues,
   )
@@ -74,6 +77,8 @@ export const useCreateUserForm = (options?: UseCreateUserFormOptions) => {
 
       try {
         const createdUser = await createUser(parsed.data)
+
+        await queryClient.invalidateQueries({ queryKey: userKeys.all })
 
         setSuccessMsg(`User "${createdUser.fullName}" berhasil dibuat.`)
         toast.success("User berhasil dibuat", {

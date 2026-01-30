@@ -231,6 +231,7 @@ export default function TicketComments({
                 : c
             )
         );
+        await fetchComments();
         } catch (err: any) {
         const errorMsg = err?.response?.data?.message || err?.message || "Tidak bisa kirim komentar";
         toast.error("Gagal mengirim komentar", {
