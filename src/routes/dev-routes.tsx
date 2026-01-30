@@ -1,6 +1,8 @@
 import { Fragment } from "react"
 import { Route } from "react-router-dom"
 import { ProtectedRoute } from "../components/ProtectedRoute"
+import { ProtectedProjectRoute } from "../components/ProtectedProjectRoute"
+import { ProtectedTicketRoute } from "../components/ProtectedTicketRoute"
 import DevDashboard from "../pages/dashboard/dev/dasboard"
 import NotificationPage from "../pages/notification/notification"
 import DeveloperProjects from "@/pages/dashboard/dev/DeveloperProject/DevProject"
@@ -50,7 +52,9 @@ export const devRoutes = (
       path="/developer-dashboard/projects/:projectId"
       element={
         <ProtectedRoute allowedRoles={["developer"]}>
-          <DevProjectTask />
+          <ProtectedProjectRoute>
+            <DevProjectTask />
+          </ProtectedProjectRoute>
         </ProtectedRoute>
       }
     />
@@ -59,7 +63,9 @@ export const devRoutes = (
       path="/developer-dashboard/projects/:projectId/tasks/:taskId"
       element={
         <ProtectedRoute allowedRoles={["developer"]}>
-          <DeveloperTaskDetail />
+          <ProtectedProjectRoute>
+            <DeveloperTaskDetail />
+          </ProtectedProjectRoute>
         </ProtectedRoute>
       }
     />
@@ -84,7 +90,9 @@ export const devRoutes = (
       path="/developer-dashboard/ticket-issue/view/:id"
       element={
         <ProtectedRoute allowedRoles={["developer"]}>
-          <DevViewTicketIssue />
+          <ProtectedTicketRoute>
+            <DevViewTicketIssue />
+          </ProtectedTicketRoute>
         </ProtectedRoute>
       }
     />
@@ -102,7 +110,9 @@ export const devRoutes = (
       path="/developer-dashboard/ticket-issue/edit/:id"
       element={
         <ProtectedRoute allowedRoles={["developer"]}>
-          <DevEditTicketIssue />
+          <ProtectedTicketRoute>
+            <DevEditTicketIssue />
+          </ProtectedTicketRoute>
         </ProtectedRoute>
       }
     />
@@ -111,7 +121,9 @@ export const devRoutes = (
       path="/developer-dashboard/ticket-issue/:id/attachments/new"
       element={
         <ProtectedRoute allowedRoles={["developer"]}>
-          <DevAddTicketAttachment />
+          <ProtectedTicketRoute>
+            <DevAddTicketAttachment />
+          </ProtectedTicketRoute>
         </ProtectedRoute>
       }
     />
