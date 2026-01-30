@@ -52,7 +52,9 @@ export function DevCharts({ dashboard }: Props) {
   ]
 
   const ticketsByProjectData = Array.isArray(dashboard.ticketsByProject)
-    ? dashboard.ticketsByProject.map((p: any) => ({
+  ? dashboard.ticketsByProject
+      .sort((a: any, b: any) => a.projectId - b.projectId) 
+      .map((p: any) => ({
         project: `#${p.projectId}`,
         open: safeNumber(p.openTickets, 0),
         closed: Math.max(
@@ -60,7 +62,7 @@ export function DevCharts({ dashboard }: Props) {
           safeNumber(p.totalTickets, 0) - safeNumber(p.openTickets, 0)
         ),
       }))
-    : []
+  : []
 
   const TicketsTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload || !payload.length) return null
